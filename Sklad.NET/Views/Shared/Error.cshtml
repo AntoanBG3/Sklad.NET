@@ -1,0 +1,34 @@
+@model ErrorViewModel
+@{
+    ViewData["Title"] = L["Error"].Value;
+}
+
+<div class="page">
+    <div class="container">
+        <div class="page-head">
+            <div>
+                <div class="eyebrow is-alert">@L["Error"]</div>
+                <h1 class="page-title">@L["Something went wrong"]</h1>
+                <p class="page-lede">@L["An error occurred while processing your request."]</p>
+            </div>
+            <div class="head-actions">
+                <a asp-controller="Tires" asp-action="Index" class="btn btn-secondary btn-sm">@L["Back to Inventory"]</a>
+            </div>
+        </div>
+
+        @if (Model.ShowRequestId)
+        {
+            <dl class="specs" style="max-width:560px">
+                <dt>@L["Request ID"]</dt>
+                <dd class="mono">@Model.RequestId</dd>
+            </dl>
+        }
+
+        <div class="block" style="max-width:640px;margin-top:var(--sp-6)">
+            <div class="block-head">
+                <span class="block-title">@L["Development Mode"]</span>
+            </div>
+            <p class="page-lede">@L["Setting the ASPNETCORE_ENVIRONMENT variable to Development shows detailed error information. Do not enable the Development environment for deployed applications, as it can expose sensitive details from exceptions to end users."]</p>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,135 @@
+@model Sklad.Models.Tire
+
+@{
+    ViewData["Title"] = L["Add Tire"].Value;
+}
+
+<div class="page">
+    <div class="container">
+
+        <div class="page-head">
+            <div>
+                <div class="eyebrow">@L["Inventory"]</div>
+                <h1 class="page-title">@L["Add Tire"]</h1>
+                <p class="page-lede">@L["Create a new tire SKU in the inventory."]</p>
+            </div>
+            <div class="head-actions">
+                <a asp-action="Index" class="btn btn-secondary btn-sm">@L["Back"]</a>
+            </div>
+        </div>
+
+        <form asp-action="Create" class="form">
+
+            <div asp-validation-summary="ModelOnly" class="form-errors"></div>
+
+            <div class="form-section">
+                <div class="form-section-title">@L["Identity"]</div>
+                <div class="field">
+                    <label asp-for="Sku" class="field-label">@L["SKU"]</label>
+                    <input asp-for="Sku" class="field-input" placeholder="MCH-PS4-20555R16" />
+                    <span asp-validation-for="Sku" class="field-error"></span>
+                </div>
+                <div class="form-grid-2">
+                    <div class="field">
+                        <label asp-for="Brand" class="field-label">@L["Brand"]</label>
+                        <input asp-for="Brand" class="field-input" placeholder="Michelin" />
+                        <span asp-validation-for="Brand" class="field-error"></span>
+                    </div>
+                    <div class="field">
+                        <label asp-for="Model" class="field-label">@L["Model"]</label>
+                        <input asp-for="Model" class="field-input" placeholder="Pilot Sport 4" />
+                        <span asp-validation-for="Model" class="field-error"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <div class="form-section-title">@L["Size"]</div>
+                <div class="form-grid-3">
+                    <div class="field">
+                        <label asp-for="Width" class="field-label">@L["Width"]</label>
+                        <input asp-for="Width" class="field-input" placeholder="205" />
+                        <span asp-validation-for="Width" class="field-error"></span>
+                    </div>
+                    <div class="field">
+                        <label asp-for="Profile" class="field-label">@L["Profile"]</label>
+                        <input asp-for="Profile" class="field-input" placeholder="55" />
+                        <span asp-validation-for="Profile" class="field-error"></span>
+                    </div>
+                    <div class="field">
+                        <label asp-for="Diameter" class="field-label">@L["Diameter"]</label>
+                        <input asp-for="Diameter" class="field-input" placeholder="16" />
+                        <span asp-validation-for="Diameter" class="field-error"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <div class="form-section-title">@L["Classification"]</div>
+                <div class="form-grid-2">
+                    <div class="field">
+                        <label asp-for="Season" class="field-label">@L["Season"]</label>
+                        <select asp-for="Season" class="field-select">
+                            @foreach (Season s in Enum.GetValues<Season>())
+                            {
+                                <option value="@s">@L[Enums.Key(s)]</option>
+                            }
+                        </select>
+                        <span asp-validation-for="Season" class="field-error"></span>
+                    </div>
+                    <div class="field">
+                        <label asp-for="Type" class="field-label">@L["Type"]</label>
+                        <select asp-for="Type" class="field-select">
+                            @foreach (TireType t in Enum.GetValues<TireType>())
+                            {
+                                <option value="@t">@L[Enums.Key(t)]</option>
+                            }
+                        </select>
+                        <span asp-validation-for="Type" class="field-error"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <div class="form-section-title">@L["Pricing & Stock"]</div>
+                <div class="field">
+                    <label asp-for="UnitPrice" class="field-label">@L["Unit Price (€)"]</label>
+                    <input asp-for="UnitPrice" class="field-input" placeholder="0.00" />
+                    <span asp-validation-for="UnitPrice" class="field-error"></span>
+                </div>
+                <div class="form-grid-2">
+                    <div class="field">
+                        <label asp-for="Quantity" class="field-label">@L["Quantity"]</label>
+                        <input asp-for="Quantity" class="field-input" placeholder="0" />
+                        <span asp-validation-for="Quantity" class="field-error"></span>
+                    </div>
+                    <div class="field">
+                        <label asp-for="MinStock" class="field-label">@L["Min Stock"]</label>
+                        <input asp-for="MinStock" class="field-input" placeholder="5" />
+                        <span asp-validation-for="MinStock" class="field-error"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <div class="form-section-title">@L["Location"]</div>
+                <div class="field">
+                    <label asp-for="Location" class="field-label">@L["Location"]</label>
+                    <input asp-for="Location" class="field-input" placeholder="Rack A-3" />
+                    <span asp-validation-for="Location" class="field-error"></span>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">@L["Save Tire"]</button>
+                <a asp-action="Index" class="btn btn-secondary">@L["Cancel"]</a>
+            </div>
+
+        </form>
+
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

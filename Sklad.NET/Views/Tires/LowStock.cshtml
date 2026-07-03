@@ -1,0 +1,99 @@
+@model IEnumerable<Sklad.Models.Tire>
+
+@{
+    ViewData["Title"] = L["Low Stock"].Value;
+    var count = Model.Count();
+}
+
+<div class="page">
+    <div class="container">
+
+        <div class="page-head">
+            <div>
+                <div class="eyebrow @(count > 0 ? "is-alert" : "")">@L["Report"]</div>
+                <h1 class="page-title">@L["Low Stock"]</h1>
+                <p class="page-lede">
+                    @if (count == 0)
+                    {
+                        <span>@L["All tires are at or above their minimum stock level."]</span>
+                    }
+                    else
+                    {
+                        <span><span class="accent">@count</span> @L["at or below minimum stock level"]</span>
+                    }
+                </p>
+            </div>
+            <div class="head-actions">
+                <a asp-action="Index" class="btn btn-secondary btn-sm">@L["All Inventory"]</a>
+            </div>
+        </div>
+
+        <div class="block">
+            <div class="block-head">
+                <span class="block-title @(count > 0 ? "is-alert" : "")">
+                    @(count > 0 ? L["{0} requiring attention", count] : L["All stocked"])
+                </span>
+            </div>
+
+            <div class="table-scroll">
+                @if (!Model.Any())
+                {
+                    <div class="empty">
+                        <strong>@L["Nothing below minimum"]</strong>
+                        @L["Inventory is in good shape — no restock needed."]
+                    </div>
+                }
+                else
+                {
+                    <table class="data-table">
+                        <colgroup>
+                            <col class="w-sku" /><col class="w-tire" /><col class="w-size" />
+                            <col class="w-class" /><col class="w-stock" /><col class="w-def" />
+                            <col class="w-loc" /><col class="w-act" />
+                        </colgroup>
+                        <thead>
+                            <tr>
+                                <th>@L["SKU"]</th>
+                                <th>@L["Tire"]</th>
+                                <th>@L["Size"]</th>
+                                <th>@L["Season"]</th>
+                                <th class="col-num">@L["Stock"]</th>
+                                <th class="col-num">@L["Deficit"]</th>
+                                <th>@L["Location"]</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var t in Model)
+                            {
+                                int deficit = t.MinStock - t.Quantity;
+                                <tr class="is-low">
+                                    <td class="mono">@t.Sku</td>
+                                    <td>
+                                        <span class="cell-stack cell-strong">@t.Brand</span>
+                                        <span class="cell-sub">@t.Model</span>
+                                    </td>
+                                    <td class="mono">@t.Size</td>
+                                    <td><span class="tag">@L[Enums.Key(t.Season)]</span></td>
+                                    <td class="col-num">
+                                        <span class="cell-stack qty-low">@t.Quantity</span>
+                                        <span class="cell-sub">@L["/ min {0}", t.MinStock]</span>
+                                    </td>
+                                    <td class="col-num deficit">+@deficit</td>
+                                    <td class="cell-muted">@(t.Location ?? "—")</td>
+                                    <td>
+                                        <div class="row-actions">
+                                            <a asp-action="RegisterMovement" asp-route-id="@t.Id">@L["Move"]</a>
+                                            <a asp-action="Edit" asp-route-id="@t.Id">@L["Edit"]</a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+            </div>
+        </div>
+
+    </div>
+</div>

@@ -1,0 +1,97 @@
+@model Sklad.ViewModels.RegisterMovementViewModel
+
+@{
+    var tire = (Sklad.Models.Tire)ViewBag.Tire;
+    ViewData["Title"] = $"{L["Add Movement"].Value} — {tire.Brand} {tire.Model}";
+}
+
+<div class="page">
+    <div class="container">
+
+        <div class="page-head">
+            <div>
+                <div class="eyebrow">@L["Stock Ledger"]</div>
+                <h1 class="page-title">@L["Add Movement"]</h1>
+                <p class="page-lede mono">@tire.Brand @tire.Model &bull; @tire.Size &bull; @tire.Sku</p>
+            </div>
+            <div class="head-actions">
+                <a asp-action="Details" asp-route-id="@tire.Id" class="btn btn-secondary btn-sm">@L["Back"]</a>
+            </div>
+        </div>
+
+        <div class="grid">
+            <div class="col-5">
+                <div class="block">
+                    <div class="block-head">
+                        <span class="block-title">@L["Current Stock"]</span>
+                    </div>
+                    <dl class="specs">
+                        <dt>@L["Brand"]</dt>
+                        <dd class="dd-strong">@tire.Brand</dd>
+                        <dt>@L["Model"]</dt>
+                        <dd>@tire.Model</dd>
+                        <dt>@L["Size"]</dt>
+                        <dd class="mono">@tire.Size</dd>
+                        <dt>@L["Quantity"]</dt>
+                        <dd>
+                            <span class="@(tire.IsLowStock ? "qty-low" : "dd-strong")">@tire.Quantity</span>
+                            <span class="cell-muted"> @L["/ min {0}", tire.MinStock]</span>
+                        </dd>
+                        <dt>@L["Location"]</dt>
+                        <dd>@(tire.Location ?? "—")</dd>
+                    </dl>
+                </div>
+            </div>
+
+            <div class="col-7">
+                <form asp-action="RegisterMovement" method="post" class="block">
+                    <div class="block-head">
+                        <span class="block-title">@L["Movement Details"]</span>
+                    </div>
+
+                    <input type="hidden" asp-for="TireId" />
+
+                    <div asp-validation-summary="All" class="form-errors"></div>
+
+                    <div class="field">
+                        <label asp-for="MovementType" class="field-label">@L["Movement Type"]</label>
+                        <select asp-for="MovementType" class="field-select">
+                            @foreach (MovementType mt in Enum.GetValues<MovementType>())
+                            {
+                                <option value="@mt">@L[Enums.Key(mt)]</option>
+                            }
+                        </select>
+                        <span asp-validation-for="MovementType" class="field-error"></span>
+                        <p class="field-hint">
+                            @Html.Raw($"<strong>{L[Enums.Key(MovementType.In)]}</strong> {L["adds units"]} &bull; <strong>{L[Enums.Key(MovementType.Out)]}</strong> {L["subtracts units"]} &bull; <strong>{L[Enums.Key(MovementType.Adjustment)]}</strong> {L["sets the exact quantity"]}")
+                        </p>
+                    </div>
+
+                    <div class="field">
+                        <label asp-for="Quantity" class="field-label">@L["Quantity"]</label>
+                        <input asp-for="Quantity" type="number" min="0" class="field-input" placeholder="0" />
+                        <span asp-validation-for="Quantity" class="field-error"></span>
+                        <p class="field-hint">@L["For Adjustment, enter the target stock count (0 writes off all stock)."]</p>
+                    </div>
+
+                    <div class="field">
+                        <label asp-for="Note" class="field-label">@L["Note"] <span class="optional">@L["(optional)"]</span></label>
+                        <textarea asp-for="Note" class="field-textarea" placeholder="…"></textarea>
+                        <span asp-validation-for="Note" class="field-error"></span>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">@L["Record Movement"]</button>
+                        <a asp-action="Details" asp-route-id="@tire.Id" class="btn btn-secondary">@L["Cancel"]</a>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

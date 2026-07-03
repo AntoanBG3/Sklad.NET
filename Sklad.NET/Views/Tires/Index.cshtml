@@ -1,0 +1,200 @@
+@model IndexViewModel
+
+@{
+    ViewData["Title"] = L["Inventory"].Value;
+    var f = Model.Filter;
+    int activeFilters = (string.IsNullOrWhiteSpace(f.Sku) ? 0 : 1)
+                      + (string.IsNullOrWhiteSpace(f.Brand) ? 0 : 1)
+                      + (string.IsNullOrWhiteSpace(f.Model) ? 0 : 1)
+                      + (f.Width.HasValue ? 1 : 0)
+                      + (f.Profile.HasValue ? 1 : 0)
+                      + (f.Diameter.HasValue ? 1 : 0)
+                      + (f.Season.HasValue ? 1 : 0)
+                      + (f.Type.HasValue ? 1 : 0);
+}
+
+<div class="page">
+    <div class="container">
+
+        <div class="page-head">
+            <div>
+                <div class="eyebrow">@L["Warehouse"]</div>
+                <h1 class="page-title">@L["Inventory"]</h1>
+                <p class="page-lede">@L["{0} SKUs across all brands.", Model.TotalSkus]</p>
+            </div>
+            <div class="head-actions">
+                <a asp-action="Export" asp-route-Sku="@f.Sku" asp-route-Brand="@f.Brand"
+                   asp-route-Model="@f.Model" asp-route-Width="@f.Width" asp-route-Profile="@f.Profile"
+                   asp-route-Diameter="@f.Diameter" asp-route-Season="@f.Season" asp-route-Type="@f.Type"
+                   class="btn btn-secondary btn-sm">@L["Export CSV"]</a>
+                <a asp-action="Create" class="btn btn-primary btn-sm">@L["Add Tire"]</a>
+            </div>
+        </div>
+
+        <div class="statband">
+            <div class="stat">
+                <div class="stat-num num">@Model.TotalSkus</div>
+                <div class="stat-label">@L["Total SKUs"]</div>
+            </div>
+            <div class="stat">
+                <div class="stat-num num">@Model.TotalUnits</div>
+                <div class="stat-label">@L["Units in Stock"]</div>
+            </div>
+            <div class="stat @(Model.LowStockCount > 0 ? "is-alert" : "")">
+                <div class="stat-num num">@Model.LowStockCount</div>
+                <div class="stat-label">@L["Low Stock"]</div>
+            </div>
+            <div class="stat">
+                <div class="stat-num num">@Money.Euro(Model.TotalValue, 0)</div>
+                <div class="stat-label">@L["Inventory Value"]</div>
+                <div class="stat-sub">@Money.Lev(Model.TotalValue, 0)</div>
+            </div>
+        </div>
+
+        <details class="filter" @(f.HasAnyFilter ? "open" : "")>
+            <summary>
+                @L["Filter"]
+                @if (activeFilters > 0)
+                {
+                    <span class="filter-count">@L["{0} active", activeFilters]</span>
+                }
+            </summary>
+            <form method="get" asp-action="Index" class="filter-body">
+                <div class="filter-fields">
+                    <div class="field">
+                        <label class="field-label">@L["SKU"]</label>
+                        <input name="Sku" value="@f.Sku" class="field-input" placeholder="MCH-001" />
+                    </div>
+                    <div class="field">
+                        <label class="field-label">@L["Brand"]</label>
+                        <input name="Brand" value="@f.Brand" class="field-input" placeholder="Michelin" />
+                    </div>
+                    <div class="field">
+                        <label class="field-label">@L["Model"]</label>
+                        <input name="Model" value="@f.Model" class="field-input" placeholder="Pilot Sport" />
+                    </div>
+                    <div class="field">
+                        <label class="field-label">@L["Width"]</label>
+                        <input name="Width" value="@f.Width" type="number" class="field-input" placeholder="205" />
+                    </div>
+                    <div class="field">
+                        <label class="field-label">@L["Profile"]</label>
+                        <input name="Profile" value="@f.Profile" type="number" class="field-input" placeholder="55" />
+                    </div>
+                    <div class="field">
+                        <label class="field-label">@L["Diameter"]</label>
+                        <input name="Diameter" value="@f.Diameter" type="number" class="field-input" placeholder="17" />
+                    </div>
+                    <div class="field">
+                        <label class="field-label">@L["Season"]</label>
+                        <select name="Season" class="field-select">
+                            <option value="">@L["Any season"]</option>
+                            @foreach (Season s in Enum.GetValues<Season>())
+                            {
+                                <option value="@s" selected="@(f.Season == s)">@L[Enums.Key(s)]</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label class="field-label">@L["Type"]</label>
+                        <select name="Type" class="field-select">
+                            <option value="">@L["Any type"]</option>
+                            @foreach (TireType t in Enum.GetValues<TireType>())
+                            {
+                                <option value="@t" selected="@(f.Type == t)">@L[Enums.Key(t)]</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="field">
+                        <button type="submit" class="btn btn-primary">@L["Search"]</button>
+                    </div>
+                </div>
+            </form>
+        </details>
+
+        <div class="block">
+            <div class="block-head">
+                <span class="block-title">@(f.HasAnyFilter ? L["Filtered Results"] : L["All Tires"])</span>
+                <span class="block-meta">
+                    @if (f.HasAnyFilter)
+                    {
+                        <span>@L["{0} of {1} SKUs", Model.Tires.Count(), Model.TotalSkus]</span>
+                        <span> &mdash; </span>
+                        <a asp-action="Index">@L["Clear filter"]</a>
+                    }
+                    else
+                    {
+                        <span>@L["{0} SKUs", Model.TotalSkus]</span>
+                    }
+                </span>
+            </div>
+
+            <div class="table-scroll">
+                @if (!Model.Tires.Any())
+                {
+                    <div class="empty">
+                        <strong>@L["No matching tires"]</strong>
+                        @L["Adjust the filter or clear it to see the full inventory."]
+                    </div>
+                }
+                else
+                {
+                    <table class="data-table">
+                        <colgroup>
+                            <col class="w-sku" /><col class="w-tire" /><col class="w-size" />
+                            <col class="w-class" /><col class="w-price" /><col class="w-qty" />
+                            <col class="w-loc" /><col class="w-act" />
+                        </colgroup>
+                        <thead>
+                            <tr>
+                                <th>@L["SKU"]</th>
+                                <th>@L["Tire"]</th>
+                                <th>@L["Size"]</th>
+                                <th>@L["Season / Type"]</th>
+                                <th class="col-num">@L["Price"]</th>
+                                <th class="col-num">@L["Qty / Min"]</th>
+                                <th>@L["Location"]</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var t in Model.Tires)
+                            {
+                                <tr class="@(t.IsLowStock ? "is-low" : "")">
+                                    <td class="mono">@t.Sku</td>
+                                    <td>
+                                        <span class="cell-stack cell-strong">@t.Brand</span>
+                                        <span class="cell-sub">@t.Model</span>
+                                    </td>
+                                    <td class="mono">@t.Size</td>
+                                    <td>
+                                        <span class="cell-stack tag">@L[Enums.Key(t.Season)]</span>
+                                        <span class="cell-sub">@L[Enums.Key(t.Type)]</span>
+                                    </td>
+                                    <td class="col-num">
+                                        <span class="cell-stack">@Money.Euro(t.UnitPrice)</span>
+                                        <span class="cell-sub">@Money.Lev(t.UnitPrice)</span>
+                                    </td>
+                                    <td class="col-num">
+                                        <span class="cell-stack @(t.IsLowStock ? "qty-low" : "")">@t.Quantity</span>
+                                        <span class="cell-sub">@L["/ min {0}", t.MinStock]</span>
+                                    </td>
+                                    <td class="cell-muted">@(t.Location ?? "—")</td>
+                                    <td>
+                                        <div class="row-actions">
+                                            <a asp-action="Details" asp-route-id="@t.Id">@L["View"]</a>
+                                            <a asp-action="RegisterMovement" asp-route-id="@t.Id">@L["Move"]</a>
+                                            <a asp-action="Edit" asp-route-id="@t.Id">@L["Edit"]</a>
+                                            <a class="act-danger" asp-action="Delete" asp-route-id="@t.Id">@L["Delete"]</a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+            </div>
+        </div>
+
+    </div>
+</div>

@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+  <!-- Navigation & chrome -->
+  <data name="Inventory" xml:space="preserve"><value>Наличност</value></data>
+  <data name="Low Stock" xml:space="preserve"><value>Ниска наличност</value></data>
+  <data name="Tire Warehouse" xml:space="preserve"><value>Склад за гуми</value></data>
+  <data name="Tire Warehouse Management" xml:space="preserve"><value>Управление на склад за гуми</value></data>
+
+  <!-- Index -->
+  <data name="Warehouse" xml:space="preserve"><value>Склад</value></data>
+  <data name="{0} SKUs across all brands." xml:space="preserve"><value>{0} артикула от всички марки.</value></data>
+  <data name="Export CSV" xml:space="preserve"><value>Експорт CSV</value></data>
+  <data name="Add Tire" xml:space="preserve"><value>Добави гума</value></data>
+  <data name="Total SKUs" xml:space="preserve"><value>Общо артикули</value></data>
+  <data name="Units in Stock" xml:space="preserve"><value>Бройки в наличност</value></data>
+  <data name="Inventory Value" xml:space="preserve"><value>Стойност на склада</value></data>
+  <data name="Filter" xml:space="preserve"><value>Филтър</value></data>
+  <data name="{0} active" xml:space="preserve"><value>{0} активни</value></data>
+  <data name="Any season" xml:space="preserve"><value>Всеки сезон</value></data>
+  <data name="Any type" xml:space="preserve"><value>Всеки тип</value></data>
+  <data name="Search" xml:space="preserve"><value>Търси</value></data>
+  <data name="Filtered Results" xml:space="preserve"><value>Филтрирани резултати</value></data>
+  <data name="All Tires" xml:space="preserve"><value>Всички гуми</value></data>
+  <data name="{0} of {1} SKUs" xml:space="preserve"><value>{0} от {1} артикула</value></data>
+  <data name="Clear filter" xml:space="preserve"><value>Изчисти филтъра</value></data>
+  <data name="{0} SKUs" xml:space="preserve"><value>{0} артикула</value></data>
+  <data name="No matching tires" xml:space="preserve"><value>Няма съвпадащи гуми</value></data>
+  <data name="Adjust the filter or clear it to see the full inventory." xml:space="preserve"><value>Променете филтъра или го изчистете, за да видите цялата наличност.</value></data>
+  <data name="View" xml:space="preserve"><value>Преглед</value></data>
+  <data name="Move" xml:space="preserve"><value>Движение</value></data>
+  <data name="Edit" xml:space="preserve"><value>Редакция</value></data>
+  <data name="Delete" xml:space="preserve"><value>Изтрий</value></data>
+
+  <!-- Table headers -->
+  <data name="SKU" xml:space="preserve"><value>SKU</value></data>
+  <data name="Tire" xml:space="preserve"><value>Гума</value></data>
+  <data name="Brand" xml:space="preserve"><value>Марка</value></data>
+  <data name="Model" xml:space="preserve"><value>Модел</value></data>
+  <data name="Size" xml:space="preserve"><value>Размер</value></data>
+  <data name="Season" xml:space="preserve"><value>Сезон</value></data>
+  <data name="Type" xml:space="preserve"><value>Тип</value></data>
+  <data name="Season / Type" xml:space="preserve"><value>Сезон / Тип</value></data>
+  <data name="Price" xml:space="preserve"><value>Цена</value></data>
+  <data name="Unit Price" xml:space="preserve"><value>Ед. цена</value></data>
+  <data name="Qty" xml:space="preserve"><value>Бр.</value></data>
+  <data name="Min" xml:space="preserve"><value>Мин.</value></data>
+  <data name="Qty / Min" xml:space="preserve"><value>Бр. / Мин.</value></data>
+  <data name="Location" xml:space="preserve"><value>Локация</value></data>
+  <data name="Width" xml:space="preserve"><value>Широчина</value></data>
+  <data name="Profile" xml:space="preserve"><value>Профил</value></data>
+  <data name="Diameter" xml:space="preserve"><value>Диаметър</value></data>
+
+  <!-- Create / Edit -->
+  <data name="Edit Tire" xml:space="preserve"><value>Редакция на гума</value></data>
+  <data name="Create a new tire SKU in the inventory." xml:space="preserve"><value>Създайте нов артикул гума в склада.</value></data>
+  <data name="Back" xml:space="preserve"><value>Назад</value></data>
+  <data name="Cancel" xml:space="preserve"><value>Отказ</value></data>
+  <data name="Save Tire" xml:space="preserve"><value>Запази гума</value></data>
+  <data name="Save Changes" xml:space="preserve"><value>Запази промените</value></data>
+  <data name="Identity" xml:space="preserve"><value>Идентификация</value></data>
+  <data name="Classification" xml:space="preserve"><value>Класификация</value></data>
+  <data name="Pricing &amp; Stock" xml:space="preserve"><value>Цена и наличност</value></data>
+  <data name="Unit Price (€)" xml:space="preserve"><value>Ед. цена (€)</value></data>
+  <data name="Quantity" xml:space="preserve"><value>Количество</value></data>
+  <data name="Min Stock" xml:space="preserve"><value>Мин. наличност</value></data>
+
+  <!-- Details -->
+  <data name="Add Movement" xml:space="preserve"><value>Добави движение</value></data>
+  <data name="Tire Details" xml:space="preserve"><value>Детайли за гумата</value></data>
+  <data name="Movement History" xml:space="preserve"><value>История на движенията</value></data>
+  <data name="No movements yet" xml:space="preserve"><value>Все още няма движения</value></data>
+  <data name="Record a stock movement to start the audit trail." xml:space="preserve"><value>Регистрирайте движение, за да започнете одитната следа.</value></data>
+  <data name="units" xml:space="preserve"><value>бр.</value></data>
+  <data name="/ min {0}" xml:space="preserve"><value>/ мин. {0}</value></data>
+
+  <!-- Delete -->
+  <data name="Confirm" xml:space="preserve"><value>Потвърждение</value></data>
+  <data name="Delete Tire" xml:space="preserve"><value>Изтрий гума</value></data>
+  <data name="This action cannot be undone." xml:space="preserve"><value>Това действие е необратимо.</value></data>
+  <data name="Permanent deletion" xml:space="preserve"><value>Окончателно изтриване</value></data>
+  <data name="You are about to permanently remove this tire from the inventory. Tires with existing movement records cannot be deleted — clear those first." xml:space="preserve"><value>На път сте да премахнете тази гума окончателно от склада. Гуми със съществуващи движения не могат да бъдат изтрити — първо ги изчистете.</value></data>
+  <data name="{0} units" xml:space="preserve"><value>{0} бр.</value></data>
+
+  <!-- Low Stock -->
+  <data name="Report" xml:space="preserve"><value>Справка</value></data>
+  <data name="All tires are at or above their minimum stock level." xml:space="preserve"><value>Всички гуми са на или над минималната наличност.</value></data>
+  <data name="at or below minimum stock level" xml:space="preserve"><value>на или под минималната наличност</value></data>
+  <data name="{0} requiring attention" xml:space="preserve"><value>{0} изискват внимание</value></data>
+  <data name="All stocked" xml:space="preserve"><value>Достатъчна наличност</value></data>
+  <data name="All Inventory" xml:space="preserve"><value>Цялата наличност</value></data>
+  <data name="Stock" xml:space="preserve"><value>Наличност</value></data>
+  <data name="Deficit" xml:space="preserve"><value>Недостиг</value></data>
+  <data name="Nothing below minimum" xml:space="preserve"><value>Нищо под минимума</value></data>
+  <data name="Inventory is in good shape — no restock needed." xml:space="preserve"><value>Складът е в добро състояние — не е нужно зареждане.</value></data>
+
+  <!-- Register Movement -->
+  <data name="Stock Ledger" xml:space="preserve"><value>Складов регистър</value></data>
+  <data name="Current Stock" xml:space="preserve"><value>Текуща наличност</value></data>
+  <data name="Movement Details" xml:space="preserve"><value>Детайли за движението</value></data>
+  <data name="Movement Type" xml:space="preserve"><value>Тип движение</value></data>
+  <data name="Note" xml:space="preserve"><value>Бележка</value></data>
+  <data name="(optional)" xml:space="preserve"><value>(по избор)</value></data>
+  <data name="adds units" xml:space="preserve"><value>добавя количество</value></data>
+  <data name="subtracts units" xml:space="preserve"><value>изважда количество</value></data>
+  <data name="sets the exact quantity" xml:space="preserve"><value>задава точното количество</value></data>
+  <data name="For Adjustment, enter the target stock count (0 writes off all stock)." xml:space="preserve"><value>За Корекция въведете целевата наличност (0 нулира цялата наличност).</value></data>
+  <data name="Record Movement" xml:space="preserve"><value>Регистрирай движение</value></data>
+
+  <!-- Home / Privacy / Error -->
+  <data name="Track stock, movements, and low-stock alerts across every SKU." xml:space="preserve"><value>Следете наличности, движения и сигнали за ниска наличност за всеки артикул.</value></data>
+  <data name="Open Inventory" xml:space="preserve"><value>Отвори наличността</value></data>
+  <data name="Legal" xml:space="preserve"><value>Правна информация</value></data>
+  <data name="Privacy Policy" xml:space="preserve"><value>Политика за поверителност</value></data>
+  <data name="Use this page to detail your site's privacy policy." xml:space="preserve"><value>Използвайте тази страница, за да опишете политиката за поверителност на сайта.</value></data>
+  <data name="Error" xml:space="preserve"><value>Грешка</value></data>
+  <data name="Something went wrong" xml:space="preserve"><value>Възникна грешка</value></data>
+  <data name="An error occurred while processing your request." xml:space="preserve"><value>Възникна грешка при обработката на заявката ви.</value></data>
+  <data name="Back to Inventory" xml:space="preserve"><value>Към наличността</value></data>
+  <data name="Request ID" xml:space="preserve"><value>ID на заявката</value></data>
+  <data name="Development Mode" xml:space="preserve"><value>Режим за разработка</value></data>
+  <data name="Setting the ASPNETCORE_ENVIRONMENT variable to Development shows detailed error information. Do not enable the Development environment for deployed applications, as it can expose sensitive details from exceptions to end users." xml:space="preserve"><value>Задаването на променливата ASPNETCORE_ENVIRONMENT на Development показва подробна информация за грешката. Не активирайте средата Development за публикувани приложения, тъй като може да разкрие чувствителни детайли от изключенията на крайните потребители.</value></data>
+
+  <!-- Enum values -->
+  <data name="Summer" xml:space="preserve"><value>Лятна</value></data>
+  <data name="Winter" xml:space="preserve"><value>Зимна</value></data>
+  <data name="All-Season" xml:space="preserve"><value>Всесезонна</value></data>
+  <data name="New" xml:space="preserve"><value>Нова</value></data>
+  <data name="Retreaded" xml:space="preserve"><value>Регенерирана</value></data>
+  <data name="In" xml:space="preserve"><value>Входящо</value></data>
+  <data name="Out" xml:space="preserve"><value>Изходящо</value></data>
+  <data name="Adjustment" xml:space="preserve"><value>Корекция</value></data>
+
+  <!-- Validation -->
+  <data name="The {0} field is required." xml:space="preserve"><value>Полето {0} е задължително.</value></data>
+  <data name="The field {0} must be between {1} and {2}." xml:space="preserve"><value>Полето {0} трябва да е между {1} и {2}.</value></data>
+  <data name="The field {0} must be a string with a maximum length of {1}." xml:space="preserve"><value>Полето {0} трябва да е текст с максимална дължина {1}.</value></data>
+  <data name="Quantity must be 0 or greater." xml:space="preserve"><value>Количеството трябва да е 0 или повече.</value></data>
+</root>

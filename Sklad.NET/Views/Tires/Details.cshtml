@@ -1,0 +1,115 @@
+@model Sklad.Models.Tire
+
+@{
+    ViewData["Title"] = $"{Model.Brand} {Model.Model}";
+}
+
+<div class="page">
+    <div class="container">
+
+        <div class="page-head">
+            <div>
+                <div class="eyebrow @(Model.IsLowStock ? "is-alert" : "")">
+                    @(Model.IsLowStock ? L["Low Stock"] : L["Tire"])
+                </div>
+                <h1 class="page-title">@Model.Brand @Model.Model</h1>
+                <p class="page-lede mono">@Model.Size &bull; @Model.Sku</p>
+            </div>
+            <div class="head-actions">
+                <a asp-action="RegisterMovement" asp-route-id="@Model.Id" class="btn btn-secondary btn-sm">@L["Add Movement"]</a>
+                <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary btn-sm">@L["Edit"]</a>
+                <a asp-action="Index" class="btn btn-secondary btn-sm">@L["Back"]</a>
+            </div>
+        </div>
+
+        <div class="grid">
+            <div class="col-5">
+                <div class="block">
+                    <div class="block-head">
+                        <span class="block-title">@L["Tire Details"]</span>
+                        <span class="block-meta">@L[Enums.Key(Model.Season)]</span>
+                    </div>
+                    <dl class="specs">
+                        <dt>@L["SKU"]</dt>
+                        <dd class="mono">@Model.Sku</dd>
+
+                        <dt>@L["Brand"]</dt>
+                        <dd class="dd-strong">@Model.Brand</dd>
+
+                        <dt>@L["Model"]</dt>
+                        <dd>@Model.Model</dd>
+
+                        <dt>@L["Size"]</dt>
+                        <dd class="mono">@Model.Size</dd>
+
+                        <dt>@L["Season"]</dt>
+                        <dd>@L[Enums.Key(Model.Season)]</dd>
+
+                        <dt>@L["Type"]</dt>
+                        <dd>@L[Enums.Key(Model.Type)]</dd>
+
+                        <dt>@L["Unit Price"]</dt>
+                        <dd class="dd-strong">@Money.Dual(Model.UnitPrice)</dd>
+
+                        <dt>@L["Quantity"]</dt>
+                        <dd>
+                            <span class="@(Model.IsLowStock ? "qty-low" : "dd-strong")">@Model.Quantity</span>
+                            <span class="cell-muted"> @L["/ min {0}", Model.MinStock]</span>
+                        </dd>
+
+                        <dt>@L["Location"]</dt>
+                        <dd>@(Model.Location ?? "—")</dd>
+                    </dl>
+                </div>
+            </div>
+
+            <div class="col-7">
+                <div class="block">
+                    <div class="block-head">
+                        <span class="block-title">@L["Movement History"]</span>
+                        <a class="block-meta" asp-action="RegisterMovement" asp-route-id="@Model.Id">@L["Add Movement"]</a>
+                    </div>
+                    @if (!Model.StockMovements.Any())
+                    {
+                        <div class="empty">
+                            <strong>@L["No movements yet"]</strong>
+                            @L["Record a stock movement to start the audit trail."]
+                        </div>
+                    }
+                    else
+                    {
+                        <ul class="log">
+                            @foreach (var m in Model.StockMovements)
+                            {
+                                string mark = m.MovementType switch {
+                                    MovementType.In         => "+",
+                                    MovementType.Out        => "−",
+                                    MovementType.Adjustment => "=",
+                                    _                       => "•"
+                                };
+                                string qtyLabel = m.MovementType switch {
+                                    MovementType.In         => $"+{m.Quantity}",
+                                    MovementType.Out        => $"-{m.Quantity}",
+                                    MovementType.Adjustment => $"={m.Quantity}",
+                                    _                       => m.Quantity.ToString()
+                                };
+                                <li class="log-row">
+                                    <div class="log-mark">@mark</div>
+                                    <div>
+                                        <div class="log-main">@L[Enums.Key(m.MovementType)] &mdash; <strong>@qtyLabel</strong> @L["units"]</div>
+                                        @if (!string.IsNullOrWhiteSpace(m.Note))
+                                        {
+                                            <div class="log-note">@m.Note</div>
+                                        }
+                                    </div>
+                                    <div class="log-date">@m.Date.ToString("dd MMM yyyy")</div>
+                                </li>
+                            }
+                        </ul>
+                    }
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>

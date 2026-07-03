@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+@{
+    var ctrl = ViewContext.RouteData.Values["controller"] as string;
+    var act = ViewContext.RouteData.Values["action"] as string;
+    var isLowStock = ctrl == "Tires" && act == "LowStock";
+    var isInventory = ctrl == "Tires" && !isLowStock;
+    var lang = System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName;
+    var here = $"{Context.Request.Path}{Context.Request.QueryString}";
+}
+<html lang="@lang">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] &mdash; Sklad</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body>
+    <header class="topbar">
+        <div class="container topbar-inner">
+            <a class="wordmark" asp-controller="Tires" asp-action="Index">
+                Sklad<span class="mark-index">@L["Tire Warehouse"]</span>
+            </a>
+            <nav class="topnav">
+                <a class="@(isInventory ? "is-active" : "")" asp-controller="Tires" asp-action="Index">@L["Inventory"]</a>
+                <a class="@(isLowStock ? "is-active" : "")" asp-controller="Tires" asp-action="LowStock">@L["Low Stock"]</a>
+                <span class="lang" role="group" aria-label="Language">
+                    <a class="@(lang == "bg" ? "is-active" : "")" asp-controller="Culture" asp-action="Set"
+                       asp-route-culture="bg-BG" asp-route-returnUrl="@here">BG</a>
+                    <a class="@(lang == "en" ? "is-active" : "")" asp-controller="Culture" asp-action="Set"
+                       asp-route-culture="en-GB" asp-route-returnUrl="@here">EN</a>
+                </span>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        @RenderBody()
+    </main>
+
+    <footer class="site-footer">
+        <div class="container">
+            <span>Sklad &mdash; @L["Tire Warehouse Management"]</span>
+            <span>&copy; @DateTime.Now.Year</span>
+        </div>
+    </footer>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

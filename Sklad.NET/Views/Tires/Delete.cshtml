@@ -1,0 +1,48 @@
+@model Sklad.Models.Tire
+
+@{
+    ViewData["Title"] = L["Delete Tire"].Value;
+}
+
+<div class="page">
+    <div class="container">
+
+        <div class="page-head">
+            <div>
+                <div class="eyebrow is-alert">@L["Confirm"]</div>
+                <h1 class="page-title">@L["Delete Tire"]</h1>
+                <p class="page-lede">@L["This action cannot be undone."]</p>
+            </div>
+            <div class="head-actions">
+                <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-secondary btn-sm">@L["Back"]</a>
+            </div>
+        </div>
+
+        <div class="confirm">
+            <div class="confirm-warning">
+                <div class="eyebrow">@L["Permanent deletion"]</div>
+                <p>@L["You are about to permanently remove this tire from the inventory. Tires with existing movement records cannot be deleted — clear those first."]</p>
+            </div>
+
+            <dl class="specs">
+                <dt>@L["SKU"]</dt>
+                <dd class="mono">@Model.Sku</dd>
+                <dt>@L["Brand"]</dt>
+                <dd>@Model.Brand</dd>
+                <dt>@L["Model"]</dt>
+                <dd>@Model.Model</dd>
+                <dt>@L["Size"]</dt>
+                <dd class="mono">@Model.Size</dd>
+                <dt>@L["Quantity"]</dt>
+                <dd>@L["{0} units", Model.Quantity]</dd>
+            </dl>
+
+            <form asp-action="Delete" class="form-actions">
+                <input type="hidden" asp-for="Id" />
+                <button type="submit" class="btn btn-danger">@L["Delete Tire"]</button>
+                <a asp-action="Index" class="btn btn-secondary">@L["Cancel"]</a>
+            </form>
+        </div>
+
+    </div>
+</div>
