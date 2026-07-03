@@ -26,6 +26,6 @@ public class CultureController : Controller
                 CookieRequestCultureProvider.MakeCookieValue(new RequestCulture(culture)),
                 new CookieOptions { Expires = DateTimeOffset.UtcNow.AddYears(1), IsEssential = true, Path = "/" });
         }
-        return LocalRedirect(string.IsNullOrEmpty(returnUrl) ? "/" : returnUrl);
+        return LocalRedirect(Sklad.Helpers.Redirects.Safe(returnUrl));
     }
 }

@@ -16,6 +16,7 @@ builder.Services.AddControllersWithViews(options =>
     {
         var policy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build();
         options.Filters.Add(new AuthorizeFilter(policy));
+        options.ModelBinderProviders.Insert(0, new Sklad.ModelBinding.FlexibleDecimalModelBinderProvider());
     })
     .AddViewLocalization()
     .AddDataAnnotationsLocalization(options =>
@@ -48,7 +49,8 @@ builder.Services.Configure<RequestLocalizationOptions>(options =>
 });
 
 builder.Services.AddDbContext<SkladDbContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection"))
+        .AddInterceptors(new SqliteFunctionsInterceptor()));
 
 builder.Services.AddScoped<IInventoryService, InventoryService>();
 

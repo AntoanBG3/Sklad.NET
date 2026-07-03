@@ -195,6 +195,10 @@ public class TiresController : Controller
         {
             ModelState.AddModelError(nameof(RegisterMovementViewModel.Quantity), _l["Quantity must be at least 1 for In/Out movements."]);
         }
+        catch (StaleTireException)
+        {
+            ModelState.AddModelError(string.Empty, _l["The tire was modified by someone else. Reload the page and try again."]);
+        }
         ViewBag.Tire = await _inventory.GetTireAsync(vm.TireId);
         return View(vm);
     }

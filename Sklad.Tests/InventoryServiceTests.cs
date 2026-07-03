@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
 using Sklad.Models;
 using Sklad.Services;
@@ -479,5 +480,93 @@ public class InventoryServiceTests : IDisposable
         Assert.Contains("'+SUM(A1)", text);
         Assert.Contains("'-2+3", text);
         Assert.Contains("'@cmd", text);
+    }
+
+    [Fact]
+    public async Task Export_starts_with_utf8_bom_so_excel_reads_cyrillic()
+    {
+        await using var context = _db.CreateContext();
+
+        var bytes = await CreateService(context).ExportCsvAsync(new[] { NewTire("BOM-1", location: "Рафт А-3") });
+
+        Assert.Equal(new byte[] { 0xEF, 0xBB, 0xBF }, bytes.Take(3).ToArray());
+        Assert.Contains("Рафт А-3", System.Text.Encoding.UTF8.GetString(bytes));
+    }
+
+    [Fact]
+    public async Task Export_quotes_fields_containing_carriage_returns()
+    {
+        await using var context = _db.CreateContext();
+
+        var bytes = await CreateService(context).ExportCsvAsync(new[] { NewTire("CR-1", location: "A\rB") });
+        var text = System.Text.Encoding.UTF8.GetString(bytes);
+
+        Assert.Contains("\"A\rB\"", text);
+    }
+
+    // --- Case sensitivity ---
+
+    [Fact]
+    public async Task FindByCode_ignores_case_for_sku_and_barcode()
+    {
+        await SeedTireAsync(NewTire("MIC-ABC", barcode: "CODE99X"));
+        await using var context = _db.CreateContext();
+        var service = CreateService(context);
+
+        Assert.NotNull(await service.FindByCodeAsync("mic-abc"));
+        Assert.NotNull(await service.FindByCodeAsync("code99x"));
+    }
+
+    [Fact]
+    public async Task Duplicate_sku_detection_ignores_case()
+    {
+        await SeedTireAsync(NewTire("CASE-1"));
+        await using var context = _db.CreateContext();
+
+        await Assert.ThrowsAsync<DuplicateSkuException>(
+            () => CreateService(context).CreateTireAsync(NewTire("case-1")));
+    }
+
+    [Fact]
+    public async Task Search_text_filters_ignore_case_including_cyrillic()
+    {
+        await SeedTireAsync(NewTire("CYR-1", brand: "Гума Про"));
+        await SeedTireAsync(NewTire("LAT-1", brand: "Michelin"));
+        await using var context = _db.CreateContext();
+        var service = CreateService(context);
+
+        var cyrillic = await service.SearchAsync(new TireFilterViewModel { Brand = "гума" });
+        Assert.Equal("CYR-1", Assert.Single(cyrillic.Items).Sku);
+
+        var latin = await service.SearchAsync(new TireFilterViewModel { Brand = "michelin" });
+        Assert.Equal("LAT-1", Assert.Single(latin.Items).Sku);
+
+        var bySku = await service.SearchAsync(new TireFilterViewModel { Sku = "cyr" });
+        Assert.Equal("CYR-1", Assert.Single(bySku.Items).Sku);
+    }
+
+    // --- Races ---
+
+    [Fact]
+    public async Task Movement_conflicts_exhausting_retries_throw_stale_not_raw_concurrency()
+    {
+        var tire = await SeedTireAsync(NewTire("RACE-1", qty: 10));
+        await using var context = _db.CreateContext(new BumpVersionsOnSave(_db.Connection));
+        var service = CreateService(context);
+
+        await Assert.ThrowsAsync<StaleTireException>(
+            () => service.RegisterMovementAsync(tire.Id, MovementType.In, 1, null));
+
+        await using var check = _db.CreateContext();
+        Assert.Equal(0, await check.StockMovements.CountAsync(m => m.TireId == tire.Id));
+    }
+
+    [Fact]
+    public async Task Losing_a_duplicate_sku_race_throws_typed_exception_not_DbUpdateException()
+    {
+        await using var context = _db.CreateContext(new InsertDuplicateSkuOnSave(_db.Connection, "RACE-DUP"));
+
+        await Assert.ThrowsAsync<DuplicateSkuException>(
+            () => CreateService(context).CreateTireAsync(NewTire("RACE-DUP")));
     }
 }

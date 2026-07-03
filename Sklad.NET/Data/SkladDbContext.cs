@@ -10,13 +10,25 @@ public class SkladDbContext : DbContext
     public DbSet<Tire> Tires => Set<Tire>();
     public DbSet<StockMovement> StockMovements => Set<StockMovement>();
 
+    // Maps to the connection-level unilower() (see SqliteFunctionsInterceptor);
+    // the body is only a client-evaluation fallback.
+    public static string UniLower(string value) => value.ToLowerInvariant();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
 
+        modelBuilder.HasDbFunction(typeof(SkladDbContext).GetMethod(nameof(UniLower), [typeof(string)])!)
+            .HasName("unilower");
+
         modelBuilder.Entity<Tire>(entity =>
         {
             entity.HasIndex(t => t.Sku).IsUnique();
+
+            // Operators and scanners shouldn't have to match SKU/barcode case,
+            // and the unique index must not allow ABC-1 alongside abc-1.
+            entity.Property(t => t.Sku).UseCollation("NOCASE");
+            entity.Property(t => t.Barcode).UseCollation("NOCASE");
 
             entity.Property(t => t.UnitPrice).HasPrecision(18, 2);
 

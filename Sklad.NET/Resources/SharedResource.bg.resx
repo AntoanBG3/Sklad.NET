@@ -236,6 +236,9 @@
   <data name="Next" xml:space="preserve"><value>Напред</value></data>
   <data name="Page {0} of {1}" xml:space="preserve"><value>Страница {0} от {1}</value></data>
 
+  <!-- Number binding -->
+  <data name="Enter a valid number (e.g. 189.99)." xml:space="preserve"><value>Въведете валидно число (напр. 189.99).</value></data>
+
   <!-- Edit form -->
   <data name="Stock on hand ({0}) is managed through movements and cannot be edited here." xml:space="preserve"><value>Наличността ({0}) се управлява чрез движения и не може да се редактира тук.</value></data>
 </root>

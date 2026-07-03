@@ -25,10 +25,24 @@ public class InventoryService : IInventoryService
     public async Task<PagedResult<Tire>> SearchAsync(TireFilterViewModel filter, int pageSize = DefaultPageSize)
     {
         var q = _db.Tires.AsQueryable();
-        if (!string.IsNullOrWhiteSpace(filter.Sku))     q = q.Where(t => t.Sku.Contains(filter.Sku));
+        // unilower on both sides: SQLite's own case folding is ASCII-only, which
+        // would leave Cyrillic text search case-sensitive.
+        if (!string.IsNullOrWhiteSpace(filter.Sku))
+        {
+            var sku = filter.Sku.Trim().ToLowerInvariant();
+            q = q.Where(t => SkladDbContext.UniLower(t.Sku).Contains(sku));
+        }
         if (!string.IsNullOrWhiteSpace(filter.Barcode)) q = q.Where(t => t.Barcode == filter.Barcode);
-        if (!string.IsNullOrWhiteSpace(filter.Brand))   q = q.Where(t => t.Brand.Contains(filter.Brand));
-        if (!string.IsNullOrWhiteSpace(filter.Model))   q = q.Where(t => t.Model.Contains(filter.Model));
+        if (!string.IsNullOrWhiteSpace(filter.Brand))
+        {
+            var brand = filter.Brand.Trim().ToLowerInvariant();
+            q = q.Where(t => SkladDbContext.UniLower(t.Brand).Contains(brand));
+        }
+        if (!string.IsNullOrWhiteSpace(filter.Model))
+        {
+            var model = filter.Model.Trim().ToLowerInvariant();
+            q = q.Where(t => SkladDbContext.UniLower(t.Model).Contains(model));
+        }
         if (filter.Width.HasValue)    q = q.Where(t => t.Width    == filter.Width);
         if (filter.Profile.HasValue)  q = q.Where(t => t.Profile  == filter.Profile);
         if (filter.Diameter.HasValue) q = q.Where(t => t.Diameter == filter.Diameter);
@@ -97,7 +111,14 @@ public class InventoryService : IInventoryService
                 UserName = userName
             });
         }
-        await _db.SaveChangesAsync();
+        try
+        {
+            await _db.SaveChangesAsync();
+        }
+        catch (DbUpdateException ex) when (IsUniqueSkuViolation(ex))
+        {
+            throw new DuplicateSkuException(tire.Sku);
+        }
         _logger.LogInformation("Tire {Sku} created with opening quantity {Quantity} by {User}",
             tire.Sku, tire.Quantity, userName ?? "unknown");
     }
@@ -136,7 +157,17 @@ public class InventoryService : IInventoryService
         {
             throw new StaleTireException();
         }
+        catch (DbUpdateException ex) when (IsUniqueSkuViolation(ex))
+        {
+            throw new DuplicateSkuException(tire.Sku);
+        }
     }
+
+    // The AnyAsync pre-checks are advisory; under a concurrent submit the unique
+    // index is the real guard and must surface as the same typed exception.
+    private static bool IsUniqueSkuViolation(DbUpdateException ex)
+        => ex.InnerException is Microsoft.Data.Sqlite.SqliteException { SqliteErrorCode: 19 } inner
+           && inner.Message.Contains("Sku");
 
     public async Task DeleteTireAsync(int id)
     {
@@ -203,10 +234,18 @@ public class InventoryService : IInventoryService
                     movementType, quantity, tireId, userName ?? "unknown", tire.Quantity);
                 return;
             }
-            catch (DbUpdateConcurrencyException) when (attempt < ConcurrencyRetries)
+            catch (DbUpdateConcurrencyException)
             {
-                _db.StockMovements.Remove(movement);
-                await _db.Entry(tire).ReloadAsync();
+                if (attempt >= ConcurrencyRetries)
+                {
+                    _logger.LogWarning("Movement on tire {TireId} abandoned after {Attempts} version conflicts",
+                        tireId, attempt);
+                    throw new StaleTireException();
+                }
+                // A failed SaveChanges leaves database-assigned keys and stale
+                // entries in the tracker; detaching by hand corrupts the second
+                // retry. Start each attempt from a clean tracker instead.
+                _db.ChangeTracker.Clear();
             }
         }
     }
@@ -273,7 +312,13 @@ public class InventoryService : IInventoryService
                 $"{Csv(t.Sku)},{Csv(t.Barcode ?? "")},{Csv(t.Brand)},{Csv(t.Model)},{Csv(t.Size)}," +
                 $"{t.Season},{t.Type},{t.UnitPrice.ToString("F2", CultureInfo.InvariantCulture)},{t.Quantity},{t.MinStock},{Csv(t.Location ?? "")}");
         }
-        return Task.FromResult(Encoding.UTF8.GetBytes(sb.ToString()));
+        // BOM: Excel otherwise opens UTF-8 CSV as ANSI and garbles Cyrillic.
+        var payload = Encoding.UTF8.GetBytes(sb.ToString());
+        var preamble = Encoding.UTF8.GetPreamble();
+        var bytes = new byte[preamble.Length + payload.Length];
+        preamble.CopyTo(bytes, 0);
+        payload.CopyTo(bytes, preamble.Length);
+        return Task.FromResult(bytes);
     }
 
     private static string Csv(string s)
@@ -281,7 +326,7 @@ public class InventoryService : IInventoryService
         // Leading '=', '+', '-', '@' would execute as a formula when opened in Excel.
         if (s.Length > 0 && s[0] is '=' or '+' or '-' or '@')
             s = "'" + s;
-        return s.Contains(',') || s.Contains('"') || s.Contains('\n')
+        return s.Contains(',') || s.Contains('"') || s.Contains('\n') || s.Contains('\r')
             ? $"\"{s.Replace("\"", "\"\"")}\""
             : s;
     }

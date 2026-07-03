@@ -118,6 +118,30 @@ public class TiresControllerTests : IDisposable
         Assert.IsType<ViewResult>(result);
         Assert.False(controller.ModelState.IsValid);
     }
+
+    [Fact]
+    public async Task RegisterMovement_exhausted_retries_show_stale_error_not_500()
+    {
+        int tireId;
+        await using (var seed = _db.CreateContext())
+        {
+            var tire = NewTire("STALE-9", qty: 5);
+            seed.Tires.Add(tire);
+            await seed.SaveChangesAsync();
+            tireId = tire.Id;
+        }
+
+        await using var context = _db.CreateContext(new BumpVersionsOnSave(_db.Connection));
+        var controller = CreateController(context);
+
+        var result = await controller.RegisterMovement(new RegisterMovementViewModel
+        {
+            TireId = tireId, MovementType = MovementType.In, Quantity = 1
+        });
+
+        Assert.IsType<ViewResult>(result);
+        Assert.False(controller.ModelState.IsValid);
+    }
 }
 
 public class AccountControllerTests
@@ -242,5 +266,30 @@ public class CultureControllerTests
         controller.Set("fr-FR", "/Tires");
 
         Assert.Empty(httpContext.Response.Headers.SetCookie.ToString());
+    }
+
+    [Theory]
+    [InlineData("https://evil.example")]
+    [InlineData("//evil.example")]
+    [InlineData("/\\evil.example")]
+    public void Set_with_non_local_returnUrl_falls_back_to_home_instead_of_throwing(string returnUrl)
+    {
+        var controller = CreateController(out _);
+
+        var result = controller.Set("en-GB", returnUrl);
+
+        var redirect = Assert.IsType<LocalRedirectResult>(result);
+        Assert.Equal("/", redirect.Url);
+    }
+
+    [Fact]
+    public void Set_with_local_returnUrl_redirects_back()
+    {
+        var controller = CreateController(out _);
+
+        var result = controller.Set("en-GB", "/Movements?page=2");
+
+        var redirect = Assert.IsType<LocalRedirectResult>(result);
+        Assert.Equal("/Movements?page=2", redirect.Url);
     }
 }

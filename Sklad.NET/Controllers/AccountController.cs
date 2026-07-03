@@ -70,8 +70,8 @@ public class AccountController : Controller
         return RedirectToAction(nameof(Login));
     }
 
-    private string SafeReturnUrl(string? returnUrl)
-        => !string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl) ? returnUrl : "/";
+    private static string SafeReturnUrl(string? returnUrl)
+        => Sklad.Helpers.Redirects.Safe(returnUrl);
 
     private static bool FixedTimeEquals(string a, string b)
         => CryptographicOperations.FixedTimeEquals(Encoding.UTF8.GetBytes(a), Encoding.UTF8.GetBytes(b));
