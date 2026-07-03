@@ -236,6 +236,12 @@
   <data name="Next" xml:space="preserve"><value>Напред</value></data>
   <data name="Page {0} of {1}" xml:space="preserve"><value>Страница {0} от {1}</value></data>
 
+  <!-- Flash confirmations -->
+  <data name="Tire {0} created." xml:space="preserve"><value>Гума {0} е създадена.</value></data>
+  <data name="Tire {0} saved." xml:space="preserve"><value>Гума {0} е запазена.</value></data>
+  <data name="Tire {0} deleted." xml:space="preserve"><value>Гума {0} е изтрита.</value></data>
+  <data name="Movement recorded — stock is now {0}." xml:space="preserve"><value>Движението е записано — наличността е {0}.</value></data>
+
   <!-- Number binding -->
   <data name="Enter a valid number (e.g. 189.99)." xml:space="preserve"><value>Въведете валидно число (напр. 189.99).</value></data>
 

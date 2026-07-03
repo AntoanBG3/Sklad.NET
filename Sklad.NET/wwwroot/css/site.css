@@ -199,6 +199,31 @@ img, svg { display: block; max-width: 100%; }
 }
 
 /* ============================================================
+   Flash — quiet confirmation strip; red stays reserved for alerts
+   ============================================================ */
+.flash {
+    background: var(--gray);
+    border-bottom: 1px solid var(--rule);
+    font-size: var(--f--1);
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+.flash .container {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+    padding-block: var(--sp-2);
+}
+.flash .container::before {
+    content: "";
+    width: 0.5rem;
+    height: 0.5rem;
+    background: var(--black);
+    flex: none;
+}
+
+/* ============================================================
    Page scaffold
    ============================================================ */
 .page { padding-block: var(--sp-7) var(--sp-8); }

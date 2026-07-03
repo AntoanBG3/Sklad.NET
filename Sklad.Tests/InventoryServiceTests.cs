@@ -545,6 +545,36 @@ public class InventoryServiceTests : IDisposable
         Assert.Equal("CYR-1", Assert.Single(bySku.Items).Sku);
     }
 
+    // --- Page clamping ---
+
+    [Fact]
+    public async Task Search_clamps_out_of_range_pages_to_the_last_page()
+    {
+        for (var i = 0; i < 3; i++)
+            await SeedTireAsync(NewTire($"PG-{i}"));
+        await using var context = _db.CreateContext();
+
+        var result = await CreateService(context).SearchAsync(
+            new TireFilterViewModel { Page = 999 }, pageSize: 2);
+
+        Assert.Equal(2, result.Page);
+        Assert.Single(result.Items);
+    }
+
+    [Fact]
+    public async Task Movements_journal_clamps_out_of_range_pages()
+    {
+        var tire = await SeedTireAsync(NewTire("PGM-1"));
+        await using var context = _db.CreateContext();
+        var service = CreateService(context);
+        await service.RegisterMovementAsync(tire.Id, MovementType.In, 1, null);
+
+        var result = await service.GetMovementsAsync(null, page: 999, pageSize: 10);
+
+        Assert.Equal(1, result.Page);
+        Assert.Single(result.Items);
+    }
+
     // --- Races ---
 
     [Fact]

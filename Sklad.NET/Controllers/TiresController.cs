@@ -56,24 +56,26 @@ public class TiresController : Controller
     }
 
     // GET: /Tires/Create
-    public IActionResult Create() => View(new Tire());
+    public IActionResult Create() => View(new CreateTireViewModel());
 
     // POST: /Tires/Create
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create([Bind("Sku,Barcode,Brand,Model,Width,Profile,Diameter,Season,Type,UnitPrice,Quantity,MinStock,Location")] Tire tire)
+    public async Task<IActionResult> Create(CreateTireViewModel vm)
     {
-        if (!ModelState.IsValid) return View(tire);
+        if (!ModelState.IsValid) return View(vm);
+        var tire = vm.ToTire();
         try
         {
             await _inventory.CreateTireAsync(tire, CurrentUser);
         }
         catch (DuplicateSkuException ex)
         {
-            ModelState.AddModelError(nameof(Tire.Sku), _l["A tire with SKU {0} already exists.", ex.Sku]);
-            return View(tire);
+            ModelState.AddModelError(nameof(CreateTireViewModel.Sku), _l["A tire with SKU {0} already exists.", ex.Sku]);
+            return View(vm);
         }
-        return RedirectToAction(nameof(Index));
+        TempData["Flash"] = _l["Tire {0} created.", tire.Sku].Value;
+        return RedirectToAction(nameof(Details), new { id = tire.Id });
     }
 
     // GET: /Tires/Edit/5
@@ -110,7 +112,8 @@ public class TiresController : Controller
             ModelState.AddModelError(string.Empty, _l["The tire was modified by someone else. Reload the page and try again."]);
             return View(tire);
         }
-        return RedirectToAction(nameof(Index));
+        TempData["Flash"] = _l["Tire {0} saved.", tire.Sku].Value;
+        return RedirectToAction(nameof(Details), new { id = tire.Id });
     }
 
     // GET: /Tires/Delete/5
@@ -127,17 +130,19 @@ public class TiresController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteConfirmed(int id)
     {
+        var tire = await _inventory.GetTireAsync(id);
         try
         {
             await _inventory.DeleteTireAsync(id);
         }
         catch (TireHasMovementsException)
         {
-            var tire = await _inventory.GetTireAsync(id);
             if (tire is null) return RedirectToAction(nameof(Index));
             ModelState.AddModelError(string.Empty, _l["This tire has movement records and cannot be deleted."]);
             return View("Delete", tire);
         }
+        if (tire is not null)
+            TempData["Flash"] = _l["Tire {0} deleted.", tire.Sku].Value;
         return RedirectToAction(nameof(Index));
     }
 
@@ -180,7 +185,8 @@ public class TiresController : Controller
         }
         try
         {
-            await _inventory.RegisterMovementAsync(vm.TireId, vm.MovementType, vm.Quantity, vm.Note, CurrentUser);
+            var newQuantity = await _inventory.RegisterMovementAsync(vm.TireId, vm.MovementType, vm.Quantity!.Value, vm.Note, CurrentUser);
+            TempData["Flash"] = _l["Movement recorded — stock is now {0}.", newQuantity].Value;
             return RedirectToAction(nameof(Details), new { id = vm.TireId });
         }
         catch (TireNotFoundException)

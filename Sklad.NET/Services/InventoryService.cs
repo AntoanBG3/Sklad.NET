@@ -51,8 +51,8 @@ public class InventoryService : IInventoryService
 
         q = ApplySort(q, filter.Sort);
 
-        var page = Math.Max(1, filter.Page);
         var total = await q.CountAsync();
+        var page = ClampPage(filter.Page, total, pageSize);
         var items = await q.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
 
         return new PagedResult<Tire>
@@ -62,6 +62,12 @@ public class InventoryService : IInventoryService
             Page = page,
             PageSize = pageSize
         };
+    }
+
+    private static int ClampPage(int page, int totalCount, int pageSize)
+    {
+        var totalPages = Math.Max(1, (int)Math.Ceiling(totalCount / (double)pageSize));
+        return Math.Clamp(page, 1, totalPages);
     }
 
     private static IQueryable<Tire> ApplySort(IQueryable<Tire> q, string? sort) => sort switch
@@ -194,7 +200,7 @@ public class InventoryService : IInventoryService
         return new WarehouseStats(totalSkus, totalUnits, lowStock, totalValue);
     }
 
-    public async Task RegisterMovementAsync(int tireId, MovementType movementType, int quantity, string? note, string? userName = null)
+    public async Task<int> RegisterMovementAsync(int tireId, MovementType movementType, int quantity, string? note, string? userName = null)
     {
         if (movementType != MovementType.Adjustment && quantity < 1)
             throw new InvalidMovementQuantityException();
@@ -232,7 +238,7 @@ public class InventoryService : IInventoryService
                 await _db.SaveChangesAsync();
                 _logger.LogInformation("Movement {Type} x{Quantity} on tire {TireId} by {User}; stock now {Stock}",
                     movementType, quantity, tireId, userName ?? "unknown", tire.Quantity);
-                return;
+                return tire.Quantity;
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -257,8 +263,8 @@ public class InventoryService : IInventoryService
             q = q.Where(m => m.MovementType == type);
         q = q.OrderByDescending(m => m.Date).ThenByDescending(m => m.Id);
 
-        page = Math.Max(1, page);
         var total = await q.CountAsync();
+        page = ClampPage(page, total, pageSize);
         var items = await q.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
 
         return new PagedResult<StockMovement>

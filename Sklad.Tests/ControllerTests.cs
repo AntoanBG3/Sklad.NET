@@ -24,14 +24,22 @@ public class TiresControllerTests : IDisposable
     private TiresController CreateController(SkladDbContext context)
     {
         var service = new InventoryService(context, NullLogger<InventoryService>.Instance);
+        var httpContext = new DefaultHttpContext();
         var controller = new TiresController(service, new FakeLocalizer<SharedResource>())
         {
-            ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() }
+            ControllerContext = new ControllerContext { HttpContext = httpContext },
+            TempData = new TempDataDictionary(httpContext, new NullTempDataProvider())
         };
         return controller;
     }
 
     private static Tire NewTire(string sku, int qty = 5) => new()
+    {
+        Sku = sku, Brand = "Test", Model = "M", Width = 205, Profile = 55, Diameter = 16,
+        Season = Season.Summer, Type = TireType.New, UnitPrice = 100m, Quantity = qty, MinStock = 2
+    };
+
+    private static CreateTireViewModel NewTireVm(string sku, int qty = 5) => new()
     {
         Sku = sku, Brand = "Test", Model = "M", Width = 205, Profile = 55, Diameter = 16,
         Season = Season.Summer, Type = TireType.New, UnitPrice = 100m, Quantity = qty, MinStock = 2
@@ -63,12 +71,51 @@ public class TiresControllerTests : IDisposable
         await using var context = _db.CreateContext();
         var controller = CreateController(context);
 
-        var result = await controller.Create(NewTire("DUP-9"));
+        var result = await controller.Create(NewTireVm("DUP-9"));
 
         var view = Assert.IsType<ViewResult>(result);
         Assert.False(controller.ModelState.IsValid);
-        Assert.True(controller.ModelState.ContainsKey(nameof(Tire.Sku)));
-        Assert.IsType<Tire>(view.Model);
+        Assert.True(controller.ModelState.ContainsKey(nameof(CreateTireViewModel.Sku)));
+        Assert.IsType<CreateTireViewModel>(view.Model);
+    }
+
+    [Fact]
+    public async Task Create_success_redirects_to_the_new_tires_details_with_a_flash()
+    {
+        await using var context = _db.CreateContext();
+        var controller = CreateController(context);
+
+        var result = await controller.Create(NewTireVm("NEW-1", qty: 3));
+
+        var redirect = Assert.IsType<RedirectToActionResult>(result);
+        Assert.Equal(nameof(TiresController.Details), redirect.ActionName);
+        Assert.NotNull(redirect.RouteValues!["id"]);
+        Assert.Contains("NEW-1", (string)controller.TempData["Flash"]!);
+    }
+
+    [Fact]
+    public async Task RegisterMovement_success_redirects_to_details_and_reports_new_stock()
+    {
+        int tireId;
+        await using (var seed = _db.CreateContext())
+        {
+            var tire = NewTire("FLASH-1", qty: 5);
+            seed.Tires.Add(tire);
+            await seed.SaveChangesAsync();
+            tireId = tire.Id;
+        }
+
+        await using var context = _db.CreateContext();
+        var controller = CreateController(context);
+
+        var result = await controller.RegisterMovement(new RegisterMovementViewModel
+        {
+            TireId = tireId, MovementType = MovementType.In, Quantity = 4
+        });
+
+        var redirect = Assert.IsType<RedirectToActionResult>(result);
+        Assert.Equal(nameof(TiresController.Details), redirect.ActionName);
+        Assert.Contains("9", (string)controller.TempData["Flash"]!);
     }
 
     [Fact]
@@ -146,12 +193,6 @@ public class TiresControllerTests : IDisposable
 
 public class AccountControllerTests
 {
-    private sealed class NullTempDataProvider : ITempDataProvider
-    {
-        public IDictionary<string, object> LoadTempData(HttpContext context) => new Dictionary<string, object>();
-        public void SaveTempData(HttpContext context, IDictionary<string, object> values) { }
-    }
-
     private sealed class RecordingAuthService : IAuthenticationService
     {
         public ClaimsPrincipal? SignedIn { get; private set; }
