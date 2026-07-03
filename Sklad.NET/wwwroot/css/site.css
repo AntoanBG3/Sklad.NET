@@ -170,18 +170,32 @@ img, svg { display: block; max-width: 100%; }
 
 .lang {
     display: flex;
-    align-items: center;
-    gap: var(--sp-2);
-    padding-inline: var(--sp-4);
+    align-items: stretch;
+    padding-inline: var(--sp-2);
     border-left: 1px solid var(--rule);
     font-size: var(--f--1);
     font-weight: 700;
     letter-spacing: 0.06em;
 }
 .lang:first-child { border-left: 0; }
-.lang a { color: var(--ink-50); padding-block: var(--sp-1); }
-.lang a:hover { color: var(--black); text-decoration: none; }
-.lang a.is-active { color: var(--black); border-bottom: 2px solid var(--red); }
+.lang a {
+    position: relative;
+    display: flex;
+    align-items: center;
+    padding-inline: var(--sp-2);
+    color: var(--ink-50);
+}
+.lang a:hover { color: var(--black); background: var(--gray); text-decoration: none; }
+.lang a.is-active { color: var(--black); }
+.lang a.is-active::after {
+    content: "";
+    position: absolute;
+    left: var(--sp-2);
+    right: var(--sp-2);
+    bottom: -1px;
+    height: 3px;
+    background: var(--red);
+}
 
 /* ============================================================
    Page scaffold
