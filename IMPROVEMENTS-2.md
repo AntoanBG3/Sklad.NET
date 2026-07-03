@@ -6,13 +6,13 @@ Second comprehensive review, as of commit `4fb5cde` (2026-07-03). The first roun
 
 ## 1. Bugs (should fix)
 
-### 1.1 `[ ]` Decimal price entry is broken under the Bulgarian culture
+### 1.1 `[ ]` Decimal price entry is culture-fragile: dot fails under bg, comma silently means ×100 under en
 
-**Where:** `Views/Tires/Create.cshtml:104`, `Views/Tires/Edit.cshtml:107`, model binding + `_ValidationScriptsPartial`
+**Where:** `Views/Tires/Create.cshtml:104`, `Views/Tires/Edit.cshtml:107`, decimal model binding
 
-MVC binds `decimal` form values with `CultureInfo.CurrentCulture`. Under the default `bg-BG` culture the decimal separator is a comma, so a price typed as `189.99` fails server-side binding ("The value '189.99' is not valid"). But jQuery client validation's `number` rule is dot-only, so `189,99` is rejected client-side before the form even submits. Under the default Bulgarian UI, **no decimal price passes both layers** — only whole-number prices work. English culture (`en-GB`) is unaffected, which is why this survived testing.
+MVC binds `decimal` form values with the request culture. Under the default `bg-BG` culture the decimal separator is a comma, so a price typed as `189.99` fails server-side binding ("The value '189.99' is not valid") — and dot is what the keyboard's numpad produces. Worse in the other direction: under `en-GB`, a price typed as `189,99` parses *successfully* as **18 999** — .NET accepts misplaced group separators — so the tire is saved with a 100× price and nobody is told. Client-side validation would normally catch the en-GB case, but it has never run at all (see 1.6), and once 1.6 is fixed, the stock dot-only `number` rule will start rejecting the *valid* bg comma format — so 1.1 and 1.6 must land together.
 
-**Fix:** Bind `UnitPrice` invariantly and accept both separators: a small `IModelBinder` for `decimal` that normalizes `,` to `.` and parses with `CultureInfo.InvariantCulture`, registered via a `ModelBinderProvider`; plus a one-line jQuery validator override (`$.validator.methods.number`) in `_ValidationScriptsPartial` that accepts a comma. Add a regression test that binds `"189,99"` and `"189.99"` under `bg-BG`.
+**Fix:** A small `IModelBinder` for `decimal` that rejects group separators, accepts both `.` and `,` as the decimal mark, and parses invariantly; register it via a `ModelBinderProvider`. When re-enabling client validation (1.6), override `$.validator.methods.number` to accept both marks so both layers agree. Regression tests: bind `"189.99"` and `"189,99"` under both cultures, and assert `"1,899"` does not become 1899.
 
 ### 1.2 `[ ]` Movement retry exhaustion escapes as a 500
 
@@ -45,6 +45,22 @@ SQLite compares text case-sensitively by default, so the unique index happily st
 Create/Update pre-check the SKU with `AnyAsync` and then save — two concurrent submissions can both pass the check, and the loser dies on the unique index as an uncaught `DbUpdateException` (500). Unlikely with one account, but the fix is one catch block.
 
 **Fix:** Catch `DbUpdateException` around the save, inspect for the unique-constraint violation, and rethrow `DuplicateSkuException`.
+
+### 1.6 `[ ]` Client-side validation has never worked — jQuery is never loaded
+
+**Where:** `Views/Shared/_ValidationScriptsPartial.cshtml`, `Views/Shared/_Layout.cshtml`
+
+The partial loads `jquery.validate.min.js` and the unobtrusive adapter, but nothing anywhere loads jQuery itself — `_Layout.cshtml` has no script tags, and no view adds one. `wwwroot/lib/jquery/` ships the file; it just lost its `<script>` include (most likely during the Bootstrap dead-asset cleanup). Result: `jquery.validate.min.js` throws `ReferenceError: jQuery is not defined` on every form page, the console shows errors on Create/Edit/Delete/RegisterMovement/Login, and **all** validation is server-side round-trips. Required-field errors, string lengths, ranges — everything costs a full POST.
+
+**Fix:** Either add `<script src="~/lib/jquery/dist/jquery.min.js">` as the first line of the partial (the files are already self-hosted), **together with** the number-method override from 1.1; or commit to the no-JS philosophy, delete `wwwroot/lib/` and the partial, and lean on native HTML5 validation (`required`, `min`, `max`, `maxlength` attributes are mostly already emitted). Either is defensible; half-loaded is not.
+
+### 1.7 `[ ]` Crafted culture-switch link returns a 500
+
+**Where:** `Controllers/CultureController.cs:29`
+
+`Set` passes the raw `returnUrl` query value to `LocalRedirect`, which *throws* on a non-local URL instead of falling back. `/Culture/Set?culture=bg-BG&returnUrl=https://evil.example` → unhandled `InvalidOperationException` → error page. Not an open redirect (LocalRedirect refuses), but an anonymous endpoint that can be made to 500 on demand.
+
+**Fix:** Mirror `AccountController.SafeReturnUrl`: `Url.IsLocalUrl(returnUrl) ? returnUrl : "/"`. Extract the helper to one shared spot while at it.
 
 ---
 
@@ -116,6 +132,16 @@ WAL mode improves reader/writer concurrency and crash resilience. One `PRAGMA jo
 
 No coverage for: the Scan action (found/not-found/whitespace), the Export controller action (headers, filename, content type), the retry-exhaustion path from 1.2, the `Contains` text filters in `SearchAsync`, and `GetTireAsync(includeMovements: true)` ordering newest-first. The suite is otherwise solid at 48 tests.
 
+Also worth one test: `TestDb` uses `EnsureCreated`, so the *migrations* are never exercised — the schema under test comes straight from the model, and a forgotten migration after a model change would sail through CI. EF Core exposes `context.Database.HasPendingModelChanges()`; a single test asserting it returns false catches model/migration drift forever.
+
+### 4.4 `[ ]` Error page still carries scaffold artifacts
+
+**Where:** `Views/Shared/Error.cshtml:27-32`
+
+The "Development Mode" block — advice about setting `ASPNETCORE_ENVIRONMENT`, aimed at developers — renders unconditionally, so a shop operator who hits a real error reads deployment instructions. The view also uses inline `style=` attributes, the only ones in the project, bypassing the design system.
+
+**Fix:** Delete the Development Mode block (the developer exception page already covers dev), and replace the inline styles with a utility class.
+
 ### 4.3 `[ ]` Small internal cleanups
 
 - `.lang` CSS class doubles as the username chip container in `_Layout.cshtml:42` — give the username its own class (`.whoami`) so `.lang` means one thing.
@@ -180,9 +206,9 @@ The "Clear filter" link only appears in the results header after filtering. Insi
 
 **Fix:** Take the newest ~20 in the Include, show "View all N movements" linking to the journal filtered by tire — which means adding a `tireId` filter to `GetMovementsAsync` and `/Movements`. (The date-range filter already in `TODO.md` fits the same form.)
 
-### 5.10 `[ ]` No favicon
+### 5.10 `[ ]` Favicon is the stock ASP.NET template icon
 
-There is no favicon at all; the browser tab shows a generic document icon next to Cyrillic titles. A single `favicon.svg` (black square, white "S", red index mark — matching the wordmark) plus `<link rel="icon">` in `_Layout.cshtml` finishes the brand.
+`wwwroot/favicon.ico` is the unmodified template icon (browsers pick it up via the `/favicon.ico` convention; there is no explicit `<link rel="icon">`). Every pinned tab shows the generic ASP.NET mark instead of the brand. Replace it with a `favicon.svg` matching the wordmark — black square, white "S", red index mark — add the `<link rel="icon">` to `_Layout.cshtml`, and keep the `.ico` as fallback.
 
 ### 5.11 `[ ]` No print styles
 
@@ -207,14 +233,30 @@ The inventory opens sorted by brand, but no `▲` shows because the default sort
 - "Delete" in row-actions looks identical to the safe actions until hover. Consider dropping Delete from the table entirely (it lives on Details) — fewer accidents, calmer rows, and with 5.3 the actions column shrinks to "Move / Edit".
 - Table density: rows are generous (`--sp-2` padding both axes at 0.875rem type). Screenshots show the app being used at 80% browser zoom — a signal the data pages run large. Consider a compact table variant (reduce vertical padding to `--sp-1`) or trimming `--f-3` stat numerals on the data-heavy screens.
 - The Report page's By Brand table could add a "% of value" column — the data is already in `ValueReportGroup`, and a share column makes the ranking meaningful at a glance.
+- The scan input's `--f--1` (12px) font triggers iOS Safari's auto-zoom on focus (it zooms any input under 16px); pin it to 16px on touch viewports or accept the zoom.
+- `InterVariable.woff2` isn't preloaded, so text renders in Helvetica first and swaps (`font-display: swap`); one `<link rel="preload" as="font" crossorigin>` in the layout removes the flash.
+- `body { min-height: 100vh }` overshoots on mobile browsers with dynamic URL bars; `100dvh` (with `100vh` fallback) is the modern fix.
+
+### 5.15 `[ ]` Numeric form fields start prefilled with zeros
+
+**Where:** `Views/Tires/Create.cshtml`, `Views/Tires/RegisterMovement.cshtml:72`
+
+The Create action passes `new Tire()`, so every non-nullable numeric renders its default: Width, Profile, Diameter, Quantity and MinStock all show `0` (and UnitPrice `0,00`), which the operator must select-and-delete nine times per tire — the carefully written placeholders (`205`, `55`, `16`…) never show. Same on the movement form: Quantity opens as `0`, which is an *invalid* value for In/Out. This is the most-typed form in the app; the zeros fight the user on every entry.
+
+**Fix:** Bind Create through a dedicated view model with nullable numerics (`int? Width` + `[Required]`), mapping to `Tire` in the controller — fields start blank, placeholders show, and validation still fires. Same for `RegisterMovementViewModel.Quantity`. (A cheaper patch — `value=""` overrides on the inputs — works but breaks value redisplay after a validation error.)
+
+### 5.16 `[ ]` Out-of-range page numbers aren't clamped
+
+`SearchAsync` and `GetMovementsAsync` clamp `page` to ≥ 1 but not to the top: `/Tires?Page=999` renders an empty table with "Page 999 of 3" and a working Previous button to page 998. Harmless but sloppy — clamp to `TotalPages` after counting (or redirect to the last page).
 
 ---
 
 ## Suggested order of work
 
-1. **1.1** (bg decimal entry — data entry is broken in the default culture), **1.2**, **1.3** — the three real bugs.
+1. **1.1 + 1.6 together** (decimal binding and the dead client validation are one coherent fix), then **1.2**, **1.3**, **1.7** — the real bugs.
 2. **5.1 + 5.2** (flash + redirect-to-details) — biggest UX return for the effort, touches the same controller code as 1.2.
-3. **2.1–2.4** — hardening, each independent and small.
-4. **1.4, 1.5, 3.1** — correctness edges.
-5. **5.3–5.9, 5.12, 5.13** — UX round, mostly view-layer.
-6. **3.2, 3.3, 4.x, 5.10, 5.11, 5.14** — housekeeping and polish.
+3. **5.15** — the zero-prefilled forms; the Create view model it introduces is also where the 1.1 binder naturally attaches.
+4. **2.1–2.4** — hardening, each independent and small.
+5. **1.4, 1.5, 3.1** — correctness edges.
+6. **5.3–5.9, 5.12, 5.13, 5.16** — UX round, mostly view-layer.
+7. **3.2, 3.3, 4.x, 5.10, 5.11, 5.14** — housekeeping and polish.
