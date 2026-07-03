@@ -1,0 +1,18 @@
+namespace Sklad.Helpers;
+
+public static class Dates
+{
+    // Fixed shop timezone: ToLocalTime() would follow the host, and a UTC
+    // container would silently shift every timestamp for Bulgarian users.
+    private static readonly TimeZoneInfo Sofia = Resolve();
+
+    private static TimeZoneInfo Resolve()
+    {
+        try { return TimeZoneInfo.FindSystemTimeZoneById("Europe/Sofia"); }
+        catch (TimeZoneNotFoundException) { return TimeZoneInfo.FindSystemTimeZoneById("FLE Standard Time"); }
+    }
+
+    public static string Stamp(DateTime utc)
+        => TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(utc, DateTimeKind.Utc), Sofia)
+            .ToString("dd MMM yyyy HH:mm");
+}

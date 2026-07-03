@@ -52,6 +52,7 @@ public class TiresController : Controller
         if (id is null) return NotFound();
         var tire = await _inventory.GetTireAsync(id.Value, includeMovements: true);
         if (tire is null) return NotFound();
+        ViewBag.MovementCount = await _inventory.CountMovementsAsync(id.Value);
         return View(tire);
     }
 
@@ -122,6 +123,7 @@ public class TiresController : Controller
         if (id is null) return NotFound();
         var tire = await _inventory.GetTireAsync(id.Value);
         if (tire is null) return NotFound();
+        ViewBag.HasMovements = await _inventory.CountMovementsAsync(id.Value) > 0;
         return View(tire);
     }
 
@@ -160,14 +162,14 @@ public class TiresController : Controller
         return View(report);
     }
 
-    // GET: /Tires/RegisterMovement/5
-    public async Task<IActionResult> RegisterMovement(int? id)
+    // GET: /Tires/RegisterMovement/5?type=In
+    public async Task<IActionResult> RegisterMovement(int? id, MovementType? type = null)
     {
         if (id is null) return NotFound();
         var tire = await _inventory.GetTireAsync(id.Value);
         if (tire is null) return NotFound();
         ViewBag.Tire = tire;
-        return View(new RegisterMovementViewModel { TireId = tire.Id });
+        return View(new RegisterMovementViewModel { TireId = tire.Id, MovementType = type ?? MovementType.In });
     }
 
     // POST: /Tires/RegisterMovement

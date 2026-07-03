@@ -25,15 +25,15 @@
             <nav class="topnav">
                 @if (User.Identity?.IsAuthenticated == true)
                 {
-                    <a class="@(isInventory ? "is-active" : "")" asp-controller="Tires" asp-action="Index">@L["Inventory"]</a>
-                    <a class="@(isLowStock ? "is-active" : "")" asp-controller="Tires" asp-action="LowStock">@L["Low Stock"]</a>
-                    <a class="@(isMovements ? "is-active" : "")" asp-controller="Movements" asp-action="Index">@L["Movements"]</a>
-                    <a class="@(isReport ? "is-active" : "")" asp-controller="Tires" asp-action="Report">@L["Stock Value"]</a>
+                    <a class="@(isInventory ? "is-active" : "")" aria-current="@(isInventory ? "page" : null)" asp-controller="Tires" asp-action="Index">@L["Inventory"]</a>
+                    <a class="@(isLowStock ? "is-active" : "")" aria-current="@(isLowStock ? "page" : null)" asp-controller="Tires" asp-action="LowStock">@L["Low Stock"]</a>
+                    <a class="@(isMovements ? "is-active" : "")" aria-current="@(isMovements ? "page" : null)" asp-controller="Movements" asp-action="Index">@L["Movements"]</a>
+                    <a class="@(isReport ? "is-active" : "")" aria-current="@(isReport ? "page" : null)" asp-controller="Tires" asp-action="Report">@L["Stock Value"]</a>
                 }
                 <span class="lang" role="group" aria-label="Language">
-                    <a class="@(lang == "bg" ? "is-active" : "")" asp-controller="Culture" asp-action="Set"
+                    <a class="@(lang == "bg" ? "is-active" : "")" aria-current="@(lang == "bg" ? "true" : null)" asp-controller="Culture" asp-action="Set"
                        asp-route-culture="bg-BG" asp-route-returnUrl="@here">BG</a>
-                    <a class="@(lang == "en" ? "is-active" : "")" asp-controller="Culture" asp-action="Set"
+                    <a class="@(lang == "en" ? "is-active" : "")" aria-current="@(lang == "en" ? "true" : null)" asp-controller="Culture" asp-action="Set"
                        asp-route-culture="en-GB" asp-route-returnUrl="@here">EN</a>
                 </span>
                 @if (User.Identity?.IsAuthenticated == true)

@@ -18,6 +18,7 @@
             <div class="head-actions">
                 <a asp-action="RegisterMovement" asp-route-id="@Model.Id" class="btn btn-secondary btn-sm">@L["Add Movement"]</a>
                 <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary btn-sm">@L["Edit"]</a>
+                <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-danger btn-sm">@L["Delete"]</a>
                 <a asp-action="Index" class="btn btn-secondary btn-sm">@L["Back"]</a>
             </div>
         </div>
@@ -67,10 +68,18 @@
             </div>
 
             <div class="col-7">
+                @{ var movementCount = (int)(ViewBag.MovementCount ?? Model.StockMovements.Count); }
                 <div class="block">
                     <div class="block-head">
                         <span class="block-title">@L["Movement History"]</span>
-                        <a class="block-meta" asp-action="RegisterMovement" asp-route-id="@Model.Id">@L["Add Movement"]</a>
+                        <span class="block-meta">
+                            @if (movementCount > Model.StockMovements.Count)
+                            {
+                                <a asp-controller="Movements" asp-action="Index" asp-route-tireId="@Model.Id">@L["View all {0} movements", movementCount]</a>
+                                <span> &mdash; </span>
+                            }
+                            <a asp-action="RegisterMovement" asp-route-id="@Model.Id">@L["Add Movement"]</a>
+                        </span>
                     </div>
                     @if (!Model.StockMovements.Any())
                     {
@@ -109,7 +118,7 @@
                                             <div class="log-note">@L["by {0}", m.UserName]</div>
                                         }
                                     </div>
-                                    <div class="log-date">@m.Date.ToLocalTime().ToString("dd MMM yyyy HH:mm")</div>
+                                    <div class="log-date">@Dates.Stamp(m.Date)</div>
                                 </li>
                             }
                         </ul>

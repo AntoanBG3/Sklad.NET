@@ -2,6 +2,7 @@
 
 @{
     ViewData["Title"] = L["Delete Tire"].Value;
+    var blocked = (bool)(ViewBag.HasMovements ?? false);
 }
 
 <div class="page">
@@ -20,10 +21,20 @@
 
         <div class="confirm">
             <div asp-validation-summary="ModelOnly" class="form-errors"></div>
-            <div class="confirm-warning">
-                <div class="eyebrow">@L["Permanent deletion"]</div>
-                <p>@L["You are about to permanently remove this tire from the inventory. Tires with existing movement records cannot be deleted — clear those first."]</p>
-            </div>
+            @if (blocked)
+            {
+                <div class="confirm-warning">
+                    <div class="eyebrow">@L["Deletion blocked"]</div>
+                    <p>@L["This tire has movement records and cannot be deleted."] @L["To clear stock instead, record an Adjustment movement to zero."]</p>
+                </div>
+            }
+            else
+            {
+                <div class="confirm-warning">
+                    <div class="eyebrow">@L["Permanent deletion"]</div>
+                    <p>@L["You are about to permanently remove this tire from the inventory. Tires with existing movement records cannot be deleted — clear those first."]</p>
+                </div>
+            }
 
             <dl class="specs">
                 <dt>@L["SKU"]</dt>
@@ -38,11 +49,21 @@
                 <dd>@L["{0} units", Model.Quantity]</dd>
             </dl>
 
-            <form asp-action="Delete" class="form-actions">
-                <input type="hidden" asp-for="Id" />
-                <button type="submit" class="btn btn-danger">@L["Delete Tire"]</button>
-                <a asp-action="Index" class="btn btn-secondary">@L["Cancel"]</a>
-            </form>
+            @if (blocked)
+            {
+                <div class="form-actions">
+                    <a asp-action="RegisterMovement" asp-route-id="@Model.Id" class="btn btn-primary">@L["Add Movement"]</a>
+                    <a asp-action="Index" class="btn btn-secondary">@L["Cancel"]</a>
+                </div>
+            }
+            else
+            {
+                <form asp-action="Delete" class="form-actions">
+                    <input type="hidden" asp-for="Id" />
+                    <button type="submit" class="btn btn-danger">@L["Delete Tire"]</button>
+                    <a asp-action="Index" class="btn btn-secondary">@L["Cancel"]</a>
+                </form>
+            }
         </div>
 
     </div>

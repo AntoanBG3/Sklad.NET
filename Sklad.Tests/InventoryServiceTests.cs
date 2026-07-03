@@ -545,6 +545,42 @@ public class InventoryServiceTests : IDisposable
         Assert.Equal("CYR-1", Assert.Single(bySku.Items).Sku);
     }
 
+    // --- Movements journal tire filter / history cap ---
+
+    [Fact]
+    public async Task Movements_journal_filters_by_tire()
+    {
+        var a = await SeedTireAsync(NewTire("JF-A"));
+        var b = await SeedTireAsync(NewTire("JF-B"));
+        await using var context = _db.CreateContext();
+        var service = CreateService(context);
+        await service.RegisterMovementAsync(a.Id, MovementType.In, 2, null);
+        await service.RegisterMovementAsync(b.Id, MovementType.In, 3, null);
+
+        var result = await service.GetMovementsAsync(null, tireId: a.Id);
+
+        Assert.Equal(a.Id, Assert.Single(result.Items).TireId);
+    }
+
+    [Fact]
+    public async Task Details_movement_history_is_capped_but_count_is_full()
+    {
+        var tire = await SeedTireAsync(NewTire("CAP-1", qty: 0));
+        await using (var context = _db.CreateContext())
+        {
+            var service = CreateService(context);
+            for (var i = 0; i < InventoryService.RecentMovementLimit + 5; i++)
+                await service.RegisterMovementAsync(tire.Id, MovementType.In, 1, null);
+        }
+
+        await using var fresh = _db.CreateContext();
+        var loaded = await CreateService(fresh).GetTireAsync(tire.Id, includeMovements: true);
+        var total = await CreateService(fresh).CountMovementsAsync(tire.Id);
+
+        Assert.Equal(InventoryService.RecentMovementLimit, loaded!.StockMovements.Count);
+        Assert.Equal(InventoryService.RecentMovementLimit + 5, total);
+    }
+
     // --- Page clamping ---
 
     [Fact]

@@ -53,14 +53,14 @@
                         </colgroup>
                         <thead>
                             <tr>
-                                <th>@L["SKU"]</th>
-                                <th>@L["Tire"]</th>
-                                <th>@L["Size"]</th>
-                                <th>@L["Season"]</th>
-                                <th class="col-num">@L["Stock"]</th>
-                                <th class="col-num">@L["Deficit"]</th>
-                                <th>@L["Location"]</th>
-                                <th></th>
+                                <th scope="col">@L["SKU"]</th>
+                                <th scope="col">@L["Tire"]</th>
+                                <th scope="col">@L["Size"]</th>
+                                <th scope="col">@L["Season"]</th>
+                                <th scope="col" class="col-num">@L["Stock"]</th>
+                                <th scope="col" class="col-num">@L["Deficit"]</th>
+                                <th scope="col">@L["Location"]</th>
+                                <th scope="col"><span class="visually-hidden">@L["Actions"]</span></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -68,10 +68,12 @@
                             {
                                 int deficit = t.MinStock - t.Quantity;
                                 <tr class="is-low">
-                                    <td class="mono">@t.Sku</td>
+                                    <td class="mono"><a class="row-link" asp-action="Details" asp-route-id="@t.Id">@t.Sku</a></td>
                                     <td>
-                                        <span class="cell-stack cell-strong">@t.Brand</span>
-                                        <span class="cell-sub">@t.Model</span>
+                                        <a class="row-link" asp-action="Details" asp-route-id="@t.Id">
+                                            <span class="cell-stack cell-strong">@t.Brand</span>
+                                            <span class="cell-sub">@t.Model</span>
+                                        </a>
                                     </td>
                                     <td class="mono">@t.Size</td>
                                     <td><span class="tag">@L[Enums.Key(t.Season)]</span></td>
@@ -83,7 +85,7 @@
                                     <td class="cell-muted">@(t.Location ?? "—")</td>
                                     <td>
                                         <div class="row-actions">
-                                            <a asp-action="RegisterMovement" asp-route-id="@t.Id">@L["Move"]</a>
+                                            <a asp-action="RegisterMovement" asp-route-id="@t.Id" asp-route-type="@MovementType.In">@L["Move"]</a>
                                             <a asp-action="Edit" asp-route-id="@t.Id">@L["Edit"]</a>
                                         </div>
                                     </td>

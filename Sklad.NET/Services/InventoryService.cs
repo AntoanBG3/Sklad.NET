@@ -90,13 +90,20 @@ public class InventoryService : IInventoryService
             .OrderBy(t => t.Brand).ThenBy(t => t.Model)
             .ToListAsync();
 
+    public const int RecentMovementLimit = 20;
+
     public Task<Tire?> GetTireAsync(int id, bool includeMovements = false)
     {
         var q = _db.Tires.AsQueryable();
         if (includeMovements)
-            q = q.Include(t => t.StockMovements.OrderByDescending(m => m.Date).ThenByDescending(m => m.Id));
+            q = q.Include(t => t.StockMovements
+                .OrderByDescending(m => m.Date).ThenByDescending(m => m.Id)
+                .Take(RecentMovementLimit));
         return q.FirstOrDefaultAsync(t => t.Id == id);
     }
+
+    public Task<int> CountMovementsAsync(int tireId)
+        => _db.StockMovements.CountAsync(m => m.TireId == tireId);
 
     public Task<Tire?> FindByCodeAsync(string code)
         => _db.Tires.FirstOrDefaultAsync(t => t.Sku == code || t.Barcode == code);
@@ -256,11 +263,13 @@ public class InventoryService : IInventoryService
         }
     }
 
-    public async Task<PagedResult<StockMovement>> GetMovementsAsync(MovementType? type, int page, int pageSize = DefaultPageSize)
+    public async Task<PagedResult<StockMovement>> GetMovementsAsync(MovementType? type, int? tireId = null, int page = 1, int pageSize = DefaultPageSize)
     {
         var q = _db.StockMovements.Include(m => m.Tire).AsQueryable();
         if (type.HasValue)
             q = q.Where(m => m.MovementType == type);
+        if (tireId.HasValue)
+            q = q.Where(m => m.TireId == tireId);
         q = q.OrderByDescending(m => m.Date).ThenByDescending(m => m.Id);
 
         var total = await q.CountAsync();

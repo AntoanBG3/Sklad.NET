@@ -11,6 +11,8 @@ public interface IInventoryService
 
     Task<Tire?> GetTireAsync(int id, bool includeMovements = false);
 
+    Task<int> CountMovementsAsync(int tireId);
+
     Task<Tire?> FindByCodeAsync(string code);
 
     Task CreateTireAsync(Tire tire, string? userName = null);
@@ -23,7 +25,7 @@ public interface IInventoryService
 
     Task<int> RegisterMovementAsync(int tireId, MovementType movementType, int quantity, string? note, string? userName = null);
 
-    Task<PagedResult<StockMovement>> GetMovementsAsync(MovementType? type, int page, int pageSize = InventoryService.DefaultPageSize);
+    Task<PagedResult<StockMovement>> GetMovementsAsync(MovementType? type, int? tireId = null, int page = 1, int pageSize = InventoryService.DefaultPageSize);
 
     Task<ValueReport> GetValueReportAsync();
 

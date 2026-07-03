@@ -88,6 +88,17 @@ img, svg { display: block; max-width: 100%; }
 .num { font-variant-numeric: tabular-nums; }
 .mono { font-feature-settings: "tnum"; font-variant-numeric: tabular-nums; }
 
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+
 /* ============================================================
    Grid + container
    ============================================================ */
@@ -335,6 +346,15 @@ img, svg { display: block; max-width: 100%; }
     color: var(--ink-50);
     font-weight: 500;
 }
+.block-meta a.is-active {
+    color: var(--black);
+    font-weight: 700;
+    text-decoration: underline;
+    text-decoration-color: var(--red);
+    text-decoration-thickness: 2px;
+    text-underline-offset: 4px;
+}
+.block-title-context { font-weight: 400; text-transform: none; letter-spacing: 0; color: var(--ink-50); }
 
 /* ============================================================
    Filter (native details — no JS)
@@ -433,15 +453,27 @@ img, svg { display: block; max-width: 100%; }
 
 /* column widths — fixed layout, proportional */
 .data-table col.w-sku   { width: 12%; }
-.data-table col.w-tire  { width: 17%; }
+.data-table col.w-tire  { width: 21%; }
 .data-table col.w-size  { width: 10%; }
 .data-table col.w-class { width: 12%; }
 .data-table col.w-price { width: 15%; }
 .data-table col.w-qty   { width: 9%; }
 .data-table col.w-loc   { width: 9%; }
-.data-table col.w-act   { width: 16%; }
+.data-table col.w-act   { width: 12%; }
 .data-table col.w-stock { width: 9%; }
 .data-table col.w-def   { width: 9%; }
+
+/* movements journal columns — Note gets the leftover width */
+.data-table col.w-mdate { width: 14%; }
+.data-table col.w-mtire { width: 24%; }
+.data-table col.w-mtype { width: 12%; }
+.data-table col.w-mqty  { width: 8%; }
+.data-table col.w-muser { width: 12%; }
+.data-table col.w-mnote { width: 30%; }
+
+/* cells that navigate to the tire — black like data, underline on hover */
+.row-link { color: inherit; display: block; }
+.row-link:hover { color: inherit; text-decoration: underline; }
 
 /* season / type rendered as quiet typographic data, not coloured chips */
 .tag {
@@ -729,13 +761,15 @@ img, svg { display: block; max-width: 100%; }
 /* ============================================================
    Scan box, pager, sign-out
    ============================================================ */
-.scan-form { display: flex; }
+.scan-form { display: flex; gap: var(--sp-1); }
 .scan-form .field-input {
     width: 15rem;
     max-width: 100%;
     padding: var(--sp-1) var(--sp-3);
     font-size: var(--f--1);
 }
+
+.field-buttons { display: flex; gap: var(--sp-2); }
 
 .pager {
     display: flex;

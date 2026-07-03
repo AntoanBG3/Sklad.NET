@@ -72,6 +72,9 @@
                         <input asp-for="Quantity" type="number" min="0" class="field-input" placeholder="0" />
                         <span asp-validation-for="Quantity" class="field-error"></span>
                         <p class="field-hint">@L["For Adjustment, enter the target stock count (0 writes off all stock)."]</p>
+                        <p class="field-hint" id="stock-projection" hidden aria-live="polite">
+                            @L["Resulting stock:"] <strong id="stock-projection-value"></strong>
+                        </p>
                     </div>
 
                     <div class="field">
@@ -94,4 +97,26 @@
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        (function () {
+            var qty = document.getElementById("Quantity");
+            var type = document.getElementById("MovementType");
+            var row = document.getElementById("stock-projection");
+            var value = document.getElementById("stock-projection-value");
+            var current = @tire.Quantity;
+            function update() {
+                var q = parseInt(qty.value, 10);
+                if (isNaN(q) || q < 0) { row.hidden = true; return; }
+                var result = type.value === "In" ? current + q
+                           : type.value === "Out" ? current - q
+                           : q;
+                row.hidden = false;
+                value.textContent = result;
+                value.classList.toggle("qty-low", result < 0);
+            }
+            qty.addEventListener("input", update);
+            type.addEventListener("change", update);
+            update();
+        })();
+    </script>
 }

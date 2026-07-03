@@ -10,11 +10,13 @@ public class MovementsController : Controller
 
     public MovementsController(IInventoryService inventory) => _inventory = inventory;
 
-    // GET: /Movements
-    public async Task<IActionResult> Index(MovementType? type, int page = 1)
+    // GET: /Movements?type=In&tireId=5
+    public async Task<IActionResult> Index(MovementType? type, int? tireId, int page = 1)
     {
         ViewBag.Type = type;
-        var movements = await _inventory.GetMovementsAsync(type, page);
+        ViewBag.TireId = tireId;
+        ViewBag.Tire = tireId.HasValue ? await _inventory.GetTireAsync(tireId.Value) : null;
+        var movements = await _inventory.GetMovementsAsync(type, tireId, page);
         return View(movements);
     }
 }

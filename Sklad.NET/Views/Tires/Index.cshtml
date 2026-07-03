@@ -21,8 +21,12 @@
         ["Sort"] = sort, ["Page"] = page == 1 ? null : page.ToString()
     };
 
-    string SortToggle(string key) => f.Sort == key ? "-" + key : key;
-    string SortMark(string key) => f.Sort == key ? " ▲" : (f.Sort == "-" + key ? " ▼" : "");
+    // null means the default brand sort — the marker must show it, or clicking
+    // "Tire" once appears to do nothing.
+    string EffectiveSort = f.Sort ?? "brand";
+    string SortToggle(string key) => EffectiveSort == key ? "-" + key : key;
+    string SortMark(string key) => EffectiveSort == key ? " ▲" : (f.Sort == "-" + key ? " ▼" : "");
+    string? AriaSort(string key) => EffectiveSort == key ? "ascending" : (f.Sort == "-" + key ? "descending" : null);
 }
 
 <div class="page">
@@ -36,7 +40,10 @@
             </div>
             <div class="head-actions">
                 <form method="get" asp-action="Scan" class="scan-form">
-                    <input name="code" class="field-input" placeholder="@L["Scan SKU or barcode"]" autocomplete="off" />
+                    <label class="visually-hidden" for="scan-code">@L["Scan SKU or barcode"]</label>
+                    <input id="scan-code" name="code" class="field-input" placeholder="@L["Scan SKU or barcode"]"
+                           autocomplete="off" autofocus />
+                    <button type="submit" class="btn btn-secondary btn-sm">@L["Scan"]</button>
                 </form>
                 <a asp-action="Export" asp-all-route-data="@Route(f.Sort, 1)"
                    class="btn btn-secondary btn-sm">@L["Export CSV"]</a>
@@ -127,8 +134,9 @@
                             }
                         </select>
                     </div>
-                    <div class="field">
+                    <div class="field field-buttons">
                         <button type="submit" class="btn btn-primary">@L["Search"]</button>
+                        <a asp-action="Index" class="btn btn-secondary">@L["Clear"]</a>
                     </div>
                 </div>
             </form>
@@ -169,24 +177,26 @@
                         </colgroup>
                         <thead>
                             <tr>
-                                <th><a asp-action="Index" asp-all-route-data="@Route(SortToggle("sku"), 1)">@L["SKU"]@SortMark("sku")</a></th>
-                                <th><a asp-action="Index" asp-all-route-data="@Route(SortToggle("brand"), 1)">@L["Tire"]@SortMark("brand")</a></th>
-                                <th><a asp-action="Index" asp-all-route-data="@Route(SortToggle("size"), 1)">@L["Size"]@SortMark("size")</a></th>
-                                <th>@L["Season / Type"]</th>
-                                <th class="col-num"><a asp-action="Index" asp-all-route-data="@Route(SortToggle("price"), 1)">@L["Price"]@SortMark("price")</a></th>
-                                <th class="col-num"><a asp-action="Index" asp-all-route-data="@Route(SortToggle("qty"), 1)">@L["Qty / Min"]@SortMark("qty")</a></th>
-                                <th>@L["Location"]</th>
-                                <th></th>
+                                <th scope="col" aria-sort="@AriaSort("sku")"><a asp-action="Index" asp-all-route-data="@Route(SortToggle("sku"), 1)">@L["SKU"]@SortMark("sku")</a></th>
+                                <th scope="col" aria-sort="@AriaSort("brand")"><a asp-action="Index" asp-all-route-data="@Route(SortToggle("brand"), 1)">@L["Tire"]@SortMark("brand")</a></th>
+                                <th scope="col" aria-sort="@AriaSort("size")"><a asp-action="Index" asp-all-route-data="@Route(SortToggle("size"), 1)">@L["Size"]@SortMark("size")</a></th>
+                                <th scope="col">@L["Season / Type"]</th>
+                                <th scope="col" aria-sort="@AriaSort("price")" class="col-num"><a asp-action="Index" asp-all-route-data="@Route(SortToggle("price"), 1)">@L["Price"]@SortMark("price")</a></th>
+                                <th scope="col" aria-sort="@AriaSort("qty")" class="col-num"><a asp-action="Index" asp-all-route-data="@Route(SortToggle("qty"), 1)">@L["Qty / Min"]@SortMark("qty")</a></th>
+                                <th scope="col">@L["Location"]</th>
+                                <th scope="col"><span class="visually-hidden">@L["Actions"]</span></th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach (var t in Model.Results.Items)
                             {
                                 <tr class="@(t.IsLowStock ? "is-low" : "")">
-                                    <td class="mono">@t.Sku</td>
+                                    <td class="mono"><a class="row-link" asp-action="Details" asp-route-id="@t.Id">@t.Sku</a></td>
                                     <td>
-                                        <span class="cell-stack cell-strong">@t.Brand</span>
-                                        <span class="cell-sub">@t.Model</span>
+                                        <a class="row-link" asp-action="Details" asp-route-id="@t.Id">
+                                            <span class="cell-stack cell-strong">@t.Brand</span>
+                                            <span class="cell-sub">@t.Model</span>
+                                        </a>
                                     </td>
                                     <td class="mono">@t.Size</td>
                                     <td>
@@ -204,10 +214,8 @@
                                     <td class="cell-muted">@(t.Location ?? "—")</td>
                                     <td>
                                         <div class="row-actions">
-                                            <a asp-action="Details" asp-route-id="@t.Id">@L["View"]</a>
                                             <a asp-action="RegisterMovement" asp-route-id="@t.Id">@L["Move"]</a>
                                             <a asp-action="Edit" asp-route-id="@t.Id">@L["Edit"]</a>
-                                            <a class="act-danger" asp-action="Delete" asp-route-id="@t.Id">@L["Delete"]</a>
                                         </div>
                                     </td>
                                 </tr>

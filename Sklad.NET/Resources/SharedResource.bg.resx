@@ -242,6 +242,15 @@
   <data name="Tire {0} deleted." xml:space="preserve"><value>Гума {0} е изтрита.</value></data>
   <data name="Movement recorded — stock is now {0}." xml:space="preserve"><value>Движението е записано — наличността е {0}.</value></data>
 
+  <!-- UX round -->
+  <data name="Scan" xml:space="preserve"><value>Сканирай</value></data>
+  <data name="Clear" xml:space="preserve"><value>Изчисти</value></data>
+  <data name="Actions" xml:space="preserve"><value>Действия</value></data>
+  <data name="Deletion blocked" xml:space="preserve"><value>Изтриването е блокирано</value></data>
+  <data name="To clear stock instead, record an Adjustment movement to zero." xml:space="preserve"><value>За да нулирате наличността, запишете движение Корекция до нула.</value></data>
+  <data name="Resulting stock:" xml:space="preserve"><value>Резултатна наличност:</value></data>
+  <data name="View all {0} movements" xml:space="preserve"><value>Виж всички {0} движения</value></data>
+
   <!-- Hardening -->
   <data name="Too many sign-in attempts. Wait a minute and try again." xml:space="preserve"><value>Твърде много опити за вход. Изчакайте минута и опитайте отново.</value></data>
   <data name="Page not found" xml:space="preserve"><value>Страницата не е намерена</value></data>
