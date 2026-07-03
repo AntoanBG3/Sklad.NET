@@ -13,7 +13,7 @@ public class StockMovement
     public MovementType MovementType { get; set; }
 
     [Required]
-    [Range(1, int.MaxValue)]
+    [Range(0, int.MaxValue)]
     public int Quantity { get; set; }
 
     [Required]
@@ -21,6 +21,9 @@ public class StockMovement
 
     [StringLength(500)]
     public string? Note { get; set; }
+
+    [StringLength(100)]
+    public string? UserName { get; set; }
 
     public Tire Tire { get; set; } = null!;
 }

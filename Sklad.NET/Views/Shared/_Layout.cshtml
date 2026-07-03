@@ -3,7 +3,9 @@
     var ctrl = ViewContext.RouteData.Values["controller"] as string;
     var act = ViewContext.RouteData.Values["action"] as string;
     var isLowStock = ctrl == "Tires" && act == "LowStock";
-    var isInventory = ctrl == "Tires" && !isLowStock;
+    var isReport = ctrl == "Tires" && act == "Report";
+    var isMovements = ctrl == "Movements";
+    var isInventory = ctrl == "Tires" && !isLowStock && !isReport;
     var lang = System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName;
     var here = $"{Context.Request.Path}{Context.Request.QueryString}";
 }
@@ -12,9 +14,6 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] &mdash; Sklad</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 </head>
 <body>
@@ -24,14 +23,26 @@
                 Sklad<span class="mark-index">@L["Tire Warehouse"]</span>
             </a>
             <nav class="topnav">
-                <a class="@(isInventory ? "is-active" : "")" asp-controller="Tires" asp-action="Index">@L["Inventory"]</a>
-                <a class="@(isLowStock ? "is-active" : "")" asp-controller="Tires" asp-action="LowStock">@L["Low Stock"]</a>
+                @if (User.Identity?.IsAuthenticated == true)
+                {
+                    <a class="@(isInventory ? "is-active" : "")" asp-controller="Tires" asp-action="Index">@L["Inventory"]</a>
+                    <a class="@(isLowStock ? "is-active" : "")" asp-controller="Tires" asp-action="LowStock">@L["Low Stock"]</a>
+                    <a class="@(isMovements ? "is-active" : "")" asp-controller="Movements" asp-action="Index">@L["Movements"]</a>
+                    <a class="@(isReport ? "is-active" : "")" asp-controller="Tires" asp-action="Report">@L["Stock Value"]</a>
+                }
                 <span class="lang" role="group" aria-label="Language">
                     <a class="@(lang == "bg" ? "is-active" : "")" asp-controller="Culture" asp-action="Set"
                        asp-route-culture="bg-BG" asp-route-returnUrl="@here">BG</a>
                     <a class="@(lang == "en" ? "is-active" : "")" asp-controller="Culture" asp-action="Set"
                        asp-route-culture="en-GB" asp-route-returnUrl="@here">EN</a>
                 </span>
+                @if (User.Identity?.IsAuthenticated == true)
+                {
+                    <form class="logout" asp-controller="Account" asp-action="Logout" method="post">
+                        <span class="lang">@User.Identity.Name</span>
+                        <button type="submit" class="btn btn-secondary btn-sm">@L["Sign out"]</button>
+                    </form>
+                }
             </nav>
         </div>
     </header>

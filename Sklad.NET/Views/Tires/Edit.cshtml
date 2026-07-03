@@ -20,15 +20,23 @@
 
         <form asp-action="Edit" class="form">
             <input type="hidden" asp-for="Id" />
+            <input type="hidden" asp-for="Version" />
 
             <div asp-validation-summary="ModelOnly" class="form-errors"></div>
 
             <div class="form-section">
                 <div class="form-section-title">@L["Identity"]</div>
-                <div class="field">
-                    <label asp-for="Sku" class="field-label">@L["SKU"]</label>
-                    <input asp-for="Sku" class="field-input" />
-                    <span asp-validation-for="Sku" class="field-error"></span>
+                <div class="form-grid-2">
+                    <div class="field">
+                        <label asp-for="Sku" class="field-label">@L["SKU"]</label>
+                        <input asp-for="Sku" class="field-input" />
+                        <span asp-validation-for="Sku" class="field-error"></span>
+                    </div>
+                    <div class="field">
+                        <label asp-for="Barcode" class="field-label">@L["Barcode"] <span class="optional">@L["(optional)"]</span></label>
+                        <input asp-for="Barcode" class="field-input" placeholder="3528706782900" />
+                        <span asp-validation-for="Barcode" class="field-error"></span>
+                    </div>
                 </div>
                 <div class="form-grid-2">
                     <div class="field">
@@ -93,16 +101,11 @@
 
             <div class="form-section">
                 <div class="form-section-title">@L["Pricing & Stock"]</div>
-                <div class="field">
-                    <label asp-for="UnitPrice" class="field-label">@L["Unit Price (€)"]</label>
-                    <input asp-for="UnitPrice" class="field-input" />
-                    <span asp-validation-for="UnitPrice" class="field-error"></span>
-                </div>
                 <div class="form-grid-2">
                     <div class="field">
-                        <label asp-for="Quantity" class="field-label">@L["Quantity"]</label>
-                        <input asp-for="Quantity" class="field-input" />
-                        <span asp-validation-for="Quantity" class="field-error"></span>
+                        <label asp-for="UnitPrice" class="field-label">@L["Unit Price (€)"]</label>
+                        <input asp-for="UnitPrice" class="field-input" />
+                        <span asp-validation-for="UnitPrice" class="field-error"></span>
                     </div>
                     <div class="field">
                         <label asp-for="MinStock" class="field-label">@L["Min Stock"]</label>
@@ -110,20 +113,24 @@
                         <span asp-validation-for="MinStock" class="field-error"></span>
                     </div>
                 </div>
+                <p class="field-hint">
+                    @L["Stock on hand ({0}) is managed through movements and cannot be edited here.", Model.Quantity]
+                    <a asp-action="RegisterMovement" asp-route-id="@Model.Id">@L["Add Movement"]</a>
+                </p>
             </div>
 
             <div class="form-section">
                 <div class="form-section-title">@L["Location"]</div>
                 <div class="field">
                     <label asp-for="Location" class="field-label">@L["Location"]</label>
-                    <input asp-for="Location" class="field-input" />
+                    <input asp-for="Location" class="field-input" placeholder="Rack A-3" />
                     <span asp-validation-for="Location" class="field-error"></span>
                 </div>
             </div>
 
             <div class="form-actions">
-                <button type="submit" class="btn btn-primary">@L["Save Changes"]</button>
-                <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-secondary">@L["Cancel"]</a>
+                <button type="submit" class="btn btn-primary">@L["Save Tire"]</button>
+                <a asp-action="Index" class="btn btn-secondary">@L["Cancel"]</a>
             </div>
 
         </form>

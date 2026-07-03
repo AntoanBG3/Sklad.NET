@@ -20,6 +20,8 @@ public class SkladDbContext : DbContext
 
             entity.Property(t => t.UnitPrice).HasPrecision(18, 2);
 
+            entity.Property(t => t.Version).IsConcurrencyToken();
+
             entity.HasMany(t => t.StockMovements)
                   .WithOne(m => m.Tire)
                   .HasForeignKey(m => m.TireId)

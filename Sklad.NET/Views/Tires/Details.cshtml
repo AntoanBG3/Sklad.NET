@@ -33,6 +33,9 @@
                         <dt>@L["SKU"]</dt>
                         <dd class="mono">@Model.Sku</dd>
 
+                        <dt>@L["Barcode"]</dt>
+                        <dd class="mono">@(Model.Barcode ?? "—")</dd>
+
                         <dt>@L["Brand"]</dt>
                         <dd class="dd-strong">@Model.Brand</dd>
 
@@ -101,8 +104,12 @@
                                         {
                                             <div class="log-note">@m.Note</div>
                                         }
+                                        @if (!string.IsNullOrWhiteSpace(m.UserName))
+                                        {
+                                            <div class="log-note">@L["by {0}", m.UserName]</div>
+                                        }
                                     </div>
-                                    <div class="log-date">@m.Date.ToString("dd MMM yyyy")</div>
+                                    <div class="log-date">@m.Date.ToLocalTime().ToString("dd MMM yyyy HH:mm")</div>
                                 </li>
                             }
                         </ul>

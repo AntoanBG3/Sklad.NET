@@ -4,6 +4,7 @@
     ViewData["Title"] = L["Inventory"].Value;
     var f = Model.Filter;
     int activeFilters = (string.IsNullOrWhiteSpace(f.Sku) ? 0 : 1)
+                      + (string.IsNullOrWhiteSpace(f.Barcode) ? 0 : 1)
                       + (string.IsNullOrWhiteSpace(f.Brand) ? 0 : 1)
                       + (string.IsNullOrWhiteSpace(f.Model) ? 0 : 1)
                       + (f.Width.HasValue ? 1 : 0)
@@ -11,6 +12,17 @@
                       + (f.Diameter.HasValue ? 1 : 0)
                       + (f.Season.HasValue ? 1 : 0)
                       + (f.Type.HasValue ? 1 : 0);
+
+    Dictionary<string, string?> Route(string? sort, int page) => new()
+    {
+        ["Sku"] = f.Sku, ["Barcode"] = f.Barcode, ["Brand"] = f.Brand, ["Model"] = f.Model,
+        ["Width"] = f.Width?.ToString(), ["Profile"] = f.Profile?.ToString(), ["Diameter"] = f.Diameter?.ToString(),
+        ["Season"] = f.Season?.ToString(), ["Type"] = f.Type?.ToString(),
+        ["Sort"] = sort, ["Page"] = page == 1 ? null : page.ToString()
+    };
+
+    string SortToggle(string key) => f.Sort == key ? "-" + key : key;
+    string SortMark(string key) => f.Sort == key ? " ▲" : (f.Sort == "-" + key ? " ▼" : "");
 }
 
 <div class="page">
@@ -20,34 +32,40 @@
             <div>
                 <div class="eyebrow">@L["Warehouse"]</div>
                 <h1 class="page-title">@L["Inventory"]</h1>
-                <p class="page-lede">@L["{0} SKUs across all brands.", Model.TotalSkus]</p>
+                <p class="page-lede">@L["{0} SKUs across all brands.", Model.Stats.TotalSkus]</p>
             </div>
             <div class="head-actions">
-                <a asp-action="Export" asp-route-Sku="@f.Sku" asp-route-Brand="@f.Brand"
-                   asp-route-Model="@f.Model" asp-route-Width="@f.Width" asp-route-Profile="@f.Profile"
-                   asp-route-Diameter="@f.Diameter" asp-route-Season="@f.Season" asp-route-Type="@f.Type"
+                <form method="get" asp-action="Scan" class="scan-form">
+                    <input name="code" class="field-input" placeholder="@L["Scan SKU or barcode"]" autocomplete="off" />
+                </form>
+                <a asp-action="Export" asp-all-route-data="@Route(f.Sort, 1)"
                    class="btn btn-secondary btn-sm">@L["Export CSV"]</a>
                 <a asp-action="Create" class="btn btn-primary btn-sm">@L["Add Tire"]</a>
             </div>
         </div>
 
+        @if (TempData["ScanMessage"] is string scanMessage)
+        {
+            <div class="form-errors">@scanMessage</div>
+        }
+
         <div class="statband">
             <div class="stat">
-                <div class="stat-num num">@Model.TotalSkus</div>
+                <div class="stat-num num">@Model.Stats.TotalSkus</div>
                 <div class="stat-label">@L["Total SKUs"]</div>
             </div>
             <div class="stat">
-                <div class="stat-num num">@Model.TotalUnits</div>
+                <div class="stat-num num">@Model.Stats.TotalUnits</div>
                 <div class="stat-label">@L["Units in Stock"]</div>
             </div>
-            <div class="stat @(Model.LowStockCount > 0 ? "is-alert" : "")">
-                <div class="stat-num num">@Model.LowStockCount</div>
+            <div class="stat @(Model.Stats.LowStockCount > 0 ? "is-alert" : "")">
+                <div class="stat-num num">@Model.Stats.LowStockCount</div>
                 <div class="stat-label">@L["Low Stock"]</div>
             </div>
             <div class="stat">
-                <div class="stat-num num">@Money.Euro(Model.TotalValue, 0)</div>
+                <div class="stat-num num">@Money.Euro(Model.Stats.TotalValue, 0)</div>
                 <div class="stat-label">@L["Inventory Value"]</div>
-                <div class="stat-sub">@Money.Lev(Model.TotalValue, 0)</div>
+                <div class="stat-sub">@Money.Lev(Model.Stats.TotalValue, 0)</div>
             </div>
         </div>
 
@@ -64,6 +82,10 @@
                     <div class="field">
                         <label class="field-label">@L["SKU"]</label>
                         <input name="Sku" value="@f.Sku" class="field-input" placeholder="MCH-001" />
+                    </div>
+                    <div class="field">
+                        <label class="field-label">@L["Barcode"]</label>
+                        <input name="Barcode" value="@f.Barcode" class="field-input" placeholder="3528706782900" />
                     </div>
                     <div class="field">
                         <label class="field-label">@L["Brand"]</label>
@@ -118,19 +140,19 @@
                 <span class="block-meta">
                     @if (f.HasAnyFilter)
                     {
-                        <span>@L["{0} of {1} SKUs", Model.Tires.Count(), Model.TotalSkus]</span>
+                        <span>@L["{0} of {1} SKUs", Model.Results.TotalCount, Model.Stats.TotalSkus]</span>
                         <span> &mdash; </span>
                         <a asp-action="Index">@L["Clear filter"]</a>
                     }
                     else
                     {
-                        <span>@L["{0} SKUs", Model.TotalSkus]</span>
+                        <span>@L["{0} SKUs", Model.Results.TotalCount]</span>
                     }
                 </span>
             </div>
 
             <div class="table-scroll">
-                @if (!Model.Tires.Any())
+                @if (!Model.Results.Items.Any())
                 {
                     <div class="empty">
                         <strong>@L["No matching tires"]</strong>
@@ -147,18 +169,18 @@
                         </colgroup>
                         <thead>
                             <tr>
-                                <th>@L["SKU"]</th>
-                                <th>@L["Tire"]</th>
-                                <th>@L["Size"]</th>
+                                <th><a asp-action="Index" asp-all-route-data="@Route(SortToggle("sku"), 1)">@L["SKU"]@SortMark("sku")</a></th>
+                                <th><a asp-action="Index" asp-all-route-data="@Route(SortToggle("brand"), 1)">@L["Tire"]@SortMark("brand")</a></th>
+                                <th><a asp-action="Index" asp-all-route-data="@Route(SortToggle("size"), 1)">@L["Size"]@SortMark("size")</a></th>
                                 <th>@L["Season / Type"]</th>
-                                <th class="col-num">@L["Price"]</th>
-                                <th class="col-num">@L["Qty / Min"]</th>
+                                <th class="col-num"><a asp-action="Index" asp-all-route-data="@Route(SortToggle("price"), 1)">@L["Price"]@SortMark("price")</a></th>
+                                <th class="col-num"><a asp-action="Index" asp-all-route-data="@Route(SortToggle("qty"), 1)">@L["Qty / Min"]@SortMark("qty")</a></th>
                                 <th>@L["Location"]</th>
                                 <th></th>
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach (var t in Model.Tires)
+                            @foreach (var t in Model.Results.Items)
                             {
                                 <tr class="@(t.IsLowStock ? "is-low" : "")">
                                     <td class="mono">@t.Sku</td>
@@ -194,6 +216,23 @@
                     </table>
                 }
             </div>
+
+            @if (Model.Results.TotalPages > 1)
+            {
+                <div class="pager">
+                    @if (Model.Results.HasPrevious)
+                    {
+                        <a class="btn btn-secondary btn-sm" asp-action="Index"
+                           asp-all-route-data="@Route(f.Sort, Model.Results.Page - 1)">@L["Previous"]</a>
+                    }
+                    <span class="pager-info">@L["Page {0} of {1}", Model.Results.Page, Model.Results.TotalPages]</span>
+                    @if (Model.Results.HasNext)
+                    {
+                        <a class="btn btn-secondary btn-sm" asp-action="Index"
+                           asp-all-route-data="@Route(f.Sort, Model.Results.Page + 1)">@L["Next"]</a>
+                    }
+                </div>
+            }
         </div>
 
     </div>

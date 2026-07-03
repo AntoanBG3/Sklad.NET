@@ -47,6 +47,9 @@ PublishProfiles/
 *.db-shm
 *.db-wal
 
+## Data protection keys — machine-local, never commit
+keys/
+
 ## Environment / secrets — never commit
 appsettings.Production.json
 appsettings.Staging.json

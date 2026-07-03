@@ -19,6 +19,7 @@
         </div>
 
         <div class="confirm">
+            <div asp-validation-summary="ModelOnly" class="form-errors"></div>
             <div class="confirm-warning">
                 <div class="eyebrow">@L["Permanent deletion"]</div>
                 <p>@L["You are about to permanently remove this tire from the inventory. Tires with existing movement records cannot be deleted — clear those first."]</p>

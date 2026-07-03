@@ -1,13 +1,11 @@
 using Sklad.Models;
+using Sklad.Services;
 
 namespace Sklad.ViewModels;
 
 public class IndexViewModel
 {
-    public IEnumerable<Tire> Tires { get; set; } = [];
-    public TireFilterViewModel Filter { get; set; } = new();
-    public int TotalSkus { get; set; }
-    public int TotalUnits { get; set; }
-    public int LowStockCount { get; set; }
-    public decimal TotalValue { get; set; }
+    public required PagedResult<Tire> Results { get; init; }
+    public required TireFilterViewModel Filter { get; init; }
+    public required WarehouseStats Stats { get; init; }
 }

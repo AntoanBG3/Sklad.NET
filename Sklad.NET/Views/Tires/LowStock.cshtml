@@ -79,7 +79,7 @@
                                         <span class="cell-stack qty-low">@t.Quantity</span>
                                         <span class="cell-sub">@L["/ min {0}", t.MinStock]</span>
                                     </td>
-                                    <td class="col-num deficit">+@deficit</td>
+                                    <td class="col-num deficit">@(deficit > 0 ? $"+{deficit}" : "—")</td>
                                     <td class="cell-muted">@(t.Location ?? "—")</td>
                                     <td>
                                         <div class="row-actions">

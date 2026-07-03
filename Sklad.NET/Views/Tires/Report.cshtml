@@ -1,0 +1,99 @@
+@model Sklad.Services.ValueReport
+
+@{
+    ViewData["Title"] = L["Stock Value"].Value;
+}
+
+<div class="page">
+    <div class="container">
+
+        <div class="page-head">
+            <div>
+                <div class="eyebrow">@L["Report"]</div>
+                <h1 class="page-title">@L["Stock Value"]</h1>
+                <p class="page-lede">@L["Inventory value at cost, grouped by brand and season."]</p>
+            </div>
+            <div class="head-actions">
+                <a asp-action="Index" class="btn btn-secondary btn-sm">@L["All Inventory"]</a>
+            </div>
+        </div>
+
+        <div class="statband">
+            <div class="stat">
+                <div class="stat-num num">@Money.Euro(Model.TotalValue, 0)</div>
+                <div class="stat-label">@L["Inventory Value"]</div>
+                <div class="stat-sub">@Money.Lev(Model.TotalValue, 0)</div>
+            </div>
+        </div>
+
+        <div class="grid">
+            <div class="col-7">
+                <div class="block">
+                    <div class="block-head">
+                        <span class="block-title">@L["By Brand"]</span>
+                    </div>
+                    <div class="table-scroll">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>@L["Brand"]</th>
+                                    <th class="col-num">@L["Total SKUs"]</th>
+                                    <th class="col-num">@L["Units in Stock"]</th>
+                                    <th class="col-num">@L["Value"]</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var g in Model.ByBrand)
+                                {
+                                    <tr>
+                                        <td class="cell-strong">@g.Key</td>
+                                        <td class="col-num">@g.Skus</td>
+                                        <td class="col-num">@g.Units</td>
+                                        <td class="col-num">
+                                            <span class="cell-stack">@Money.Euro(g.Value)</span>
+                                            <span class="cell-sub">@Money.Lev(g.Value)</span>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="col-5">
+                <div class="block">
+                    <div class="block-head">
+                        <span class="block-title">@L["By Season"]</span>
+                    </div>
+                    <div class="table-scroll">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>@L["Season"]</th>
+                                    <th class="col-num">@L["Total SKUs"]</th>
+                                    <th class="col-num">@L["Units in Stock"]</th>
+                                    <th class="col-num">@L["Value"]</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var g in Model.BySeason)
+                                {
+                                    <tr>
+                                        <td><span class="tag">@L[g.Key]</span></td>
+                                        <td class="col-num">@g.Skus</td>
+                                        <td class="col-num">@g.Units</td>
+                                        <td class="col-num">
+                                            <span class="cell-stack">@Money.Euro(g.Value)</span>
+                                            <span class="cell-sub">@Money.Lev(g.Value)</span>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>

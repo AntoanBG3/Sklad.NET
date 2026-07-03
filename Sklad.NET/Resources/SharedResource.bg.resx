@@ -194,4 +194,48 @@
   <data name="The field {0} must be between {1} and {2}." xml:space="preserve"><value>Полето {0} трябва да е между {1} и {2}.</value></data>
   <data name="The field {0} must be a string with a maximum length of {1}." xml:space="preserve"><value>Полето {0} трябва да е текст с максимална дължина {1}.</value></data>
   <data name="Quantity must be 0 or greater." xml:space="preserve"><value>Количеството трябва да е 0 или повече.</value></data>
+
+  <!-- Errors surfaced from the inventory service -->
+  <data name="A tire with SKU {0} already exists." xml:space="preserve"><value>Гума със SKU {0} вече съществува.</value></data>
+  <data name="Insufficient stock. Available: {0}, requested: {1}." xml:space="preserve"><value>Недостатъчна наличност. Налични: {0}, заявени: {1}.</value></data>
+  <data name="Quantity must be at least 1 for In/Out movements." xml:space="preserve"><value>Количеството трябва да е поне 1 за входящи/изходящи движения.</value></data>
+  <data name="This tire has movement records and cannot be deleted." xml:space="preserve"><value>Тази гума има записани движения и не може да бъде изтрита.</value></data>
+  <data name="The tire was modified by someone else. Reload the page and try again." xml:space="preserve"><value>Гумата беше променена от друг потребител. Презаредете страницата и опитайте отново.</value></data>
+
+  <!-- Sign in / sign out -->
+  <data name="Account" xml:space="preserve"><value>Профил</value></data>
+  <data name="Sign in" xml:space="preserve"><value>Вход</value></data>
+  <data name="Sign in to manage the tire warehouse." xml:space="preserve"><value>Влезте, за да управлявате склада за гуми.</value></data>
+  <data name="Sign out" xml:space="preserve"><value>Изход</value></data>
+  <data name="Username" xml:space="preserve"><value>Потребителско име</value></data>
+  <data name="Password" xml:space="preserve"><value>Парола</value></data>
+  <data name="Invalid username or password." xml:space="preserve"><value>Грешно потребителско име или парола.</value></data>
+
+  <!-- Barcode and scanning -->
+  <data name="Barcode" xml:space="preserve"><value>Баркод</value></data>
+  <data name="Scan SKU or barcode" xml:space="preserve"><value>Сканирай SKU или баркод</value></data>
+  <data name="No tire matches code {0}." xml:space="preserve"><value>Няма гума с код {0}.</value></data>
+
+  <!-- Movements journal -->
+  <data name="Movements" xml:space="preserve"><value>Движения</value></data>
+  <data name="{0} movements recorded." xml:space="preserve"><value>{0} записани движения.</value></data>
+  <data name="All" xml:space="preserve"><value>Всички</value></data>
+  <data name="Date" xml:space="preserve"><value>Дата</value></data>
+  <data name="User" xml:space="preserve"><value>Потребител</value></data>
+  <data name="by {0}" xml:space="preserve"><value>от {0}</value></data>
+
+  <!-- Value report -->
+  <data name="Stock Value" xml:space="preserve"><value>Стойност на склада</value></data>
+  <data name="Inventory value at cost, grouped by brand and season." xml:space="preserve"><value>Стойност на наличността по себестойност, групирана по марка и сезон.</value></data>
+  <data name="By Brand" xml:space="preserve"><value>По марка</value></data>
+  <data name="By Season" xml:space="preserve"><value>По сезон</value></data>
+  <data name="Value" xml:space="preserve"><value>Стойност</value></data>
+
+  <!-- Pagination -->
+  <data name="Previous" xml:space="preserve"><value>Назад</value></data>
+  <data name="Next" xml:space="preserve"><value>Напред</value></data>
+  <data name="Page {0} of {1}" xml:space="preserve"><value>Страница {0} от {1}</value></data>
+
+  <!-- Edit form -->
+  <data name="Stock on hand ({0}) is managed through movements and cannot be edited here." xml:space="preserve"><value>Наличността ({0}) се управлява чрез движения и не може да се редактира тук.</value></data>
 </root>

@@ -61,6 +61,8 @@ public class Tire
     [StringLength(200)]
     public string? Location { get; set; }
 
+    public int Version { get; set; }
+
     [NotMapped]
     public string Size => $"{Width}/{Profile} R{Diameter}";
 

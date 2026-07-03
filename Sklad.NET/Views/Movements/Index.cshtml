@@ -1,0 +1,101 @@
+@model Sklad.Services.PagedResult<Sklad.Models.StockMovement>
+
+@{
+    ViewData["Title"] = L["Movements"].Value;
+    var type = ViewBag.Type as MovementType?;
+}
+
+<div class="page">
+    <div class="container">
+
+        <div class="page-head">
+            <div>
+                <div class="eyebrow">@L["Stock Ledger"]</div>
+                <h1 class="page-title">@L["Movements"]</h1>
+                <p class="page-lede">@L["{0} movements recorded.", Model.TotalCount]</p>
+            </div>
+            <div class="head-actions">
+                <a asp-controller="Tires" asp-action="Index" class="btn btn-secondary btn-sm">@L["All Inventory"]</a>
+            </div>
+        </div>
+
+        <div class="block">
+            <div class="block-head">
+                <span class="block-title">@L["Movement History"]</span>
+                <span class="block-meta">
+                    <a class="@(type is null ? "is-active" : "")" asp-action="Index">@L["All"]</a>
+                    @foreach (MovementType mt in Enum.GetValues<MovementType>())
+                    {
+                        <a class="@(type == mt ? "is-active" : "")" asp-action="Index" asp-route-type="@mt">@L[Enums.Key(mt)]</a>
+                    }
+                </span>
+            </div>
+
+            <div class="table-scroll">
+                @if (!Model.Items.Any())
+                {
+                    <div class="empty">
+                        <strong>@L["No movements yet"]</strong>
+                        @L["Record a stock movement to start the audit trail."]
+                    </div>
+                }
+                else
+                {
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>@L["Date"]</th>
+                                <th>@L["Tire"]</th>
+                                <th>@L["Movement Type"]</th>
+                                <th class="col-num">@L["Quantity"]</th>
+                                <th>@L["User"]</th>
+                                <th>@L["Note"]</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var m in Model.Items)
+                            {
+                                <tr>
+                                    <td class="mono">@m.Date.ToLocalTime().ToString("dd MMM yyyy HH:mm")</td>
+                                    <td>
+                                        <a asp-controller="Tires" asp-action="Details" asp-route-id="@m.TireId">
+                                            <span class="cell-stack cell-strong">@m.Tire.Brand @m.Tire.Model</span>
+                                            <span class="cell-sub mono">@m.Tire.Sku</span>
+                                        </a>
+                                    </td>
+                                    <td><span class="tag">@L[Enums.Key(m.MovementType)]</span></td>
+                                    <td class="col-num">
+                                        @(m.MovementType switch
+                                        {
+                                            MovementType.In => $"+{m.Quantity}",
+                                            MovementType.Out => $"-{m.Quantity}",
+                                            _ => $"={m.Quantity}"
+                                        })
+                                    </td>
+                                    <td class="cell-muted">@(m.UserName ?? "—")</td>
+                                    <td class="cell-muted">@(m.Note ?? "—")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+            </div>
+
+            @if (Model.TotalPages > 1)
+            {
+                <div class="pager">
+                    @if (Model.HasPrevious)
+                    {
+                        <a class="btn btn-secondary btn-sm" asp-action="Index" asp-route-type="@type" asp-route-page="@(Model.Page - 1)">@L["Previous"]</a>
+                    }
+                    <span class="pager-info">@L["Page {0} of {1}", Model.Page, Model.TotalPages]</span>
+                    @if (Model.HasNext)
+                    {
+                        <a class="btn btn-secondary btn-sm" asp-action="Index" asp-route-type="@type" asp-route-page="@(Model.Page + 1)">@L["Next"]</a>
+                    }
+                </div>
+            }
+        </div>
+
+    </div>
+</div>

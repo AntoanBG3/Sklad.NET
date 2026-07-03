@@ -3,6 +3,14 @@
    Palette: #000 #FFF #F5F5F5 #FF0000 only.
    Type & spacing: modular scale, perfect fourth (1.333).
    ============================================================ */
+@font-face {
+    font-family: 'Inter';
+    src: url('../fonts/InterVariable.woff2') format('woff2');
+    font-weight: 100 900;
+    font-style: normal;
+    font-display: swap;
+}
+
 :root {
     --black:  #000000;
     --white:  #ffffff;
@@ -645,6 +653,41 @@ img, svg { display: block; max-width: 100%; }
 .col-7  { grid-column: span 7; }
 .col-8  { grid-column: span 8; }
 .col-12 { grid-column: span 12; }
+
+/* ============================================================
+   Scan box, pager, sign-out
+   ============================================================ */
+.scan-form { display: flex; }
+.scan-form .field-input {
+    width: 15rem;
+    max-width: 100%;
+    padding: var(--sp-1) var(--sp-3);
+    font-size: var(--f--1);
+}
+
+.pager {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--sp-3);
+    padding: var(--sp-4) var(--sp-3);
+    border-top: 1px solid var(--rule-soft);
+}
+.pager-info {
+    font-size: var(--f--1);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--ink-50);
+}
+
+.logout {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+    margin: 0;
+    padding-left: var(--sp-3);
+    border-left: 1px solid var(--rule-soft);
+}
 
 /* ============================================================
    Responsive

@@ -1,0 +1,51 @@
+@model Sklad.ViewModels.LoginViewModel
+
+@{
+    ViewData["Title"] = L["Sign in"].Value;
+}
+
+<div class="page">
+    <div class="container">
+
+        <div class="page-head">
+            <div>
+                <div class="eyebrow">Sklad</div>
+                <h1 class="page-title">@L["Sign in"]</h1>
+                <p class="page-lede">@L["Sign in to manage the tire warehouse."]</p>
+            </div>
+        </div>
+
+        <div class="grid">
+            <div class="col-5">
+                <form asp-action="Login" asp-route-returnUrl="@ViewBag.ReturnUrl" method="post" class="block">
+                    <div class="block-head">
+                        <span class="block-title">@L["Account"]</span>
+                    </div>
+
+                    <div asp-validation-summary="ModelOnly" class="form-errors"></div>
+
+                    <div class="field">
+                        <label asp-for="Username" class="field-label">@L["Username"]</label>
+                        <input asp-for="Username" class="field-input" autocomplete="username" autofocus />
+                        <span asp-validation-for="Username" class="field-error"></span>
+                    </div>
+
+                    <div class="field">
+                        <label asp-for="Password" class="field-label">@L["Password"]</label>
+                        <input asp-for="Password" class="field-input" autocomplete="current-password" />
+                        <span asp-validation-for="Password" class="field-error"></span>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">@L["Sign in"]</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

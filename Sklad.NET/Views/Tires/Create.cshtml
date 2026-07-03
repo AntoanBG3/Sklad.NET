@@ -24,10 +24,17 @@
 
             <div class="form-section">
                 <div class="form-section-title">@L["Identity"]</div>
-                <div class="field">
-                    <label asp-for="Sku" class="field-label">@L["SKU"]</label>
-                    <input asp-for="Sku" class="field-input" placeholder="MCH-PS4-20555R16" />
-                    <span asp-validation-for="Sku" class="field-error"></span>
+                <div class="form-grid-2">
+                    <div class="field">
+                        <label asp-for="Sku" class="field-label">@L["SKU"]</label>
+                        <input asp-for="Sku" class="field-input" placeholder="MCH-PS4-20555R16" />
+                        <span asp-validation-for="Sku" class="field-error"></span>
+                    </div>
+                    <div class="field">
+                        <label asp-for="Barcode" class="field-label">@L["Barcode"] <span class="optional">@L["(optional)"]</span></label>
+                        <input asp-for="Barcode" class="field-input" placeholder="3528706782900" />
+                        <span asp-validation-for="Barcode" class="field-error"></span>
+                    </div>
                 </div>
                 <div class="form-grid-2">
                     <div class="field">

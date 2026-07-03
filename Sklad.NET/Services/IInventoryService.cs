@@ -1,22 +1,31 @@
 using Sklad.Models;
+using Sklad.ViewModels;
 
 namespace Sklad.Services;
 
-// TODO: Implement InventoryService and register it in Program.cs as scoped
-
 public interface IInventoryService
 {
-    // TODO: Search — returns filtered tires matching any combination of sku/brand/model/width/profile/diameter/season/type
-    Task<IEnumerable<Tire>> SearchAsync(string? sku, string? brand, string? model,
-        int? width, int? profile, int? diameter, Season? season, TireType? type);
+    Task<PagedResult<Tire>> SearchAsync(TireFilterViewModel filter, int pageSize = InventoryService.DefaultPageSize);
 
-    // TODO: Low-stock report — returns tires where Quantity <= MinStock
     Task<IEnumerable<Tire>> GetLowStockAsync();
 
-    // TODO: Register movement — creates a StockMovement and adjusts Tire.Quantity
-    //   In: adds quantity, Out: subtracts (reject if would go negative), Adjustment: sets directly
-    Task RegisterMovementAsync(int tireId, MovementType movementType, int quantity, string? note);
+    Task<Tire?> GetTireAsync(int id, bool includeMovements = false);
 
-    // TODO: Export — returns all (or filtered) tires as CSV bytes for download
+    Task<Tire?> FindByCodeAsync(string code);
+
+    Task CreateTireAsync(Tire tire, string? userName = null);
+
+    Task UpdateTireAsync(Tire tire);
+
+    Task DeleteTireAsync(int id);
+
+    Task<WarehouseStats> GetStatsAsync();
+
+    Task RegisterMovementAsync(int tireId, MovementType movementType, int quantity, string? note, string? userName = null);
+
+    Task<PagedResult<StockMovement>> GetMovementsAsync(MovementType? type, int page, int pageSize = InventoryService.DefaultPageSize);
+
+    Task<ValueReport> GetValueReportAsync();
+
     Task<byte[]> ExportCsvAsync(IEnumerable<Tire> tires);
 }

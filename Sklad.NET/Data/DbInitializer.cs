@@ -28,6 +28,18 @@ public static class DbInitializer
             new() { Sku = "TOY-20555R16-A", Barcode = "4981910796010", Brand = "Toyo",       Model = "Celsius",             Width = 205, Profile = 55, Diameter = 16, Season = Season.AllSeason, Type = TireType.New,       UnitPrice = 160.00m, Quantity = 28, MinStock = 10, Location = "H1" },
         };
 
+        foreach (var tire in tires.Where(t => t.Quantity > 0))
+        {
+            tire.StockMovements.Add(new StockMovement
+            {
+                MovementType = MovementType.Adjustment,
+                Quantity = tire.Quantity,
+                Date = DateTime.UtcNow,
+                Note = "Opening stock",
+                UserName = "seed"
+            });
+        }
+
         context.Tires.AddRange(tires);
         context.SaveChanges();
     }

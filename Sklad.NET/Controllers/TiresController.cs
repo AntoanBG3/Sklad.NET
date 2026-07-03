@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Sklad.Data;
+using Microsoft.Extensions.Localization;
 using Sklad.Models;
 using Sklad.Services;
 using Sklad.ViewModels;
@@ -9,47 +8,49 @@ namespace Sklad.Controllers;
 
 public class TiresController : Controller
 {
-    private readonly SkladDbContext _db;
     private readonly IInventoryService _inventory;
+    private readonly IStringLocalizer<SharedResource> _l;
 
-    public TiresController(SkladDbContext db, IInventoryService inventory)
+    public TiresController(IInventoryService inventory, IStringLocalizer<SharedResource> l)
     {
-        _db = db;
         _inventory = inventory;
+        _l = l;
     }
+
+    private string? CurrentUser => User.Identity?.Name;
 
     // GET: /Tires
     public async Task<IActionResult> Index(TireFilterViewModel filter)
     {
-        var tires = await _inventory.SearchAsync(
-            filter.Sku, filter.Brand, filter.Model,
-            filter.Width, filter.Profile, filter.Diameter,
-            filter.Season, filter.Type);
-
-        var stats = await _db.Tires
-            .Select(t => new { t.Quantity, t.MinStock, t.UnitPrice })
-            .ToListAsync();
-
         var vm = new IndexViewModel
         {
-            Tires        = tires,
-            Filter       = filter,
-            TotalSkus    = stats.Count,
-            TotalUnits   = stats.Sum(t => t.Quantity),
-            LowStockCount = stats.Count(t => t.Quantity <= t.MinStock),
-            TotalValue   = stats.Sum(t => (decimal)t.Quantity * t.UnitPrice)
+            Results = await _inventory.SearchAsync(filter),
+            Filter = filter,
+            Stats = await _inventory.GetStatsAsync()
         };
-
         return View(vm);
+    }
+
+    // GET: /Tires/Scan?code=...
+    public async Task<IActionResult> Scan(string? code)
+    {
+        if (string.IsNullOrWhiteSpace(code))
+            return RedirectToAction(nameof(Index));
+
+        var tire = await _inventory.FindByCodeAsync(code.Trim());
+        if (tire is null)
+        {
+            TempData["ScanMessage"] = _l["No tire matches code {0}.", code.Trim()].Value;
+            return RedirectToAction(nameof(Index));
+        }
+        return RedirectToAction(nameof(Details), new { id = tire.Id });
     }
 
     // GET: /Tires/Details/5
     public async Task<IActionResult> Details(int? id)
     {
         if (id is null) return NotFound();
-        var tire = await _db.Tires
-            .Include(t => t.StockMovements.OrderByDescending(m => m.Date))
-            .FirstOrDefaultAsync(t => t.Id == id);
+        var tire = await _inventory.GetTireAsync(id.Value, includeMovements: true);
         if (tire is null) return NotFound();
         return View(tire);
     }
@@ -60,11 +61,18 @@ public class TiresController : Controller
     // POST: /Tires/Create
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create([Bind("Sku,Brand,Model,Width,Profile,Diameter,Season,Type,UnitPrice,Quantity,MinStock,Location")] Tire tire)
+    public async Task<IActionResult> Create([Bind("Sku,Barcode,Brand,Model,Width,Profile,Diameter,Season,Type,UnitPrice,Quantity,MinStock,Location")] Tire tire)
     {
         if (!ModelState.IsValid) return View(tire);
-        _db.Tires.Add(tire);
-        await _db.SaveChangesAsync();
+        try
+        {
+            await _inventory.CreateTireAsync(tire, CurrentUser);
+        }
+        catch (DuplicateSkuException ex)
+        {
+            ModelState.AddModelError(nameof(Tire.Sku), _l["A tire with SKU {0} already exists.", ex.Sku]);
+            return View(tire);
+        }
         return RedirectToAction(nameof(Index));
     }
 
@@ -72,7 +80,7 @@ public class TiresController : Controller
     public async Task<IActionResult> Edit(int? id)
     {
         if (id is null) return NotFound();
-        var tire = await _db.Tires.FindAsync(id);
+        var tire = await _inventory.GetTireAsync(id.Value);
         if (tire is null) return NotFound();
         return View(tire);
     }
@@ -80,19 +88,27 @@ public class TiresController : Controller
     // POST: /Tires/Edit/5
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(int id, [Bind("Id,Sku,Brand,Model,Width,Profile,Diameter,Season,Type,UnitPrice,Quantity,MinStock,Location")] Tire tire)
+    public async Task<IActionResult> Edit(int id, [Bind("Id,Version,Sku,Barcode,Brand,Model,Width,Profile,Diameter,Season,Type,UnitPrice,MinStock,Location")] Tire tire)
     {
         if (id != tire.Id) return NotFound();
         if (!ModelState.IsValid) return View(tire);
         try
         {
-            _db.Update(tire);
-            await _db.SaveChangesAsync();
+            await _inventory.UpdateTireAsync(tire);
         }
-        catch (DbUpdateConcurrencyException)
+        catch (TireNotFoundException)
         {
-            if (!await _db.Tires.AnyAsync(t => t.Id == id)) return NotFound();
-            throw;
+            return NotFound();
+        }
+        catch (DuplicateSkuException ex)
+        {
+            ModelState.AddModelError(nameof(Tire.Sku), _l["A tire with SKU {0} already exists.", ex.Sku]);
+            return View(tire);
+        }
+        catch (StaleTireException)
+        {
+            ModelState.AddModelError(string.Empty, _l["The tire was modified by someone else. Reload the page and try again."]);
+            return View(tire);
         }
         return RedirectToAction(nameof(Index));
     }
@@ -101,7 +117,7 @@ public class TiresController : Controller
     public async Task<IActionResult> Delete(int? id)
     {
         if (id is null) return NotFound();
-        var tire = await _db.Tires.FirstOrDefaultAsync(t => t.Id == id);
+        var tire = await _inventory.GetTireAsync(id.Value);
         if (tire is null) return NotFound();
         return View(tire);
     }
@@ -111,11 +127,16 @@ public class TiresController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteConfirmed(int id)
     {
-        var tire = await _db.Tires.FindAsync(id);
-        if (tire is not null)
+        try
         {
-            _db.Tires.Remove(tire);
-            await _db.SaveChangesAsync();
+            await _inventory.DeleteTireAsync(id);
+        }
+        catch (TireHasMovementsException)
+        {
+            var tire = await _inventory.GetTireAsync(id);
+            if (tire is null) return RedirectToAction(nameof(Index));
+            ModelState.AddModelError(string.Empty, _l["This tire has movement records and cannot be deleted."]);
+            return View("Delete", tire);
         }
         return RedirectToAction(nameof(Index));
     }
@@ -127,11 +148,18 @@ public class TiresController : Controller
         return View(tires);
     }
 
+    // GET: /Tires/Report
+    public async Task<IActionResult> Report()
+    {
+        var report = await _inventory.GetValueReportAsync();
+        return View(report);
+    }
+
     // GET: /Tires/RegisterMovement/5
     public async Task<IActionResult> RegisterMovement(int? id)
     {
         if (id is null) return NotFound();
-        var tire = await _db.Tires.FindAsync(id);
+        var tire = await _inventory.GetTireAsync(id.Value);
         if (tire is null) return NotFound();
         ViewBag.Tire = tire;
         return View(new RegisterMovementViewModel { TireId = tire.Id });
@@ -142,35 +170,41 @@ public class TiresController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> RegisterMovement(RegisterMovementViewModel vm)
     {
+        var tire = await _inventory.GetTireAsync(vm.TireId);
+        if (tire is null) return NotFound();
+
         if (!ModelState.IsValid)
         {
-            ViewBag.Tire = await _db.Tires.FindAsync(vm.TireId);
+            ViewBag.Tire = tire;
             return View(vm);
         }
         try
         {
-            await _inventory.RegisterMovementAsync(vm.TireId, vm.MovementType, vm.Quantity, vm.Note);
+            await _inventory.RegisterMovementAsync(vm.TireId, vm.MovementType, vm.Quantity, vm.Note, CurrentUser);
             return RedirectToAction(nameof(Details), new { id = vm.TireId });
         }
-        catch (InvalidOperationException ex)
+        catch (TireNotFoundException)
         {
-            ModelState.AddModelError(string.Empty, ex.Message);
-            ViewBag.Tire = await _db.Tires.FindAsync(vm.TireId);
-            return View(vm);
+            return NotFound();
         }
+        catch (InsufficientStockException ex)
+        {
+            ModelState.AddModelError(string.Empty, _l["Insufficient stock. Available: {0}, requested: {1}.", ex.Available, ex.Requested]);
+        }
+        catch (InvalidMovementQuantityException)
+        {
+            ModelState.AddModelError(nameof(RegisterMovementViewModel.Quantity), _l["Quantity must be at least 1 for In/Out movements."]);
+        }
+        ViewBag.Tire = await _inventory.GetTireAsync(vm.TireId);
+        return View(vm);
     }
 
     // GET: /Tires/Export
-    public async Task<IActionResult> Export(TireFilterViewModel? filter)
+    public async Task<IActionResult> Export(TireFilterViewModel filter)
     {
-        IEnumerable<Tire> tires;
-        if (filter is not null && filter.HasAnyFilter)
-            tires = await _inventory.SearchAsync(filter.Sku, filter.Brand, filter.Model,
-                filter.Width, filter.Profile, filter.Diameter, filter.Season, filter.Type);
-        else
-            tires = await _db.Tires.OrderBy(t => t.Brand).ThenBy(t => t.Model).ToListAsync();
-
-        var bytes = await _inventory.ExportCsvAsync(tires);
+        filter.Page = 1;
+        var result = await _inventory.SearchAsync(filter, pageSize: int.MaxValue);
+        var bytes = await _inventory.ExportCsvAsync(result.Items);
         return File(bytes, "text/csv", $"tires_{DateTime.UtcNow:yyyyMMdd}.csv");
     }
 }
