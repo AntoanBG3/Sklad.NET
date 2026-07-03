@@ -1,36 +1,59 @@
 # Sklad.NET — Tire Warehouse Management System
 
-ASP.NET Core 10 MVC skeleton with Entity Framework Core, Razor views, and Bootstrap.
+ASP.NET Core 10 MVC tire warehouse manager with EF Core (SQLite), a bilingual Bulgarian/English UI, and dual EUR/BGN price display.
+
+## Features
+
+- Tire inventory CRUD with search, filters, sortable columns, and pagination
+- Stock movement ledger: In / Out / Adjustment with a full audit trail and per-user attribution; stock counts change only through movements
+- Barcode support: scan box on the inventory page jumps straight to a tire by SKU or barcode
+- Low-stock report with deficit counts
+- Global movements journal with type filter
+- Stock value report grouped by brand and season
+- CSV export (respects the active filter, formula-injection safe)
+- Cookie sign-in (single configurable account)
+- Bulgarian (default) and English UI; prices shown in EUR with BGN alongside at the fixed 1.95583 rate
 
 ## Prerequisites
 
 - .NET 10 SDK
-- `dotnet ef` global tool (`dotnet tool install --global dotnet-ef`)
+- `dotnet ef` global tool for migrations (`dotnet tool install --global dotnet-ef`)
 
 ## Quick start
 
 ```bash
-cd Sklad.NET/Sklad.NET
+cd Sklad.NET
 dotnet run
 ```
 
-The app runs migrations and seeds 15 sample tires automatically on first start.
-Open `http://localhost:5246` — it redirects straight to the tire inventory.
+The app applies migrations automatically and, in Development, seeds 15 sample tires with opening-stock movements on first start. Open `http://localhost:5246` and sign in with the development credentials from `appsettings.Development.json`: username `admin`, password `sklad-dev`.
+
+For any non-development deployment, set real credentials via configuration (environment variables `Auth__Username` and `Auth__Password`, or user secrets). Sign-in is impossible until they are set, and sample data is not seeded outside Development.
+
+## Tests
+
+```bash
+dotnet test Sklad.Tests/Sklad.Tests.csproj
+```
+
+xUnit tests cover the inventory service (movement rules, concurrency, search/paging, CSV escaping), the money helpers, and the controller error paths. CI runs build + tests on every push and pull request (`.github/workflows/ci.yml`).
 
 ## Database
 
-The default dev database is **SQLite** (`sklad.db` in the project folder, auto-created on first run).
+Dev database is **SQLite** (`sklad.db` in the project folder, auto-created on first run). `Tire.Version` is a concurrency token: concurrent edits or simultaneous stock movements are detected instead of silently losing updates.
 
 ### Switch to SQL Server LocalDB
 
-1. Install SQL Server Express with LocalDB (or install Visual Studio which includes it).
-2. In `appsettings.json` replace the connection string:
+1. Install SQL Server Express with LocalDB (or Visual Studio, which includes it).
+2. Add the provider package: `dotnet add package Microsoft.EntityFrameworkCore.SqlServer`.
+3. In `appsettings.json` replace the connection string:
    ```json
    "DefaultConnection": "Server=(localdb)\\mssqllocaldb;Database=SkladDb;Trusted_Connection=True;MultipleActiveResultSets=true"
    ```
-3. In `Program.cs` replace `UseSqlite` with `UseSqlServer`.
-4. Remove `Microsoft.EntityFrameworkCore.Sqlite` and `SQLitePCLRaw.lib.e_sqlite3` from the `.csproj`.
-5. Drop the existing migration and recreate it:
+4. In `Program.cs` replace `UseSqlite` with `UseSqlServer`.
+5. Remove `Microsoft.EntityFrameworkCore.Sqlite` and `SQLitePCLRaw.lib.e_sqlite3` from the `.csproj`.
+6. Remove the `CURRENT_TIMESTAMP` default for `StockMovement.Date` in `SkladDbContext.OnModelCreating` (SQL Server syntax differs; the service sets the date explicitly anyway).
+7. Drop the existing migrations and recreate:
    ```bash
    dotnet ef migrations remove
    dotnet ef migrations add InitialCreate
@@ -40,28 +63,16 @@ The default dev database is **SQLite** (`sklad.db` in the project folder, auto-c
 ## Project structure
 
 ```
-Sklad.NET/
-  Controllers/   TiresController (CRUD), HomeController
-  Data/          SkladDbContext, DbInitializer (seed)
-  Migrations/    EF Core migrations
-  Models/        Tire, StockMovement, enums (Season, TireType, MovementType)
-  Services/      IInventoryService (TODO stubs)
-  ViewModels/    (empty, ready for filter/report view models)
-  Views/
-    Tires/       Index, Create, Edit, Details, Delete
-    Shared/      _Layout, Error
+Sklad.NET/               main web app
+  Controllers/           Tires (CRUD, low stock, report, export, scan),
+                         Movements (journal), Account (sign-in), Culture, Home
+  Data/                  SkladDbContext, DbInitializer (dev seed)
+  Helpers/               Money (EUR/BGN), Enums (localization keys)
+  Migrations/            EF Core migrations (SQLite)
+  Models/                Tire, StockMovement, enums
+  Resources/             SharedResource + Bulgarian translations (.resx)
+  Services/              IInventoryService / InventoryService, typed exceptions
+  ViewModels/            filter, index, movement, login view models
+  Views/                 Razor views (custom design system in wwwroot/css/site.css)
+Sklad.Tests/             xUnit test suite
 ```
-
-## TODO — features to implement next
-
-1. **Search / filter** (`TiresController.Index`)
-   Add a `TireFilterViewModel` with fields for SKU, Brand, Model, Width/Profile/Diameter, Season, and Type. Bind it in the Index action and apply `.Where()` clauses before the query executes. Render the form above the table in `Views/Tires/Index.cshtml`.
-
-2. **Stock movement registration** (`TiresController.RegisterMovement` + `IInventoryService.RegisterMovementAsync`)
-   POST action that creates a `StockMovement` record and adjusts `Tire.Quantity` in a single transaction. Rules: `In` adds, `Out` subtracts (reject if it would go negative), `Adjustment` sets directly. Display movement history on the Details page.
-
-3. **Low-stock inventory report** (`TiresController.LowStock`)
-   GET action returning tires where `Quantity <= MinStock`. Reuse the Index view or a dedicated read-only view. The Index table already highlights low-stock rows in yellow (`table-warning`).
-
-4. **CSV / Excel export** (`TiresController.Export` + `IInventoryService.ExportCsvAsync`)
-   Return a `FileContentResult` with `text/csv` and a timestamped filename. For Excel, add `ClosedXML` or `EPPlus` and write a `.xlsx`. Wire up an Export button on the Index page.

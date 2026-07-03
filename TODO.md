@@ -34,9 +34,15 @@ Full CRUD for Tire, EF Core with SQLite, seed data (15 tires), Bootstrap UI. Don
 
 ---
 
+## [x] 5. Hardening and feature round (from IMPROVEMENTS.md, 2026-07-03)
+
+All items from `IMPROVEMENTS.md` implemented: barcode-wipe/duplicate-SKU/delete-guard/NRE bug fixes, ledger-only quantity changes with `Tire.Version` concurrency token, typed service exceptions with localized messages, cookie authentication with per-movement user attribution, movements journal (`/Movements`), stock value report, scan box, pagination + sorting, CSV formula-injection guard, self-hosted Inter font, dev-only seeding, DataProtection key persistence, culture validation, `Sklad.Tests` xUnit suite (48 tests), GitHub Actions CI, dead-asset cleanup (Bootstrap dist, unreachable views, SqlServer package). Also fixed two newly discovered pre-existing bugs: Bulgarian localization never resolved at runtime (assembly-name vs root-namespace mismatch), and decimal ORDER BY crashed EF's SQLite provider under the bg-BG culture.
+
+---
+
 ## [ ] Future ideas
 
 - Excel export (ClosedXML package)
-- Paginated inventory table for large datasets
-- User authentication
 - Supplier / purchase order tracking
+- Multiple user accounts with roles (current auth is a single configured account)
+- Date-range filter on the movements journal
