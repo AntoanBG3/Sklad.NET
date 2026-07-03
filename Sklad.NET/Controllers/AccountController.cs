@@ -35,6 +35,7 @@ public class AccountController : Controller
     // POST: /Account/Login
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [Microsoft.AspNetCore.RateLimiting.EnableRateLimiting("login")]
     public async Task<IActionResult> Login(LoginViewModel vm, string? returnUrl)
     {
         ViewBag.ReturnUrl = returnUrl;

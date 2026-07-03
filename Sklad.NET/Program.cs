@@ -1,10 +1,13 @@
 using System.Globalization;
+using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Mvc.Authorization;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Localization;
 using Sklad.Data;
 using Sklad.Services;
 
@@ -27,9 +30,37 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
     {
         options.LoginPath = "/Account/Login";
         options.Cookie.Name = "Sklad.Auth";
+        options.Cookie.SameSite = SameSiteMode.Lax;
+        // Always outside Development; Auth:AllowInsecureHttp opts a plain-HTTP
+        // LAN install out (the cookie would otherwise never be sent).
+        options.Cookie.SecurePolicy =
+            builder.Environment.IsDevelopment() || builder.Configuration.GetValue<bool>("Auth:AllowInsecureHttp")
+                ? CookieSecurePolicy.SameAsRequest
+                : CookieSecurePolicy.Always;
         options.ExpireTimeSpan = TimeSpan.FromHours(12);
         options.SlidingExpiration = true;
     });
+
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.AddPolicy("login", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 10,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0
+            }));
+    options.OnRejected = async (context, cancellationToken) =>
+    {
+        var l = context.HttpContext.RequestServices.GetRequiredService<IStringLocalizer<Sklad.SharedResource>>();
+        context.HttpContext.Response.ContentType = "text/plain; charset=utf-8";
+        await context.HttpContext.Response.WriteAsync(
+            l["Too many sign-in attempts. Wait a minute and try again."], cancellationToken);
+    };
+});
 
 builder.Services.AddDataProtection()
     .PersistKeysToFileSystem(new DirectoryInfo(Path.Combine(builder.Environment.ContentRootPath, "keys")));
@@ -64,8 +95,22 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
+// Plain status codes (404 on a missing tire, mistyped URL) otherwise render as
+// a blank page; re-execute into the styled status view.
+app.UseStatusCodePagesWithReExecute("/Home/Status", "?code={0}");
+
 app.UseHttpsRedirection();
+
+app.Use(async (context, next) =>
+{
+    context.Response.Headers["X-Content-Type-Options"] = "nosniff";
+    context.Response.Headers["X-Frame-Options"] = "DENY";
+    context.Response.Headers["Referrer-Policy"] = "same-origin";
+    await next();
+});
+
 app.UseRouting();
+app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapStaticAssets();

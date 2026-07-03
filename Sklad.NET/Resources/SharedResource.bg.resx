@@ -242,6 +242,11 @@
   <data name="Tire {0} deleted." xml:space="preserve"><value>Гума {0} е изтрита.</value></data>
   <data name="Movement recorded — stock is now {0}." xml:space="preserve"><value>Движението е записано — наличността е {0}.</value></data>
 
+  <!-- Hardening -->
+  <data name="Too many sign-in attempts. Wait a minute and try again." xml:space="preserve"><value>Твърде много опити за вход. Изчакайте минута и опитайте отново.</value></data>
+  <data name="Page not found" xml:space="preserve"><value>Страницата не е намерена</value></data>
+  <data name="The page you are looking for does not exist or was moved." xml:space="preserve"><value>Страницата, която търсите, не съществува или е преместена.</value></data>
+
   <!-- Number binding -->
   <data name="Enter a valid number (e.g. 189.99)." xml:space="preserve"><value>Въведете валидно число (напр. 189.99).</value></data>
 
