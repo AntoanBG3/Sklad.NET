@@ -359,13 +359,15 @@ img, svg { display: block; max-width: 100%; }
 
 .data-table {
     width: 100%;
-    /* Fixed layout + percentage columns collapse and overlap on narrow
-       viewports; a floor makes .table-scroll actually scroll instead. */
-    min-width: 64rem;
     border-collapse: collapse;
     table-layout: fixed;
     font-size: 0.875rem;
 }
+/* Fixed layout + percentage columns collapse and overlap on narrow
+   viewports; a floor makes .table-scroll actually scroll instead.
+   Only for the wide colgroup tables — small summary tables must fit
+   their half-width grid columns. */
+.data-table-wide { min-width: 64rem; }
 .data-table thead th {
     text-align: left;
     font-size: var(--f--1);
