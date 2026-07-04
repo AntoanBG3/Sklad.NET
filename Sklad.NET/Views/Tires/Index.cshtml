@@ -2,6 +2,7 @@
 
 @{
     ViewData["Title"] = L["Inventory"].Value;
+    var here = $"{Context.Request.Path}{Context.Request.QueryString}";
     var f = Model.Filter;
     int activeFilters = (string.IsNullOrWhiteSpace(f.Sku) ? 0 : 1)
                       + (string.IsNullOrWhiteSpace(f.Barcode) ? 0 : 1)
@@ -220,8 +221,8 @@
                                     <td class="cell-muted">@(t.Location ?? "—")</td>
                                     <td>
                                         <div class="row-actions">
-                                            <a asp-action="RegisterMovement" asp-route-id="@t.Id">@L["Move"]</a>
-                                            <a asp-action="Edit" asp-route-id="@t.Id">@L["Edit"]</a>
+                                            <a asp-action="RegisterMovement" asp-route-id="@t.Id" asp-route-returnUrl="@here">@L["Move"]</a>
+                                            <a asp-action="Edit" asp-route-id="@t.Id" asp-route-returnUrl="@here">@L["Edit"]</a>
                                         </div>
                                     </td>
                                 </tr>

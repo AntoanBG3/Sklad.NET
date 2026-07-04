@@ -79,20 +79,22 @@ public class TiresController : Controller
         return RedirectToAction(nameof(Details), new { id = tire.Id });
     }
 
-    // GET: /Tires/Edit/5
-    public async Task<IActionResult> Edit(int? id)
+    // GET: /Tires/Edit/5?returnUrl=... (Cancel returns to where the user came from)
+    public async Task<IActionResult> Edit(int? id, string? returnUrl = null)
     {
         if (id is null) return NotFound();
         var tire = await _inventory.GetTireAsync(id.Value);
         if (tire is null) return NotFound();
+        ViewBag.ReturnUrl = returnUrl;
         return View(EditTireViewModel.FromTire(tire));
     }
 
     // POST: /Tires/Edit/5
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(int id, EditTireViewModel vm)
+    public async Task<IActionResult> Edit(int id, EditTireViewModel vm, string? returnUrl = null)
     {
+        ViewBag.ReturnUrl = returnUrl;
         if (id != vm.Id) return NotFound();
         if (!ModelState.IsValid) return View(vm);
         var tire = vm.ToTire();
@@ -163,21 +165,23 @@ public class TiresController : Controller
         return View(report);
     }
 
-    // GET: /Tires/RegisterMovement/5?type=In
-    public async Task<IActionResult> RegisterMovement(int? id, MovementType? type = null)
+    // GET: /Tires/RegisterMovement/5?type=In&returnUrl=...
+    public async Task<IActionResult> RegisterMovement(int? id, MovementType? type = null, string? returnUrl = null)
     {
         if (id is null) return NotFound();
         var tire = await _inventory.GetTireAsync(id.Value);
         if (tire is null) return NotFound();
         ViewBag.Tire = tire;
+        ViewBag.ReturnUrl = returnUrl;
         return View(new RegisterMovementViewModel { TireId = tire.Id, MovementType = type ?? MovementType.In });
     }
 
     // POST: /Tires/RegisterMovement
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> RegisterMovement(RegisterMovementViewModel vm)
+    public async Task<IActionResult> RegisterMovement(RegisterMovementViewModel vm, string? returnUrl = null)
     {
+        ViewBag.ReturnUrl = returnUrl;
         var tire = await _inventory.GetTireAsync(vm.TireId);
         if (tire is null) return NotFound();
 

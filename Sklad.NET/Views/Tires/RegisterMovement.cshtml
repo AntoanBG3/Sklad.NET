@@ -41,7 +41,7 @@
             </div>
 
             <div class="col-7">
-                <form asp-action="RegisterMovement" method="post" class="block">
+                <form asp-action="RegisterMovement" method="post" asp-route-returnUrl="@ViewBag.ReturnUrl" class="block">
                     <div class="block-head">
                         <h2 class="block-title">@L["Movement Details"]</h2>
                     </div>
@@ -82,7 +82,7 @@
 
                     <div class="form-actions">
                         <button type="submit" class="btn btn-primary">@L["Record Movement"]</button>
-                        <a asp-action="Details" asp-route-id="@tire.Id" class="btn btn-secondary">@L["Cancel"]</a>
+                        <a href="@(ViewBag.ReturnUrl is string r ? Redirects.Safe(r) : Url.Action("Details", new { id = tire.Id }))" class="btn btn-secondary">@L["Cancel"]</a>
                     </div>
 
                 </form>

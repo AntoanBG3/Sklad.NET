@@ -85,8 +85,8 @@
                                     <td class="cell-muted">@(t.Location ?? "—")</td>
                                     <td>
                                         <div class="row-actions">
-                                            <a asp-action="RegisterMovement" asp-route-id="@t.Id" asp-route-type="@MovementType.In">@L["Move"]</a>
-                                            <a asp-action="Edit" asp-route-id="@t.Id">@L["Edit"]</a>
+                                            <a asp-action="RegisterMovement" asp-route-id="@t.Id" asp-route-type="@MovementType.In" asp-route-returnUrl="/Tires/LowStock">@L["Move"]</a>
+                                            <a asp-action="Edit" asp-route-id="@t.Id" asp-route-returnUrl="/Tires/LowStock">@L["Edit"]</a>
                                         </div>
                                     </td>
                                 </tr>

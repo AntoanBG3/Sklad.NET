@@ -15,7 +15,7 @@
             </div>
         </div>
 
-        <form asp-action="Edit" class="form">
+        <form asp-action="Edit" asp-route-returnUrl="@ViewBag.ReturnUrl" class="form">
             <input type="hidden" asp-for="Id" />
             <input type="hidden" asp-for="Version" />
 
@@ -127,7 +127,7 @@
 
             <div class="form-actions">
                 <button type="submit" class="btn btn-primary">@L["Save Tire"]</button>
-                <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-secondary">@L["Cancel"]</a>
+                <a href="@(ViewBag.ReturnUrl is string r ? Redirects.Safe(r) : Url.Action("Details", new { id = Model.Id }))" class="btn btn-secondary">@L["Cancel"]</a>
             </div>
 
         </form>
