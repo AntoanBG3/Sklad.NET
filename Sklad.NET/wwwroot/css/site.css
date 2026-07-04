@@ -229,7 +229,7 @@ img, svg { display: block; max-width: 100%; }
     height: 3px;
     background: var(--red);
     transform: scaleX(0);
-    transform-origin: left;
+    transform-origin: center;
     transition: transform 160ms ease;
 }
 .topnav a:hover::after,
