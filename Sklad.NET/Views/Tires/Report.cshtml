@@ -53,10 +53,7 @@
                                         <td class="cell-strong">@g.Key</td>
                                         <td class="col-num">@g.Skus</td>
                                         <td class="col-num">@g.Units</td>
-                                        <td class="col-num">
-                                            <span class="cell-stack">@Money.Euro(g.Value)</span>
-                                            <span class="cell-sub">@Money.Lev(g.Value)</span>
-                                        </td>
+                                        <td class="col-num"><money value="g.Value" /></td>
                                         <td class="col-num">@((Model.TotalValue > 0 ? g.Value / Model.TotalValue : 0).ToString("P1"))</td>
                                     </tr>
                                 }
@@ -87,10 +84,7 @@
                                         <td><span class="tag">@L[g.Key]</span></td>
                                         <td class="col-num">@g.Skus</td>
                                         <td class="col-num">@g.Units</td>
-                                        <td class="col-num">
-                                            <span class="cell-stack">@Money.Euro(g.Value)</span>
-                                            <span class="cell-sub">@Money.Lev(g.Value)</span>
-                                        </td>
+                                        <td class="col-num"><money value="g.Value" /></td>
                                     </tr>
                                 }
                             </tbody>

@@ -27,6 +27,11 @@
     string SortToggle(string key) => EffectiveSort == key ? "-" + key : key;
     string SortMark(string key) => EffectiveSort == key ? " ▲" : (f.Sort == "-" + key ? " ▼" : "");
     string? AriaSort(string key) => EffectiveSort == key ? "ascending" : (f.Sort == "-" + key ? "descending" : null);
+
+    async Task SortHeader(string key, string label, bool numeric = false)
+    {
+        <th scope="col" aria-sort="@AriaSort(key)" class="@(numeric ? "col-num" : null)"><a asp-action="Index" asp-all-route-data="@Route(SortToggle(key), 1)">@L[label]<span aria-hidden="true">@SortMark(key)</span></a></th>
+    }
 }
 
 <div class="page">
@@ -177,12 +182,16 @@
                         </colgroup>
                         <thead>
                             <tr>
-                                <th scope="col" aria-sort="@AriaSort("sku")"><a asp-action="Index" asp-all-route-data="@Route(SortToggle("sku"), 1)">@L["SKU"]<span aria-hidden="true">@SortMark("sku")</span></a></th>
-                                <th scope="col" aria-sort="@AriaSort("brand")"><a asp-action="Index" asp-all-route-data="@Route(SortToggle("brand"), 1)">@L["Tire"]<span aria-hidden="true">@SortMark("brand")</span></a></th>
-                                <th scope="col" aria-sort="@AriaSort("size")"><a asp-action="Index" asp-all-route-data="@Route(SortToggle("size"), 1)">@L["Size"]<span aria-hidden="true">@SortMark("size")</span></a></th>
+                                @{
+                                    await SortHeader("sku", "SKU");
+                                    await SortHeader("brand", "Tire");
+                                    await SortHeader("size", "Size");
+                                }
                                 <th scope="col">@L["Season / Type"]</th>
-                                <th scope="col" aria-sort="@AriaSort("price")" class="col-num"><a asp-action="Index" asp-all-route-data="@Route(SortToggle("price"), 1)">@L["Price"]<span aria-hidden="true">@SortMark("price")</span></a></th>
-                                <th scope="col" aria-sort="@AriaSort("qty")" class="col-num"><a asp-action="Index" asp-all-route-data="@Route(SortToggle("qty"), 1)">@L["Qty / Min"]<span aria-hidden="true">@SortMark("qty")</span></a></th>
+                                @{
+                                    await SortHeader("price", "Price", numeric: true);
+                                    await SortHeader("qty", "Qty / Min", numeric: true);
+                                }
                                 <th scope="col">@L["Location"]</th>
                                 <th scope="col"><span class="visually-hidden">@L["Actions"]</span></th>
                             </tr>
@@ -203,10 +212,7 @@
                                         <span class="cell-stack tag">@L[Enums.Key(t.Season)]</span>
                                         <span class="cell-sub">@L[Enums.Key(t.Type)]</span>
                                     </td>
-                                    <td class="col-num">
-                                        <span class="cell-stack">@Money.Euro(t.UnitPrice)</span>
-                                        <span class="cell-sub">@Money.Lev(t.UnitPrice)</span>
-                                    </td>
+                                    <td class="col-num"><money value="t.UnitPrice" /></td>
                                     <td class="col-num">
                                         <span class="cell-stack @(t.IsLowStock ? "qty-low" : "")">@t.Quantity</span>
                                         <span class="cell-sub">@L["/ min {0}", t.MinStock]</span>
