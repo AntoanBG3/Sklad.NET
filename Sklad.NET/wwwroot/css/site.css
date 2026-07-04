@@ -416,6 +416,9 @@ img, svg { display: block; max-width: 100%; }
     gap: var(--sp-3);
     align-items: end;
 }
+/* the grid gap spaces the rows; the stacked-form margin would push every
+   field 1rem above its cell bottom and leave the buttons hanging below */
+.filter-fields .field { margin-bottom: 0; }
 
 /* ============================================================
    Data table — clean rows, hairline rules, no boxed cells
