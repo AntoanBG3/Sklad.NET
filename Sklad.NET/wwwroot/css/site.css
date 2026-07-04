@@ -47,9 +47,16 @@
     --sp-8: 4.209rem;
 
     --topbar-h: 4rem;
-    --maxw: 1320px;
+    --maxw: 82.5rem; /* 1320px at the 16px root; grows with the root on large displays */
     --gut: var(--sp-6);
 }
+
+/* Everything is rem-based, so scaling the root scales type, spacing,
+   controls, and the container together on large displays instead of
+   centering a laptop-sized column in whitespace. Hairline borders stay 1px. */
+@media (min-width: 1600px) { html { font-size: 17px; } }
+@media (min-width: 1920px) { html { font-size: 18px; } }
+@media (min-width: 2560px) { html { font-size: 20px; } }
 
 /* ============================================================
    Reset
