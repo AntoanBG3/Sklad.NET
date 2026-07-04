@@ -1,4 +1,6 @@
 using System.Globalization;
+using System.Text.Encodings.Web;
+using System.Text.Unicode;
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
@@ -14,6 +16,12 @@ using Sklad.Services;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
+
+// Razor's default encoder escapes every non-ASCII character, tripling the byte
+// size of Bulgarian text; letting Cyrillic through changes nothing about how
+// HTML-significant characters are escaped.
+builder.Services.Configure<Microsoft.Extensions.WebEncoders.WebEncoderOptions>(options =>
+    options.TextEncoderSettings = new TextEncoderSettings(UnicodeRanges.BasicLatin, UnicodeRanges.Cyrillic, UnicodeRanges.Latin1Supplement, UnicodeRanges.GeneralPunctuation, UnicodeRanges.CurrencySymbols));
 
 builder.Services.AddControllersWithViews(options =>
     {
