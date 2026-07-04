@@ -14,9 +14,6 @@
                 <h1 class="page-title">@L["Delete Tire"]</h1>
                 <p class="page-lede">@L["This action cannot be undone."]</p>
             </div>
-            <div class="head-actions">
-                <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-secondary btn-sm">@L["Back"]</a>
-            </div>
         </div>
 
         <div class="confirm">
@@ -53,7 +50,7 @@
             {
                 <div class="form-actions">
                     <a asp-action="RegisterMovement" asp-route-id="@Model.Id" class="btn btn-primary">@L["Add Movement"]</a>
-                    <a asp-action="Index" class="btn btn-secondary">@L["Cancel"]</a>
+                    <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-secondary">@L["Cancel"]</a>
                 </div>
             }
             else
@@ -61,7 +58,7 @@
                 <form asp-action="Delete" class="form-actions">
                     <input type="hidden" asp-for="Id" />
                     <button type="submit" class="btn btn-danger">@L["Delete Tire"]</button>
-                    <a asp-action="Index" class="btn btn-secondary">@L["Cancel"]</a>
+                    <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-secondary">@L["Cancel"]</a>
                 </form>
             }
         </div>

@@ -13,9 +13,6 @@
                 <h1 class="page-title">@L["Edit Tire"]</h1>
                 <p class="page-lede mono">@Model.Brand @Model.Model &bull; @Model.Sku</p>
             </div>
-            <div class="head-actions">
-                <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-secondary btn-sm">@L["Back"]</a>
-            </div>
         </div>
 
         <form asp-action="Edit" class="form">
@@ -130,7 +127,7 @@
 
             <div class="form-actions">
                 <button type="submit" class="btn btn-primary">@L["Save Tire"]</button>
-                <a asp-action="Index" class="btn btn-secondary">@L["Cancel"]</a>
+                <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-secondary">@L["Cancel"]</a>
             </div>
 
         </form>
