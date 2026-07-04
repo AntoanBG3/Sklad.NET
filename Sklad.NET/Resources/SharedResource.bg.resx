@@ -85,7 +85,6 @@
   <data name="{0} SKUs" xml:space="preserve"><value>{0} артикула</value></data>
   <data name="No matching tires" xml:space="preserve"><value>Няма съвпадащи гуми</value></data>
   <data name="Adjust the filter or clear it to see the full inventory." xml:space="preserve"><value>Променете филтъра или го изчистете, за да видите цялата наличност.</value></data>
-  <data name="View" xml:space="preserve"><value>Преглед</value></data>
   <data name="Move" xml:space="preserve"><value>Движение</value></data>
   <data name="Edit" xml:space="preserve"><value>Редакция</value></data>
   <data name="Delete" xml:space="preserve"><value>Изтрий</value></data>
@@ -101,8 +100,6 @@
   <data name="Season / Type" xml:space="preserve"><value>Сезон / Тип</value></data>
   <data name="Price" xml:space="preserve"><value>Цена</value></data>
   <data name="Unit Price" xml:space="preserve"><value>Ед. цена</value></data>
-  <data name="Qty" xml:space="preserve"><value>Бр.</value></data>
-  <data name="Min" xml:space="preserve"><value>Мин.</value></data>
   <data name="Qty / Min" xml:space="preserve"><value>Бр. / Мин.</value></data>
   <data name="Location" xml:space="preserve"><value>Локация</value></data>
   <data name="Width" xml:space="preserve"><value>Широчина</value></data>
@@ -115,7 +112,6 @@
   <data name="Back" xml:space="preserve"><value>Назад</value></data>
   <data name="Cancel" xml:space="preserve"><value>Отказ</value></data>
   <data name="Save Tire" xml:space="preserve"><value>Запази гума</value></data>
-  <data name="Save Changes" xml:space="preserve"><value>Запази промените</value></data>
   <data name="Identity" xml:space="preserve"><value>Идентификация</value></data>
   <data name="Classification" xml:space="preserve"><value>Класификация</value></data>
   <data name="Pricing &amp; Stock" xml:space="preserve"><value>Цена и наличност</value></data>
@@ -166,18 +162,11 @@
   <data name="Record Movement" xml:space="preserve"><value>Регистрирай движение</value></data>
 
   <!-- Home / Privacy / Error -->
-  <data name="Track stock, movements, and low-stock alerts across every SKU." xml:space="preserve"><value>Следете наличности, движения и сигнали за ниска наличност за всеки артикул.</value></data>
-  <data name="Open Inventory" xml:space="preserve"><value>Отвори наличността</value></data>
-  <data name="Legal" xml:space="preserve"><value>Правна информация</value></data>
-  <data name="Privacy Policy" xml:space="preserve"><value>Политика за поверителност</value></data>
-  <data name="Use this page to detail your site's privacy policy." xml:space="preserve"><value>Използвайте тази страница, за да опишете политиката за поверителност на сайта.</value></data>
   <data name="Error" xml:space="preserve"><value>Грешка</value></data>
   <data name="Something went wrong" xml:space="preserve"><value>Възникна грешка</value></data>
   <data name="An error occurred while processing your request." xml:space="preserve"><value>Възникна грешка при обработката на заявката ви.</value></data>
   <data name="Back to Inventory" xml:space="preserve"><value>Към наличността</value></data>
   <data name="Request ID" xml:space="preserve"><value>ID на заявката</value></data>
-  <data name="Development Mode" xml:space="preserve"><value>Режим за разработка</value></data>
-  <data name="Setting the ASPNETCORE_ENVIRONMENT variable to Development shows detailed error information. Do not enable the Development environment for deployed applications, as it can expose sensitive details from exceptions to end users." xml:space="preserve"><value>Задаването на променливата ASPNETCORE_ENVIRONMENT на Development показва подробна информация за грешката. Не активирайте средата Development за публикувани приложения, тъй като може да разкрие чувствителни детайли от изключенията на крайните потребители.</value></data>
 
   <!-- Enum values -->
   <data name="Summer" xml:space="preserve"><value>Лятна</value></data>
@@ -241,6 +230,10 @@
   <data name="Tire {0} saved." xml:space="preserve"><value>Гума {0} е запазена.</value></data>
   <data name="Tire {0} deleted." xml:space="preserve"><value>Гума {0} е изтрита.</value></data>
   <data name="Movement recorded — stock is now {0}." xml:space="preserve"><value>Движението е записано — наличността е {0}.</value></data>
+
+  <!-- Report / maintenance -->
+  <data name="Download backup" xml:space="preserve"><value>Изтегли резервно копие</value></data>
+  <data name="Share" xml:space="preserve"><value>Дял</value></data>
 
   <!-- UX round -->
   <data name="Scan" xml:space="preserve"><value>Сканирай</value></data>

@@ -59,6 +59,7 @@ body {
     display: flex;
     flex-direction: column;
     min-height: 100vh;
+    min-height: 100dvh;
     background: var(--white);
     color: var(--black);
     font-family: 'Inter', Helvetica, Arial, sans-serif;
@@ -517,6 +518,7 @@ img, svg { display: block; max-width: 100%; }
 .specs dd.dd-strong { font-weight: 600; }
 .specs .qty-low { color: var(--red); font-weight: 700; }
 .specs dt:last-of-type, .specs dd:last-of-type { border-bottom: 0; }
+.specs-narrow { max-width: 560px; }
 
 /* ============================================================
    Movement log
@@ -669,6 +671,10 @@ img, svg { display: block; max-width: 100%; }
 }
 .btn:hover { text-decoration: none; }
 
+.btn, .row-actions a, .topnav a, .lang a {
+    transition: background-color 120ms ease, color 120ms ease, border-color 120ms ease;
+}
+
 .btn-primary { background: var(--black); color: var(--white); }
 .btn-primary:hover { background: var(--red); border-color: var(--red); color: var(--white); }
 
@@ -795,6 +801,12 @@ img, svg { display: block; max-width: 100%; }
     border-left: 1px solid var(--rule-soft);
 }
 
+.whoami {
+    font-size: var(--f--1);
+    font-weight: 700;
+    letter-spacing: 0.06em;
+}
+
 /* ============================================================
    Responsive
    ============================================================ */
@@ -841,6 +853,26 @@ img, svg { display: block; max-width: 100%; }
     .stat:first-child { border-top: 0; }
 }
 
+/* iOS Safari zooms into any focused input under 16px */
+@media (pointer: coarse) {
+    .scan-form .field-input { font-size: 1rem; }
+}
+
 @media (prefers-reduced-motion: reduce) {
     * { transition: none !important; }
+}
+
+/* ============================================================
+   Print — stock lists and the low-stock reorder sheet
+   ============================================================ */
+@media print {
+    .topbar, .site-footer, .head-actions, .filter, .row-actions,
+    .pager, .flash, .scan-form { display: none !important; }
+    .page { padding-block: 0; }
+    body { font-size: 12px; }
+    a, .page-lede .accent, .filter-count { color: inherit !important; }
+    a { text-decoration: none; }
+    .data-table-wide { min-width: 0; }
+    .data-table tbody tr:hover td { background: transparent; }
+    .grid { display: block; }
 }

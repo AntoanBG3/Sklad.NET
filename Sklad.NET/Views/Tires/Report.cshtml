@@ -14,6 +14,9 @@
                 <p class="page-lede">@L["Inventory value at cost, grouped by brand and season."]</p>
             </div>
             <div class="head-actions">
+                <form asp-controller="Maintenance" asp-action="Backup" method="post">
+                    <button type="submit" class="btn btn-secondary btn-sm">@L["Download backup"]</button>
+                </form>
                 <a asp-action="Index" class="btn btn-secondary btn-sm">@L["All Inventory"]</a>
             </div>
         </div>
@@ -40,6 +43,7 @@
                                     <th scope="col" class="col-num">@L["Total SKUs"]</th>
                                     <th scope="col" class="col-num">@L["Units in Stock"]</th>
                                     <th scope="col" class="col-num">@L["Value"]</th>
+                                    <th scope="col" class="col-num">@L["Share"]</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -53,6 +57,7 @@
                                             <span class="cell-stack">@Money.Euro(g.Value)</span>
                                             <span class="cell-sub">@Money.Lev(g.Value)</span>
                                         </td>
+                                        <td class="col-num">@((Model.TotalValue > 0 ? g.Value / Model.TotalValue : 0).ToString("P1"))</td>
                                     </tr>
                                 }
                             </tbody>

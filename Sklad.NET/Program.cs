@@ -124,6 +124,8 @@ using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<SkladDbContext>();
     db.Database.Migrate();
+    // WAL survives in the database file; setting it once per start is idempotent.
+    db.Database.ExecuteSqlRaw("PRAGMA journal_mode=WAL;");
     if (app.Environment.IsDevelopment())
         DbInitializer.Seed(db);
 }

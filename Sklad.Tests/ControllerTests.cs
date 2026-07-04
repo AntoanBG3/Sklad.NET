@@ -119,6 +119,77 @@ public class TiresControllerTests : IDisposable
     }
 
     [Fact]
+    public async Task Scan_with_matching_code_redirects_to_details()
+    {
+        int tireId;
+        await using (var seed = _db.CreateContext())
+        {
+            var tire = NewTire("SCAN-1");
+            tire.Barcode = "3800123456789";
+            seed.Tires.Add(tire);
+            await seed.SaveChangesAsync();
+            tireId = tire.Id;
+        }
+
+        await using var context = _db.CreateContext();
+        var controller = CreateController(context);
+
+        var result = await controller.Scan("  3800123456789 ");
+
+        var redirect = Assert.IsType<RedirectToActionResult>(result);
+        Assert.Equal(nameof(TiresController.Details), redirect.ActionName);
+        Assert.Equal(tireId, redirect.RouteValues!["id"]);
+    }
+
+    [Fact]
+    public async Task Scan_with_unknown_code_redirects_to_index_with_message()
+    {
+        await using var context = _db.CreateContext();
+        var controller = CreateController(context);
+
+        var result = await controller.Scan("NOPE-404");
+
+        var redirect = Assert.IsType<RedirectToActionResult>(result);
+        Assert.Equal(nameof(TiresController.Index), redirect.ActionName);
+        Assert.Contains("NOPE-404", (string)controller.TempData["ScanMessage"]!);
+    }
+
+    [Fact]
+    public async Task Scan_with_blank_code_just_returns_to_index()
+    {
+        await using var context = _db.CreateContext();
+        var controller = CreateController(context);
+
+        var result = await controller.Scan("   ");
+
+        var redirect = Assert.IsType<RedirectToActionResult>(result);
+        Assert.Equal(nameof(TiresController.Index), redirect.ActionName);
+        Assert.False(controller.TempData.ContainsKey("ScanMessage"));
+    }
+
+    [Fact]
+    public async Task Export_returns_csv_file_with_bom_and_dated_name()
+    {
+        await using (var seed = _db.CreateContext())
+        {
+            seed.Tires.Add(NewTire("EXP-1"));
+            await seed.SaveChangesAsync();
+        }
+
+        await using var context = _db.CreateContext();
+        var controller = CreateController(context);
+
+        var result = await controller.Export(new TireFilterViewModel());
+
+        var file = Assert.IsType<FileContentResult>(result);
+        Assert.Equal("text/csv", file.ContentType);
+        Assert.StartsWith("tires_", file.FileDownloadName);
+        Assert.EndsWith(".csv", file.FileDownloadName);
+        Assert.Equal(new byte[] { 0xEF, 0xBB, 0xBF }, file.FileContents.Take(3).ToArray());
+        Assert.Contains("EXP-1", System.Text.Encoding.UTF8.GetString(file.FileContents));
+    }
+
+    [Fact]
     public async Task Delete_with_movements_returns_delete_view_with_error_instead_of_crashing()
     {
         int tireId;

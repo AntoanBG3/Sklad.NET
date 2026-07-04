@@ -18,17 +18,10 @@
 
         @if (Model.ShowRequestId)
         {
-            <dl class="specs" style="max-width:560px">
+            <dl class="specs specs-narrow">
                 <dt>@L["Request ID"]</dt>
                 <dd class="mono">@Model.RequestId</dd>
             </dl>
         }
-
-        <div class="block" style="max-width:640px;margin-top:var(--sp-6)">
-            <div class="block-head">
-                <span class="block-title">@L["Development Mode"]</span>
-            </div>
-            <p class="page-lede">@L["Setting the ASPNETCORE_ENVIRONMENT variable to Development shows detailed error information. Do not enable the Development environment for deployed applications, as it can expose sensitive details from exceptions to end users."]</p>
-        </div>
     </div>
 </div>
