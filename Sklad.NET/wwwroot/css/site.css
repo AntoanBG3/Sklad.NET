@@ -683,6 +683,9 @@ img, svg { display: block; max-width: 100%; }
     justify-content: center;
     gap: var(--sp-1);
     padding: var(--sp-2) var(--sp-4);
+    /* explicit: <a> inherits the body's 1.45 while <button> uses the UA's
+       ~1.2, leaving link-buttons taller than real buttons in the same row */
+    line-height: 1.2;
     font-size: var(--f--1);
     font-weight: 700;
     letter-spacing: 0.06em;

@@ -231,6 +231,10 @@
   <data name="Tire {0} deleted." xml:space="preserve"><value>Гума {0} е изтрита.</value></data>
   <data name="Movement recorded — stock is now {0}." xml:space="preserve"><value>Движението е записано — наличността е {0}.</value></data>
 
+  <!-- Report empty state -->
+  <data name="Nothing to report yet" xml:space="preserve"><value>Все още няма данни за справка</value></data>
+  <data name="Add tires to see value grouped by brand and season." xml:space="preserve"><value>Добавете гуми, за да видите стойността по марка и сезон.</value></data>
+
   <!-- Accessibility -->
   <data name="Skip to content" xml:space="preserve"><value>Към съдържанието</value></data>
   <data name="Main navigation" xml:space="preserve"><value>Основна навигация</value></data>

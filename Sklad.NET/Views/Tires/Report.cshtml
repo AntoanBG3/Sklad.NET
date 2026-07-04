@@ -36,6 +36,15 @@
                         <h2 class="block-title">@L["By Brand"]</h2>
                     </div>
                     <div class="table-scroll" tabindex="0" role="region" aria-label="@L["By Brand"]">
+                        @if (!Model.ByBrand.Any())
+                        {
+                            <div class="empty">
+                                <strong>@L["Nothing to report yet"]</strong>
+                                @L["Add tires to see value grouped by brand and season."]
+                            </div>
+                        }
+                        else
+                        {
                         <table class="data-table">
                             <thead>
                                 <tr>
@@ -59,6 +68,7 @@
                                 }
                             </tbody>
                         </table>
+                        }
                     </div>
                 </div>
             </div>
@@ -68,6 +78,15 @@
                         <h2 class="block-title">@L["By Season"]</h2>
                     </div>
                     <div class="table-scroll" tabindex="0" role="region" aria-label="@L["By Season"]">
+                        @if (!Model.BySeason.Any())
+                        {
+                            <div class="empty">
+                                <strong>@L["Nothing to report yet"]</strong>
+                                @L["Add tires to see value grouped by brand and season."]
+                            </div>
+                        }
+                        else
+                        {
                         <table class="data-table">
                             <thead>
                                 <tr>
@@ -89,6 +108,7 @@
                                 }
                             </tbody>
                         </table>
+                        }
                     </div>
                 </div>
             </div>
