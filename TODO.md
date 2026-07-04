@@ -40,6 +40,12 @@ All items from `IMPROVEMENTS.md` implemented: barcode-wipe/duplicate-SKU/delete-
 
 ---
 
+## [x] 6. Second review round (from IMPROVEMENTS-2.md, 2026-07-04)
+
+All 38 items from `IMPROVEMENTS-2.md` implemented: culture-safe decimal binding (dot and comma both accepted, comma never a group separator), client-side validation restored (jQuery include had been lost) with comma-aware rules, movement-retry 500 fixed plus a latent change-tracker bug in the retry loop, CSV UTF-8 BOM, NOCASE SKU/barcode collation with Cyrillic-insensitive search (`unilower`), duplicate-SKU race handling, safe culture returnUrl, login rate limiting, pinned cookie policy, security headers, styled 404, flash confirmations with redirect-to-details, blank-start numeric forms, page clamping, tire links in tables, scan button + autofocus, movement type preselect and live stock projection, delete pre-warn, filter clear, per-tire movements journal with capped Details history, Europe/Sofia timestamps, a11y round (scope/aria-sort/aria-current), database backup download (`VACUUM INTO`), WAL mode, brand favicon, print styles, share-of-value report column, and housekeeping. Tests 48 → 82.
+
+---
+
 ## [ ] Future ideas
 
 - Excel export (ClosedXML package)
