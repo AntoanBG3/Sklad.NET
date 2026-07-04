@@ -119,6 +119,45 @@ public class TiresControllerTests : IDisposable
     }
 
     [Fact]
+    public async Task Edit_post_maps_viewmodel_saves_and_redirects_to_details()
+    {
+        int tireId, version;
+        await using (var seed = _db.CreateContext())
+        {
+            var tire = NewTire("EDIT-VM");
+            tire.Barcode = "111222333";
+            seed.Tires.Add(tire);
+            await seed.SaveChangesAsync();
+            tireId = tire.Id;
+            version = tire.Version;
+        }
+
+        await using var context = _db.CreateContext();
+        var controller = CreateController(context);
+
+        var vm = new EditTireViewModel
+        {
+            Id = tireId, Version = version, Sku = "EDIT-VM", Brand = "Test", Model = "M2",
+            Barcode = "111222333", Width = 205, Profile = 55, Diameter = 16,
+            Season = Season.Winter, Type = TireType.New, UnitPrice = 149.99m, MinStock = 4,
+            Location = "Z-9"
+        };
+        var result = await controller.Edit(tireId, vm);
+
+        var redirect = Assert.IsType<RedirectToActionResult>(result);
+        Assert.Equal(nameof(TiresController.Details), redirect.ActionName);
+        Assert.Contains("EDIT-VM", (string)controller.TempData["Flash"]!);
+
+        await using var check = _db.CreateContext();
+        var saved = await check.Tires.FindAsync(tireId);
+        Assert.Equal("M2", saved!.Model);
+        Assert.Equal("111222333", saved.Barcode);
+        Assert.Equal(149.99m, saved.UnitPrice);
+        Assert.Equal(Season.Winter, saved.Season);
+        Assert.Equal(5, saved.Quantity);
+    }
+
+    [Fact]
     public async Task Scan_with_matching_code_redirects_to_details()
     {
         int tireId;

@@ -85,16 +85,17 @@ public class TiresController : Controller
         if (id is null) return NotFound();
         var tire = await _inventory.GetTireAsync(id.Value);
         if (tire is null) return NotFound();
-        return View(tire);
+        return View(EditTireViewModel.FromTire(tire));
     }
 
     // POST: /Tires/Edit/5
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(int id, [Bind("Id,Version,Sku,Barcode,Brand,Model,Width,Profile,Diameter,Season,Type,UnitPrice,MinStock,Location")] Tire tire)
+    public async Task<IActionResult> Edit(int id, EditTireViewModel vm)
     {
-        if (id != tire.Id) return NotFound();
-        if (!ModelState.IsValid) return View(tire);
+        if (id != vm.Id) return NotFound();
+        if (!ModelState.IsValid) return View(vm);
+        var tire = vm.ToTire();
         try
         {
             await _inventory.UpdateTireAsync(tire);
@@ -105,13 +106,13 @@ public class TiresController : Controller
         }
         catch (DuplicateSkuException ex)
         {
-            ModelState.AddModelError(nameof(Tire.Sku), _l["A tire with SKU {0} already exists.", ex.Sku]);
-            return View(tire);
+            ModelState.AddModelError(nameof(EditTireViewModel.Sku), _l["A tire with SKU {0} already exists.", ex.Sku]);
+            return View(vm);
         }
         catch (StaleTireException)
         {
             ModelState.AddModelError(string.Empty, _l["The tire was modified by someone else. Reload the page and try again."]);
-            return View(tire);
+            return View(vm);
         }
         TempData["Flash"] = _l["Tire {0} saved.", tire.Sku].Value;
         return RedirectToAction(nameof(Details), new { id = tire.Id });
