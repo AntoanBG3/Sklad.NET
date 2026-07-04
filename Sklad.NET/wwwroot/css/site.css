@@ -799,6 +799,9 @@ img, svg { display: block; max-width: 100%; }
 }
 
 .field-buttons { display: flex; gap: var(--sp-2); }
+/* match the .field-input box height (1rem text × 1.45 line-height + 2×sp-2
+   padding + 1px borders) so the filter row reads as one control strip */
+.field-buttons .btn { height: calc(1.45 * var(--f-0) + 2 * var(--sp-2) + 2px); }
 
 .pager {
     display: flex;
