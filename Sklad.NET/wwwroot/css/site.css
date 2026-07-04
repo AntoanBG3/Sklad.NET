@@ -311,6 +311,8 @@ img, svg { display: block; max-width: 100%; }
     border-bottom: 1px solid var(--rule);
     margin-bottom: var(--sp-6);
 }
+/* the page-head already closes with a rule — don't stack a second one */
+.page-head + .statband { border-top: 0; }
 .stat {
     padding: var(--sp-4) var(--sp-4) var(--sp-4) 0;
     border-left: 1px solid var(--rule-soft);
@@ -545,7 +547,7 @@ img, svg { display: block; max-width: 100%; }
 /* ============================================================
    Movement log
    ============================================================ */
-.log { border-top: 1px solid var(--rule); }
+/* no top rule: the log always sits under a block-head that draws one */
 .log-row {
     display: grid;
     grid-template-columns: 2.5rem 1fr auto;
