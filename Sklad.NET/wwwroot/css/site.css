@@ -157,6 +157,13 @@ img, svg { display: block; max-width: 100%; }
     background: var(--white);
     border-bottom: 1px solid var(--rule);
 }
+@supports ((-webkit-backdrop-filter: blur(8px)) or (backdrop-filter: blur(8px))) {
+    .topbar {
+        background: rgba(255, 255, 255, 0.85);
+        -webkit-backdrop-filter: blur(8px);
+        backdrop-filter: blur(8px);
+    }
+}
 
 .topbar-inner {
     height: var(--topbar-h);
@@ -176,6 +183,17 @@ img, svg { display: block; max-width: 100%; }
     color: var(--black);
 }
 .wordmark:hover { text-decoration: none; }
+/* the favicon's red index mark, echoed under the masthead */
+.wordmark-sklad { position: relative; display: inline-block; }
+.wordmark-sklad::after {
+    content: "";
+    position: absolute;
+    left: 0.05em;
+    bottom: -0.18em;
+    width: 55%;
+    height: 3px;
+    background: var(--red);
+}
 .wordmark .mark-index {
     font-size: var(--f--1);
     font-weight: 500;
@@ -188,6 +206,8 @@ img, svg { display: block; max-width: 100%; }
     display: flex;
     align-items: stretch;
 }
+/* tabs separated by air, not fences; the red bar is the only indicator,
+   and hover previews the active state */
 .topnav a {
     display: flex;
     align-items: center;
@@ -197,11 +217,10 @@ img, svg { display: block; max-width: 100%; }
     font-weight: 600;
     letter-spacing: 0.04em;
     text-transform: uppercase;
-    border-left: 1px solid var(--rule);
     position: relative;
 }
-.topnav a:hover { text-decoration: none; background: var(--gray); }
-.topnav a.is-active::after {
+.topnav a:hover { text-decoration: none; }
+.topnav a::after {
     content: "";
     position: absolute;
     left: var(--sp-4);
@@ -209,7 +228,13 @@ img, svg { display: block; max-width: 100%; }
     bottom: -1px;
     height: 3px;
     background: var(--red);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 160ms ease;
 }
+.topnav a:hover::after,
+.topnav a:focus-visible::after,
+.topnav a.is-active::after { transform: scaleX(1); }
 
 .lang {
     display: flex;
@@ -846,6 +871,21 @@ img, svg { display: block; max-width: 100%; }
     letter-spacing: 0.06em;
 }
 
+/* sign-out as quiet text: the language chip stays the bar's only filled element */
+.logout .navlink {
+    border: 0;
+    background: none;
+    padding: 0;
+    cursor: pointer;
+    font-size: var(--f--1);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--black);
+    transition: color 120ms ease;
+}
+.logout .navlink:hover { color: var(--red); }
+
 /* ============================================================
    Responsive
    ============================================================ */
@@ -861,9 +901,10 @@ img, svg { display: block; max-width: 100%; }
         overflow-x: auto;
         scrollbar-width: thin;
     }
-    .topnav a { white-space: nowrap; min-height: 2.75rem; }
+    /* in the scrolling row the fences earn their keep as touch-target edges */
+    .topnav a { white-space: nowrap; min-height: 2.75rem; border-left: 1px solid var(--rule); }
     .topnav a:first-child { border-left: 0; }
-    .topnav a.is-active::after { bottom: 0; }
+    .topnav a::after { bottom: 0; }
     .lang, .logout { min-height: 2.75rem; }
 }
 

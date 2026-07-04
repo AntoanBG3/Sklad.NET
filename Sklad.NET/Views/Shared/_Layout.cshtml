@@ -24,7 +24,7 @@
     <header class="topbar">
         <div class="container topbar-inner">
             <a class="wordmark" asp-controller="Tires" asp-action="Index">
-                Sklad<span class="mark-index">@L["Tire Warehouse"]</span>
+                <span class="wordmark-sklad">Sklad</span><span class="mark-index">@L["Tire Warehouse"]</span>
             </a>
             <nav class="topnav" aria-label="@L["Main navigation"]">
                 @if (User.Identity?.IsAuthenticated == true)
@@ -44,7 +44,7 @@
                 {
                     <form class="logout" asp-controller="Account" asp-action="Logout" method="post">
                         <span class="whoami">@User.Identity.Name</span>
-                        <button type="submit" class="btn btn-secondary btn-sm">@L["Sign out"]</button>
+                        <button type="submit" class="navlink">@L["Sign out"]</button>
                     </form>
                 }
             </nav>
