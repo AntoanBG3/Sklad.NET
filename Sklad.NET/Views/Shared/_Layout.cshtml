@@ -20,12 +20,13 @@
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 </head>
 <body>
+    <a class="skip-link" href="#main-content">@L["Skip to content"]</a>
     <header class="topbar">
         <div class="container topbar-inner">
             <a class="wordmark" asp-controller="Tires" asp-action="Index">
                 Sklad<span class="mark-index">@L["Tire Warehouse"]</span>
             </a>
-            <nav class="topnav">
+            <nav class="topnav" aria-label="@L["Main navigation"]">
                 @if (User.Identity?.IsAuthenticated == true)
                 {
                     <a class="@(isInventory ? "is-active" : "")" aria-current="@(isInventory ? "page" : null)" asp-controller="Tires" asp-action="Index">@L["Inventory"]</a>
@@ -33,7 +34,7 @@
                     <a class="@(isMovements ? "is-active" : "")" aria-current="@(isMovements ? "page" : null)" asp-controller="Movements" asp-action="Index">@L["Movements"]</a>
                     <a class="@(isReport ? "is-active" : "")" aria-current="@(isReport ? "page" : null)" asp-controller="Tires" asp-action="Report">@L["Stock Value"]</a>
                 }
-                <span class="lang" role="group" aria-label="Language">
+                <span class="lang" role="group" aria-label="@L["Language"]">
                     <a class="@(lang == "bg" ? "is-active" : "")" aria-current="@(lang == "bg" ? "true" : null)" asp-controller="Culture" asp-action="Set"
                        asp-route-culture="bg-BG" asp-route-returnUrl="@here">BG</a>
                     <a class="@(lang == "en" ? "is-active" : "")" aria-current="@(lang == "en" ? "true" : null)" asp-controller="Culture" asp-action="Set"
@@ -55,7 +56,7 @@
         <div class="flash" role="status"><div class="container">@flash</div></div>
     }
 
-    <main>
+    <main id="main-content">
         @RenderBody()
     </main>
 

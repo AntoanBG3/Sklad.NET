@@ -27,7 +27,7 @@
             <div class="col-5">
                 <div class="block">
                     <div class="block-head">
-                        <span class="block-title">@L["Tire Details"]</span>
+                        <h2 class="block-title">@L["Tire Details"]</h2>
                         <span class="block-meta">@L[Enums.Key(Model.Season)]</span>
                     </div>
                     <dl class="specs">
@@ -71,7 +71,7 @@
                 @{ var movementCount = (int)(ViewBag.MovementCount ?? Model.StockMovements.Count); }
                 <div class="block">
                     <div class="block-head">
-                        <span class="block-title">@L["Movement History"]</span>
+                        <h2 class="block-title">@L["Movement History"]</h2>
                         <span class="block-meta">
                             @if (movementCount > Model.StockMovements.Count)
                             {
@@ -101,7 +101,7 @@
                                 };
                                 string qtyLabel = m.MovementType switch {
                                     MovementType.In         => $"+{m.Quantity}",
-                                    MovementType.Out        => $"-{m.Quantity}",
+                                    MovementType.Out        => $"−{m.Quantity}",
                                     MovementType.Adjustment => $"={m.Quantity}",
                                     _                       => m.Quantity.ToString()
                                 };

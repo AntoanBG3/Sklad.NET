@@ -87,36 +87,36 @@
             <form method="get" asp-action="Index" class="filter-body">
                 <div class="filter-fields">
                     <div class="field">
-                        <label class="field-label">@L["SKU"]</label>
-                        <input name="Sku" value="@f.Sku" class="field-input" placeholder="MCH-001" />
+                        <label class="field-label" for="filter-sku">@L["SKU"]</label>
+                        <input id="filter-sku" name="Sku" value="@f.Sku" class="field-input" placeholder="MCH-001" />
                     </div>
                     <div class="field">
-                        <label class="field-label">@L["Barcode"]</label>
-                        <input name="Barcode" value="@f.Barcode" class="field-input" placeholder="3528706782900" />
+                        <label class="field-label" for="filter-barcode">@L["Barcode"]</label>
+                        <input id="filter-barcode" name="Barcode" value="@f.Barcode" class="field-input" placeholder="3528706782900" />
                     </div>
                     <div class="field">
-                        <label class="field-label">@L["Brand"]</label>
-                        <input name="Brand" value="@f.Brand" class="field-input" placeholder="Michelin" />
+                        <label class="field-label" for="filter-brand">@L["Brand"]</label>
+                        <input id="filter-brand" name="Brand" value="@f.Brand" class="field-input" placeholder="Michelin" />
                     </div>
                     <div class="field">
-                        <label class="field-label">@L["Model"]</label>
-                        <input name="Model" value="@f.Model" class="field-input" placeholder="Pilot Sport" />
+                        <label class="field-label" for="filter-model">@L["Model"]</label>
+                        <input id="filter-model" name="Model" value="@f.Model" class="field-input" placeholder="Pilot Sport" />
                     </div>
                     <div class="field">
-                        <label class="field-label">@L["Width"]</label>
-                        <input name="Width" value="@f.Width" type="number" class="field-input" placeholder="205" />
+                        <label class="field-label" for="filter-width">@L["Width"]</label>
+                        <input id="filter-width" name="Width" value="@f.Width" type="number" class="field-input" placeholder="205" />
                     </div>
                     <div class="field">
-                        <label class="field-label">@L["Profile"]</label>
-                        <input name="Profile" value="@f.Profile" type="number" class="field-input" placeholder="55" />
+                        <label class="field-label" for="filter-profile">@L["Profile"]</label>
+                        <input id="filter-profile" name="Profile" value="@f.Profile" type="number" class="field-input" placeholder="55" />
                     </div>
                     <div class="field">
-                        <label class="field-label">@L["Diameter"]</label>
-                        <input name="Diameter" value="@f.Diameter" type="number" class="field-input" placeholder="17" />
+                        <label class="field-label" for="filter-diameter">@L["Diameter"]</label>
+                        <input id="filter-diameter" name="Diameter" value="@f.Diameter" type="number" class="field-input" placeholder="17" />
                     </div>
                     <div class="field">
-                        <label class="field-label">@L["Season"]</label>
-                        <select name="Season" class="field-select">
+                        <label class="field-label" for="filter-season">@L["Season"]</label>
+                        <select id="filter-season" name="Season" class="field-select">
                             <option value="">@L["Any season"]</option>
                             @foreach (Season s in Enum.GetValues<Season>())
                             {
@@ -125,8 +125,8 @@
                         </select>
                     </div>
                     <div class="field">
-                        <label class="field-label">@L["Type"]</label>
-                        <select name="Type" class="field-select">
+                        <label class="field-label" for="filter-type">@L["Type"]</label>
+                        <select id="filter-type" name="Type" class="field-select">
                             <option value="">@L["Any type"]</option>
                             @foreach (TireType t in Enum.GetValues<TireType>())
                             {
@@ -144,7 +144,7 @@
 
         <div class="block">
             <div class="block-head">
-                <span class="block-title">@(f.HasAnyFilter ? L["Filtered Results"] : L["All Tires"])</span>
+                <h2 class="block-title">@(f.HasAnyFilter ? L["Filtered Results"] : L["All Tires"])</h2>
                 <span class="block-meta">
                     @if (f.HasAnyFilter)
                     {
@@ -159,7 +159,7 @@
                 </span>
             </div>
 
-            <div class="table-scroll">
+            <div class="table-scroll" tabindex="0" role="region" aria-label="@L["Inventory"]">
                 @if (!Model.Results.Items.Any())
                 {
                     <div class="empty">
@@ -177,12 +177,12 @@
                         </colgroup>
                         <thead>
                             <tr>
-                                <th scope="col" aria-sort="@AriaSort("sku")"><a asp-action="Index" asp-all-route-data="@Route(SortToggle("sku"), 1)">@L["SKU"]@SortMark("sku")</a></th>
-                                <th scope="col" aria-sort="@AriaSort("brand")"><a asp-action="Index" asp-all-route-data="@Route(SortToggle("brand"), 1)">@L["Tire"]@SortMark("brand")</a></th>
-                                <th scope="col" aria-sort="@AriaSort("size")"><a asp-action="Index" asp-all-route-data="@Route(SortToggle("size"), 1)">@L["Size"]@SortMark("size")</a></th>
+                                <th scope="col" aria-sort="@AriaSort("sku")"><a asp-action="Index" asp-all-route-data="@Route(SortToggle("sku"), 1)">@L["SKU"]<span aria-hidden="true">@SortMark("sku")</span></a></th>
+                                <th scope="col" aria-sort="@AriaSort("brand")"><a asp-action="Index" asp-all-route-data="@Route(SortToggle("brand"), 1)">@L["Tire"]<span aria-hidden="true">@SortMark("brand")</span></a></th>
+                                <th scope="col" aria-sort="@AriaSort("size")"><a asp-action="Index" asp-all-route-data="@Route(SortToggle("size"), 1)">@L["Size"]<span aria-hidden="true">@SortMark("size")</span></a></th>
                                 <th scope="col">@L["Season / Type"]</th>
-                                <th scope="col" aria-sort="@AriaSort("price")" class="col-num"><a asp-action="Index" asp-all-route-data="@Route(SortToggle("price"), 1)">@L["Price"]@SortMark("price")</a></th>
-                                <th scope="col" aria-sort="@AriaSort("qty")" class="col-num"><a asp-action="Index" asp-all-route-data="@Route(SortToggle("qty"), 1)">@L["Qty / Min"]@SortMark("qty")</a></th>
+                                <th scope="col" aria-sort="@AriaSort("price")" class="col-num"><a asp-action="Index" asp-all-route-data="@Route(SortToggle("price"), 1)">@L["Price"]<span aria-hidden="true">@SortMark("price")</span></a></th>
+                                <th scope="col" aria-sort="@AriaSort("qty")" class="col-num"><a asp-action="Index" asp-all-route-data="@Route(SortToggle("qty"), 1)">@L["Qty / Min"]<span aria-hidden="true">@SortMark("qty")</span></a></th>
                                 <th scope="col">@L["Location"]</th>
                                 <th scope="col"><span class="visually-hidden">@L["Actions"]</span></th>
                             </tr>

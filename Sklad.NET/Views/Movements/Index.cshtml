@@ -23,13 +23,13 @@
 
         <div class="block">
             <div class="block-head">
-                <span class="block-title">
+                <h2 class="block-title">
                     @L["Movement History"]
                     @if (tire is not null)
                     {
                         <span class="block-title-context">&mdash; @tire.Brand @tire.Model (<a asp-action="Index" asp-route-type="@type">@L["Clear filter"]</a>)</span>
                     }
-                </span>
+                </h2>
                 <span class="block-meta">
                     <a class="@(type is null ? "is-active" : "")" aria-current="@(type is null ? "true" : null)"
                        asp-action="Index" asp-route-tireId="@tireId">@L["All"]</a>
@@ -41,7 +41,7 @@
                 </span>
             </div>
 
-            <div class="table-scroll">
+            <div class="table-scroll" tabindex="0" role="region" aria-label="@L["Movements"]">
                 @if (!Model.Items.Any())
                 {
                     <div class="empty">

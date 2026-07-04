@@ -231,6 +231,11 @@
   <data name="Tire {0} deleted." xml:space="preserve"><value>Гума {0} е изтрита.</value></data>
   <data name="Movement recorded — stock is now {0}." xml:space="preserve"><value>Движението е записано — наличността е {0}.</value></data>
 
+  <!-- Accessibility -->
+  <data name="Skip to content" xml:space="preserve"><value>Към съдържанието</value></data>
+  <data name="Main navigation" xml:space="preserve"><value>Основна навигация</value></data>
+  <data name="Language" xml:space="preserve"><value>Език</value></data>
+
   <!-- Report / maintenance -->
   <data name="Download backup" xml:space="preserve"><value>Изтегли резервно копие</value></data>
   <data name="Share" xml:space="preserve"><value>Дял</value></data>

@@ -30,12 +30,12 @@
 
         <div class="block">
             <div class="block-head">
-                <span class="block-title @(count > 0 ? "is-alert" : "")">
+                <h2 class="block-title @(count > 0 ? "is-alert" : "")">
                     @(count > 0 ? L["{0} requiring attention", count] : L["All stocked"])
-                </span>
+                </h2>
             </div>
 
-            <div class="table-scroll">
+            <div class="table-scroll" tabindex="0" role="region" aria-label="@L["Low Stock"]">
                 @if (!Model.Any())
                 {
                     <div class="empty">
