@@ -46,9 +46,14 @@ All 38 items from `IMPROVEMENTS-2.md` implemented: culture-safe decimal binding 
 
 ---
 
+## [x] 7. Inventory filter dropdowns and movements date range (2026-07-05)
+
+Brand/width/profile/diameter filters became dropdowns listing only values present in stock (`GetFilterOptionsAsync`), plus new location and low-stock-only filters carried through sort, paging, and CSV export. The movements journal gained a from/to date filter interpreting days in shop time (Europe/Sofia) against UTC-stored dates. Tests 82 → 94.
+
+---
+
 ## [ ] Future ideas
 
 - Excel export (ClosedXML package)
 - Supplier / purchase order tracking
 - Multiple user accounts with roles (current auth is a single configured account)
-- Date-range filter on the movements journal
