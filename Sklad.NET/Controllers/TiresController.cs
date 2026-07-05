@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Localization;
+using Sklad.Helpers;
 using Sklad.Models;
 using Sklad.Services;
 using Sklad.ViewModels;
@@ -46,13 +47,14 @@ public class TiresController : Controller
         return RedirectToAction(nameof(Details), new { id = tire.Id });
     }
 
-    // GET: /Tires/Details/5
-    public async Task<IActionResult> Details(int? id)
+    // GET: /Tires/Details/5?returnUrl=... (Back returns to where the user came from)
+    public async Task<IActionResult> Details(int? id, string? returnUrl = null)
     {
         if (id is null) return NotFound();
         var tire = await _inventory.GetTireAsync(id.Value, includeMovements: true);
         if (tire is null) return NotFound();
         ViewBag.MovementCount = await _inventory.CountMovementsAsync(id.Value);
+        ViewBag.ReturnUrl = returnUrl;
         return View(tire);
     }
 
@@ -117,6 +119,7 @@ public class TiresController : Controller
             return View(vm);
         }
         TempData["Flash"] = _l["Tire {0} saved.", tire.Sku].Value;
+        if (returnUrl is not null) return Redirect(Redirects.Safe(returnUrl));
         return RedirectToAction(nameof(Details), new { id = tire.Id });
     }
 
@@ -194,6 +197,7 @@ public class TiresController : Controller
         {
             var newQuantity = await _inventory.RegisterMovementAsync(vm.TireId, vm.MovementType, vm.Quantity!.Value, vm.Note, CurrentUser);
             TempData["Flash"] = _l["Movement recorded — stock is now {0}.", newQuantity].Value;
+            if (returnUrl is not null) return Redirect(Redirects.Safe(returnUrl));
             return RedirectToAction(nameof(Details), new { id = vm.TireId });
         }
         catch (TireNotFoundException)

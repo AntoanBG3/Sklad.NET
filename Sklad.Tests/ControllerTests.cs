@@ -299,6 +299,108 @@ public class TiresControllerTests : IDisposable
         Assert.IsType<ViewResult>(result);
         Assert.False(controller.ModelState.IsValid);
     }
+
+    [Fact]
+    public async Task Edit_post_success_returns_to_local_returnUrl()
+    {
+        int tireId, version;
+        await using (var seed = _db.CreateContext())
+        {
+            var tire = NewTire("RET-1");
+            seed.Tires.Add(tire);
+            await seed.SaveChangesAsync();
+            tireId = tire.Id;
+            version = tire.Version;
+        }
+
+        await using var context = _db.CreateContext();
+        var controller = CreateController(context);
+
+        var vm = new EditTireViewModel
+        {
+            Id = tireId, Version = version, Sku = "RET-1", Brand = "Test", Model = "M",
+            Width = 205, Profile = 55, Diameter = 16,
+            Season = Season.Summer, Type = TireType.New, UnitPrice = 100m, MinStock = 2
+        };
+        var result = await controller.Edit(tireId, vm, "/Tires?Brand=Test&Page=2");
+
+        var redirect = Assert.IsType<RedirectResult>(result);
+        Assert.Equal("/Tires?Brand=Test&Page=2", redirect.Url);
+    }
+
+    [Fact]
+    public async Task Edit_post_success_ignores_external_returnUrl()
+    {
+        int tireId, version;
+        await using (var seed = _db.CreateContext())
+        {
+            var tire = NewTire("RET-2");
+            seed.Tires.Add(tire);
+            await seed.SaveChangesAsync();
+            tireId = tire.Id;
+            version = tire.Version;
+        }
+
+        await using var context = _db.CreateContext();
+        var controller = CreateController(context);
+
+        var vm = new EditTireViewModel
+        {
+            Id = tireId, Version = version, Sku = "RET-2", Brand = "Test", Model = "M",
+            Width = 205, Profile = 55, Diameter = 16,
+            Season = Season.Summer, Type = TireType.New, UnitPrice = 100m, MinStock = 2
+        };
+        var result = await controller.Edit(tireId, vm, "https://evil.example/");
+
+        var redirect = Assert.IsType<RedirectResult>(result);
+        Assert.Equal("/", redirect.Url);
+    }
+
+    [Fact]
+    public async Task RegisterMovement_post_success_returns_to_local_returnUrl()
+    {
+        int tireId;
+        await using (var seed = _db.CreateContext())
+        {
+            var tire = NewTire("RET-3", qty: 5);
+            seed.Tires.Add(tire);
+            await seed.SaveChangesAsync();
+            tireId = tire.Id;
+        }
+
+        await using var context = _db.CreateContext();
+        var controller = CreateController(context);
+
+        var result = await controller.RegisterMovement(new RegisterMovementViewModel
+        {
+            TireId = tireId, MovementType = MovementType.In, Quantity = 4
+        }, "/Tires/LowStock");
+
+        var redirect = Assert.IsType<RedirectResult>(result);
+        Assert.Equal("/Tires/LowStock", redirect.Url);
+        Assert.Contains("9", (string)controller.TempData["Flash"]!);
+    }
+
+    [Fact]
+    public async Task Details_passes_returnUrl_to_the_view()
+    {
+        int tireId;
+        await using (var seed = _db.CreateContext())
+        {
+            var tire = NewTire("RET-4");
+            seed.Tires.Add(tire);
+            await seed.SaveChangesAsync();
+            tireId = tire.Id;
+        }
+
+        await using var context = _db.CreateContext();
+        var controller = CreateController(context);
+
+        var result = await controller.Details(tireId, "/Tires?Season=Winter");
+
+        Assert.IsType<ViewResult>(result);
+        Assert.Equal("/Tires?Season=Winter", (string?)controller.ViewBag.ReturnUrl);
+    }
 }
 
 public class AccountControllerTests
