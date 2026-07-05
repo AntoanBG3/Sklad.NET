@@ -403,6 +403,46 @@ public class TiresControllerTests : IDisposable
     }
 }
 
+public class MovementsControllerTests : IDisposable
+{
+    private readonly TestDb _db = new();
+
+    public void Dispose() => _db.Dispose();
+
+    [Fact]
+    public async Task Index_filters_by_date_range_and_exposes_it_to_the_view()
+    {
+        int tireId;
+        await using (var seed = _db.CreateContext())
+        {
+            var tire = new Tire
+            {
+                Sku = "MJ-1", Brand = "Test", Model = "M", Width = 205, Profile = 55, Diameter = 16,
+                Season = Season.Summer, Type = TireType.New, UnitPrice = 100m, Quantity = 5, MinStock = 2
+            };
+            seed.Tires.Add(tire);
+            await seed.SaveChangesAsync();
+            tireId = tire.Id;
+            seed.StockMovements.AddRange(
+                new StockMovement { TireId = tireId, MovementType = MovementType.In, Quantity = 1, Note = "old", Date = new DateTime(2026, 6, 1, 12, 0, 0, DateTimeKind.Utc) },
+                new StockMovement { TireId = tireId, MovementType = MovementType.In, Quantity = 1, Note = "new", Date = new DateTime(2026, 7, 1, 12, 0, 0, DateTimeKind.Utc) });
+            await seed.SaveChangesAsync();
+        }
+
+        await using var context = _db.CreateContext();
+        var service = new InventoryService(context, NullLogger<InventoryService>.Instance);
+        var controller = new MovementsController(service);
+
+        var result = await controller.Index(null, null, new DateOnly(2026, 7, 1), new DateOnly(2026, 7, 1));
+
+        var view = Assert.IsType<ViewResult>(result);
+        var model = Assert.IsType<PagedResult<StockMovement>>(view.Model);
+        Assert.Equal("new", Assert.Single(model.Items).Note);
+        Assert.Equal(new DateOnly(2026, 7, 1), (DateOnly?)controller.ViewBag.From);
+        Assert.Equal(new DateOnly(2026, 7, 1), (DateOnly?)controller.ViewBag.To);
+    }
+}
+
 public class AccountControllerTests
 {
     private sealed class RecordingAuthService : IAuthenticationService

@@ -77,6 +77,16 @@
   <data name="{0} active" xml:space="preserve"><value>{0} активни</value></data>
   <data name="Any season" xml:space="preserve"><value>Всеки сезон</value></data>
   <data name="Any type" xml:space="preserve"><value>Всеки тип</value></data>
+  <data name="Any brand" xml:space="preserve"><value>Всяка марка</value></data>
+  <data name="Any width" xml:space="preserve"><value>Всяка широчина</value></data>
+  <data name="Any profile" xml:space="preserve"><value>Всеки профил</value></data>
+  <data name="Any diameter" xml:space="preserve"><value>Всеки диаметър</value></data>
+  <data name="Any location" xml:space="preserve"><value>Всяка локация</value></data>
+  <data name="Stock level" xml:space="preserve"><value>Ниво на наличност</value></data>
+  <data name="Any stock level" xml:space="preserve"><value>Всяко ниво</value></data>
+  <data name="Low stock only" xml:space="preserve"><value>Само ниска наличност</value></data>
+  <data name="From date" xml:space="preserve"><value>От дата</value></data>
+  <data name="To date" xml:space="preserve"><value>До дата</value></data>
   <data name="Search" xml:space="preserve"><value>Търси</value></data>
   <data name="Filtered Results" xml:space="preserve"><value>Филтрирани резултати</value></data>
   <data name="All Tires" xml:space="preserve"><value>Всички гуми</value></data>

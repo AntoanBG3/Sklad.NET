@@ -25,7 +25,9 @@ public interface IInventoryService
 
     Task<int> RegisterMovementAsync(int tireId, MovementType movementType, int quantity, string? note, string? userName = null);
 
-    Task<PagedResult<StockMovement>> GetMovementsAsync(MovementType? type, int? tireId = null, int page = 1, int pageSize = InventoryService.DefaultPageSize);
+    Task<PagedResult<StockMovement>> GetMovementsAsync(MovementType? type, int? tireId = null, DateOnly? from = null, DateOnly? to = null, int page = 1, int pageSize = InventoryService.DefaultPageSize);
+
+    Task<FilterOptions> GetFilterOptionsAsync();
 
     Task<ValueReport> GetValueReportAsync();
 

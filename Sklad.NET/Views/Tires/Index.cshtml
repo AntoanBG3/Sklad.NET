@@ -12,13 +12,16 @@
                       + (f.Profile.HasValue ? 1 : 0)
                       + (f.Diameter.HasValue ? 1 : 0)
                       + (f.Season.HasValue ? 1 : 0)
-                      + (f.Type.HasValue ? 1 : 0);
+                      + (f.Type.HasValue ? 1 : 0)
+                      + (string.IsNullOrWhiteSpace(f.Location) ? 0 : 1)
+                      + (f.LowOnly == true ? 1 : 0);
 
     Dictionary<string, string?> Route(string? sort, int page) => new()
     {
         ["Sku"] = f.Sku, ["Barcode"] = f.Barcode, ["Brand"] = f.Brand, ["Model"] = f.Model,
         ["Width"] = f.Width?.ToString(), ["Profile"] = f.Profile?.ToString(), ["Diameter"] = f.Diameter?.ToString(),
         ["Season"] = f.Season?.ToString(), ["Type"] = f.Type?.ToString(),
+        ["Location"] = f.Location, ["LowOnly"] = f.LowOnly == true ? "true" : null,
         ["Sort"] = sort, ["Page"] = page == 1 ? null : page.ToString()
     };
 
@@ -102,7 +105,13 @@
                     </div>
                     <div class="field">
                         <label class="field-label" for="filter-brand">@L["Brand"]</label>
-                        <input id="filter-brand" name="Brand" value="@f.Brand" class="field-input" placeholder="Michelin" />
+                        <select id="filter-brand" name="Brand" class="field-select">
+                            <option value="">@L["Any brand"]</option>
+                            @foreach (var b in Model.Options.Brands)
+                            {
+                                <option value="@b" selected="@(f.Brand == b)">@b</option>
+                            }
+                        </select>
                     </div>
                     <div class="field">
                         <label class="field-label" for="filter-model">@L["Model"]</label>
@@ -110,15 +119,33 @@
                     </div>
                     <div class="field">
                         <label class="field-label" for="filter-width">@L["Width"]</label>
-                        <input id="filter-width" name="Width" value="@f.Width" type="number" class="field-input" placeholder="205" />
+                        <select id="filter-width" name="Width" class="field-select">
+                            <option value="">@L["Any width"]</option>
+                            @foreach (var w in Model.Options.Widths)
+                            {
+                                <option value="@w" selected="@(f.Width == w)">@w</option>
+                            }
+                        </select>
                     </div>
                     <div class="field">
                         <label class="field-label" for="filter-profile">@L["Profile"]</label>
-                        <input id="filter-profile" name="Profile" value="@f.Profile" type="number" class="field-input" placeholder="55" />
+                        <select id="filter-profile" name="Profile" class="field-select">
+                            <option value="">@L["Any profile"]</option>
+                            @foreach (var p in Model.Options.Profiles)
+                            {
+                                <option value="@p" selected="@(f.Profile == p)">@p</option>
+                            }
+                        </select>
                     </div>
                     <div class="field">
                         <label class="field-label" for="filter-diameter">@L["Diameter"]</label>
-                        <input id="filter-diameter" name="Diameter" value="@f.Diameter" type="number" class="field-input" placeholder="17" />
+                        <select id="filter-diameter" name="Diameter" class="field-select">
+                            <option value="">@L["Any diameter"]</option>
+                            @foreach (var d in Model.Options.Diameters)
+                            {
+                                <option value="@d" selected="@(f.Diameter == d)">@d</option>
+                            }
+                        </select>
                     </div>
                     <div class="field">
                         <label class="field-label" for="filter-season">@L["Season"]</label>
@@ -138,6 +165,23 @@
                             {
                                 <option value="@t" selected="@(f.Type == t)">@L[Enums.Key(t)]</option>
                             }
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label class="field-label" for="filter-location">@L["Location"]</label>
+                        <select id="filter-location" name="Location" class="field-select">
+                            <option value="">@L["Any location"]</option>
+                            @foreach (var loc in Model.Options.Locations)
+                            {
+                                <option value="@loc" selected="@(f.Location == loc)">@loc</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label class="field-label" for="filter-low">@L["Stock level"]</label>
+                        <select id="filter-low" name="LowOnly" class="field-select">
+                            <option value="">@L["Any stock level"]</option>
+                            <option value="true" selected="@(f.LowOnly == true)">@L["Low stock only"]</option>
                         </select>
                     </div>
                     <div class="field field-buttons">

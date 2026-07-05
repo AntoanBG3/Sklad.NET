@@ -5,6 +5,12 @@
     var type = ViewBag.Type as MovementType?;
     var tireId = ViewBag.TireId as int?;
     var tire = ViewBag.Tire as Sklad.Models.Tire;
+    var from = ViewBag.From as DateOnly?;
+    var to = ViewBag.To as DateOnly?;
+    string? FromRoute = from?.ToString("yyyy-MM-dd");
+    string? ToRoute = to?.ToString("yyyy-MM-dd");
+    int activeFilters = (from.HasValue ? 1 : 0) + (to.HasValue ? 1 : 0);
+    var showTire = tire is null;
     var here = $"{Context.Request.Path}{Context.Request.QueryString}";
 }
 
@@ -22,22 +28,56 @@
             </div>
         </div>
 
+        <details class="filter" @(activeFilters > 0 ? "open" : "")>
+            <summary>
+                @L["Filter"]
+                @if (activeFilters > 0)
+                {
+                    <span class="filter-count">@L["{0} active", activeFilters]</span>
+                }
+            </summary>
+            <form method="get" asp-action="Index" class="filter-body">
+                @if (type.HasValue)
+                {
+                    <input type="hidden" name="type" value="@type" />
+                }
+                @if (tireId.HasValue)
+                {
+                    <input type="hidden" name="tireId" value="@tireId" />
+                }
+                <div class="filter-fields">
+                    <div class="field">
+                        <label class="field-label" for="filter-from">@L["From date"]</label>
+                        <input id="filter-from" name="from" type="date" value="@FromRoute" class="field-input" />
+                    </div>
+                    <div class="field">
+                        <label class="field-label" for="filter-to">@L["To date"]</label>
+                        <input id="filter-to" name="to" type="date" value="@ToRoute" class="field-input" />
+                    </div>
+                    <div class="field field-buttons">
+                        <button type="submit" class="btn btn-primary">@L["Search"]</button>
+                        <a asp-action="Index" class="btn btn-secondary">@L["Clear"]</a>
+                    </div>
+                </div>
+            </form>
+        </details>
+
         <div class="block">
             <div class="block-head">
                 <h2 class="block-title">
                     @L["Movement History"]
                     @if (tire is not null)
                     {
-                        <span class="block-title-context">&mdash; @tire.Brand @tire.Model (<a asp-action="Index" asp-route-type="@type">@L["Clear filter"]</a>)</span>
+                        <span class="block-title-context">@tire.Brand @tire.Model (<a asp-action="Index" asp-route-type="@type" asp-route-from="@FromRoute" asp-route-to="@ToRoute">@L["Clear filter"]</a>)</span>
                     }
                 </h2>
                 <span class="block-meta">
                     <a class="@(type is null ? "is-active" : "")" aria-current="@(type is null ? "true" : null)"
-                       asp-action="Index" asp-route-tireId="@tireId">@L["All"]</a>
+                       asp-action="Index" asp-route-tireId="@tireId" asp-route-from="@FromRoute" asp-route-to="@ToRoute">@L["All"]</a>
                     @foreach (MovementType mt in Enum.GetValues<MovementType>())
                     {
                         <a class="@(type == mt ? "is-active" : "")" aria-current="@(type == mt ? "true" : null)"
-                           asp-action="Index" asp-route-type="@mt" asp-route-tireId="@tireId">@L[Enums.Key(mt)]</a>
+                           asp-action="Index" asp-route-type="@mt" asp-route-tireId="@tireId" asp-route-from="@FromRoute" asp-route-to="@ToRoute">@L[Enums.Key(mt)]</a>
                     }
                 </span>
             </div>
@@ -57,13 +97,21 @@
                 {
                     <table class="data-table data-table-wide">
                         <colgroup>
-                            <col class="w-mdate" /><col class="w-mtire" /><col class="w-mtype" />
+                            <col class="w-mdate" />
+                            @if (showTire)
+                            {
+                                <col class="w-mtire" />
+                            }
+                            <col class="w-mtype" />
                             <col class="w-mqty" /><col class="w-muser" /><col class="w-mnote" />
                         </colgroup>
                         <thead>
                             <tr>
                                 <th scope="col">@L["Date"]</th>
-                                <th scope="col">@L["Tire"]</th>
+                                @if (showTire)
+                                {
+                                    <th scope="col">@L["Tire"]</th>
+                                }
                                 <th scope="col">@L["Movement Type"]</th>
                                 <th scope="col" class="col-num">@L["Quantity"]</th>
                                 <th scope="col">@L["User"]</th>
@@ -75,12 +123,15 @@
                             {
                                 <tr data-href="@Url.Action("Details", "Tires", new { id = m.TireId, returnUrl = here })">
                                     <td class="mono">@Dates.Stamp(m.Date)</td>
-                                    <td>
-                                        <a class="row-link" asp-controller="Tires" asp-action="Details" asp-route-id="@m.TireId" asp-route-returnUrl="@here">
-                                            <span class="cell-stack cell-strong">@m.Tire.Brand @m.Tire.Model</span>
-                                            <span class="cell-sub mono">@m.Tire.Sku</span>
-                                        </a>
-                                    </td>
+                                    @if (showTire)
+                                    {
+                                        <td>
+                                            <a class="row-link" asp-controller="Tires" asp-action="Details" asp-route-id="@m.TireId" asp-route-returnUrl="@here">
+                                                <span class="cell-stack cell-strong">@m.Tire.Brand @m.Tire.Model</span>
+                                                <span class="cell-sub mono">@m.Tire.Sku</span>
+                                            </a>
+                                        </td>
+                                    }
                                     <td><span class="tag">@L[Enums.Key(m.MovementType)]</span></td>
                                     <td class="col-num">
                                         @(m.MovementType switch
@@ -104,12 +155,12 @@
                 <div class="pager">
                     @if (Model.HasPrevious)
                     {
-                        <a class="btn btn-secondary btn-sm" asp-action="Index" asp-route-type="@type" asp-route-tireId="@tireId" asp-route-page="@(Model.Page - 1)">@L["Previous"]</a>
+                        <a class="btn btn-secondary btn-sm" asp-action="Index" asp-route-type="@type" asp-route-tireId="@tireId" asp-route-from="@FromRoute" asp-route-to="@ToRoute" asp-route-page="@(Model.Page - 1)">@L["Previous"]</a>
                     }
                     <span class="pager-info">@L["Page {0} of {1}", Model.Page, Model.TotalPages]</span>
                     @if (Model.HasNext)
                     {
-                        <a class="btn btn-secondary btn-sm" asp-action="Index" asp-route-type="@type" asp-route-tireId="@tireId" asp-route-page="@(Model.Page + 1)">@L["Next"]</a>
+                        <a class="btn btn-secondary btn-sm" asp-action="Index" asp-route-type="@type" asp-route-tireId="@tireId" asp-route-from="@FromRoute" asp-route-to="@ToRoute" asp-route-page="@(Model.Page + 1)">@L["Next"]</a>
                     }
                 </div>
             }

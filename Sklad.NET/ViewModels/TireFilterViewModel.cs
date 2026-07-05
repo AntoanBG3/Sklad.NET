@@ -13,6 +13,8 @@ public class TireFilterViewModel
     public int? Diameter { get; set; }
     public Season? Season { get; set; }
     public TireType? Type { get; set; }
+    public string? Location { get; set; }
+    public bool? LowOnly { get; set; }
     public string? Sort { get; set; }
     public int Page { get; set; } = 1;
 
@@ -22,5 +24,6 @@ public class TireFilterViewModel
         !string.IsNullOrWhiteSpace(Brand) ||
         !string.IsNullOrWhiteSpace(Model) ||
         Width.HasValue || Profile.HasValue || Diameter.HasValue ||
-        Season.HasValue || Type.HasValue;
+        Season.HasValue || Type.HasValue ||
+        !string.IsNullOrWhiteSpace(Location) || LowOnly == true;
 }

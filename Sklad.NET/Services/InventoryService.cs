@@ -3,6 +3,7 @@ using System.Text;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Sklad.Data;
+using Sklad.Helpers;
 using Sklad.Models;
 using Sklad.ViewModels;
 
@@ -48,6 +49,9 @@ public class InventoryService : IInventoryService
         if (filter.Diameter.HasValue) q = q.Where(t => t.Diameter == filter.Diameter);
         if (filter.Season.HasValue)   q = q.Where(t => t.Season   == filter.Season);
         if (filter.Type.HasValue)     q = q.Where(t => t.Type     == filter.Type);
+        // exact match: the value comes from a dropdown of existing locations
+        if (!string.IsNullOrWhiteSpace(filter.Location)) q = q.Where(t => t.Location == filter.Location);
+        if (filter.LowOnly == true)   q = q.Where(t => t.Quantity <= t.MinStock);
 
         q = ApplySort(q, filter.Sort);
 
@@ -263,13 +267,23 @@ public class InventoryService : IInventoryService
         }
     }
 
-    public async Task<PagedResult<StockMovement>> GetMovementsAsync(MovementType? type, int? tireId = null, int page = 1, int pageSize = DefaultPageSize)
+    public async Task<PagedResult<StockMovement>> GetMovementsAsync(MovementType? type, int? tireId = null, DateOnly? from = null, DateOnly? to = null, int page = 1, int pageSize = DefaultPageSize)
     {
         var q = _db.StockMovements.Include(m => m.Tire).AsQueryable();
         if (type.HasValue)
             q = q.Where(m => m.MovementType == type);
         if (tireId.HasValue)
             q = q.Where(m => m.TireId == tireId);
+        if (from.HasValue)
+        {
+            var fromUtc = Dates.StartOfDayUtc(from.Value);
+            q = q.Where(m => m.Date >= fromUtc);
+        }
+        if (to.HasValue)
+        {
+            var toUtc = Dates.StartOfDayUtc(to.Value.AddDays(1));
+            q = q.Where(m => m.Date < toUtc);
+        }
         q = q.OrderByDescending(m => m.Date).ThenByDescending(m => m.Id);
 
         var total = await q.CountAsync();
@@ -283,6 +297,17 @@ public class InventoryService : IInventoryService
             Page = page,
             PageSize = pageSize
         };
+    }
+
+    public async Task<FilterOptions> GetFilterOptionsAsync()
+    {
+        var brands = await _db.Tires.Select(t => t.Brand).Distinct().OrderBy(b => b).ToListAsync();
+        var widths = await _db.Tires.Select(t => t.Width).Distinct().OrderBy(w => w).ToListAsync();
+        var profiles = await _db.Tires.Select(t => t.Profile).Distinct().OrderBy(p => p).ToListAsync();
+        var diameters = await _db.Tires.Select(t => t.Diameter).Distinct().OrderBy(d => d).ToListAsync();
+        var locations = await _db.Tires.Where(t => t.Location != null)
+            .Select(t => t.Location!).Distinct().OrderBy(l => l).ToListAsync();
+        return new FilterOptions(brands, widths, profiles, diameters, locations);
     }
 
     public async Task<ValueReport> GetValueReportAsync()

@@ -75,7 +75,7 @@
                             @if (movementCount > Model.StockMovements.Count)
                             {
                                 <a asp-controller="Movements" asp-action="Index" asp-route-tireId="@Model.Id">@L["View all {0} movements", movementCount]</a>
-                                <span> &mdash; </span>
+                                <span> &middot; </span>
                             }
                             <a asp-action="RegisterMovement" asp-route-id="@Model.Id">@L["Add Movement"]</a>
                         </span>
@@ -98,16 +98,10 @@
                                     MovementType.Adjustment => "=",
                                     _                       => "•"
                                 };
-                                string qtyLabel = m.MovementType switch {
-                                    MovementType.In         => $"+{m.Quantity}",
-                                    MovementType.Out        => $"−{m.Quantity}",
-                                    MovementType.Adjustment => $"={m.Quantity}",
-                                    _                       => m.Quantity.ToString()
-                                };
                                 <li class="log-row">
                                     <div class="log-mark">@mark</div>
                                     <div>
-                                        <div class="log-main">@L[Enums.Key(m.MovementType)] &mdash; <strong>@qtyLabel</strong> @L["units"]</div>
+                                        <div class="log-main">@L[Enums.Key(m.MovementType)] <strong>@m.Quantity</strong> @L["units"]</div>
                                         @if (!string.IsNullOrWhiteSpace(m.Note))
                                         {
                                             <div class="log-note">@m.Note</div>

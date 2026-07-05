@@ -27,7 +27,8 @@ public class TiresController : Controller
         {
             Results = await _inventory.SearchAsync(filter),
             Filter = filter,
-            Stats = await _inventory.GetStatsAsync()
+            Stats = await _inventory.GetStatsAsync(),
+            Options = await _inventory.GetFilterOptionsAsync()
         };
         return View(vm);
     }

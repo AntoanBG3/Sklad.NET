@@ -15,4 +15,8 @@ public static class Dates
     public static string Stamp(DateTime utc)
         => TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(utc, DateTimeKind.Utc), Sofia)
             .ToString("dd MMM yyyy HH:mm");
+
+    // Movements are stored UTC but users filter by shop-local calendar days.
+    public static DateTime StartOfDayUtc(DateOnly day)
+        => TimeZoneInfo.ConvertTimeToUtc(day.ToDateTime(TimeOnly.MinValue), Sofia);
 }

@@ -427,6 +427,78 @@ public class InventoryServiceTests : IDisposable
         Assert.Equal(2, ins.TotalCount);
     }
 
+    [Fact]
+    public async Task Movements_journal_filters_by_date_range_in_shop_time()
+    {
+        var seeded = await SeedTireAsync(NewTire("J-2", qty: 10));
+        await using (var context = _db.CreateContext())
+        {
+            // Sofia is UTC+3 in summer: 1 July starts at 21:00 UTC on 30 June.
+            context.StockMovements.AddRange(
+                new StockMovement { TireId = seeded.Id, MovementType = MovementType.In, Quantity = 1, Note = "before", Date = new DateTime(2026, 6, 30, 20, 0, 0, DateTimeKind.Utc) },
+                new StockMovement { TireId = seeded.Id, MovementType = MovementType.In, Quantity = 1, Note = "start", Date = new DateTime(2026, 6, 30, 22, 0, 0, DateTimeKind.Utc) },
+                new StockMovement { TireId = seeded.Id, MovementType = MovementType.In, Quantity = 1, Note = "end", Date = new DateTime(2026, 7, 1, 20, 0, 0, DateTimeKind.Utc) },
+                new StockMovement { TireId = seeded.Id, MovementType = MovementType.In, Quantity = 1, Note = "after", Date = new DateTime(2026, 7, 1, 21, 30, 0, DateTimeKind.Utc) });
+            await context.SaveChangesAsync();
+        }
+
+        await using var context2 = _db.CreateContext();
+        var service = CreateService(context2);
+        var day = await service.GetMovementsAsync(null, from: new DateOnly(2026, 7, 1), to: new DateOnly(2026, 7, 1));
+        var fromOnly = await service.GetMovementsAsync(null, from: new DateOnly(2026, 7, 1));
+        var toOnly = await service.GetMovementsAsync(null, to: new DateOnly(2026, 6, 30));
+
+        Assert.Equal(new[] { "end", "start" }, day.Items.Select(m => m.Note).ToArray());
+        Assert.Equal(3, fromOnly.TotalCount);
+        Assert.Equal("before", Assert.Single(toOnly.Items).Note);
+    }
+
+    // --- SearchAsync (location / low stock) ---
+
+    [Fact]
+    public async Task Search_filters_by_location_exactly()
+    {
+        await SeedTireAsync(NewTire("L-1", location: "Rack A"));
+        await SeedTireAsync(NewTire("L-2", location: "Rack B"));
+        await SeedTireAsync(NewTire("L-3"));
+        await using var context = _db.CreateContext();
+
+        var result = await CreateService(context).SearchAsync(new TireFilterViewModel { Location = "Rack A" });
+
+        Assert.Equal("L-1", Assert.Single(result.Items).Sku);
+    }
+
+    [Fact]
+    public async Task Search_filters_low_stock_only()
+    {
+        await SeedTireAsync(NewTire("LOW-1", qty: 3, minStock: 5));
+        await SeedTireAsync(NewTire("OK-1", qty: 10, minStock: 5));
+        await using var context = _db.CreateContext();
+
+        var result = await CreateService(context).SearchAsync(new TireFilterViewModel { LowOnly = true });
+
+        Assert.Equal("LOW-1", Assert.Single(result.Items).Sku);
+    }
+
+    // --- GetFilterOptionsAsync ---
+
+    [Fact]
+    public async Task Filter_options_are_distinct_sorted_and_skip_null_locations()
+    {
+        await SeedTireAsync(NewTire("O-1", brand: "Pirelli", width: 225, profile: 45, diameter: 17, location: "Rack B"));
+        await SeedTireAsync(NewTire("O-2", brand: "Michelin", width: 205, profile: 55, diameter: 16, location: "Rack A"));
+        await SeedTireAsync(NewTire("O-3", brand: "Michelin", width: 205, profile: 55, diameter: 16));
+        await using var context = _db.CreateContext();
+
+        var options = await CreateService(context).GetFilterOptionsAsync();
+
+        Assert.Equal(new[] { "Michelin", "Pirelli" }, options.Brands);
+        Assert.Equal(new[] { 205, 225 }, options.Widths);
+        Assert.Equal(new[] { 45, 55 }, options.Profiles);
+        Assert.Equal(new[] { 16, 17 }, options.Diameters);
+        Assert.Equal(new[] { "Rack A", "Rack B" }, options.Locations);
+    }
+
     // --- GetValueReportAsync ---
 
     [Fact]
