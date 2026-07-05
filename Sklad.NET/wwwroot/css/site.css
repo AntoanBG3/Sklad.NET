@@ -347,8 +347,15 @@ img, svg { display: block; max-width: 100%; }
 }
 /* bands with three stats — dividers at the third marks, no empty column */
 .statband-3 { grid-template-columns: repeat(3, 1fr); }
-/* the page-head already closes with a rule — don't stack a second one */
+/* the page-head already closes with a rule — don't stack a second one.
+   With the band's own rule gone, the column dividers would float 38px
+   below the visible top line, so pull them up to meet it; the padding
+   compensation keeps the content exactly where it was. */
 .page-head + .statband { border-top: 0; }
+.page-head + .statband .stat {
+    margin-top: calc(-1 * var(--sp-6));
+    padding-top: calc(var(--sp-4) + var(--sp-6));
+}
 .stat {
     padding: var(--sp-4) var(--sp-4) var(--sp-4) 0;
     border-left: 1px solid var(--rule-soft);
@@ -1009,6 +1016,8 @@ a.stat:hover .stat-label { color: var(--black); }
     .statband { grid-template-columns: repeat(2, 1fr); }
     .stat:nth-child(3) { border-left: 0; padding-left: 0; }
     .stat:nth-child(n+3) { border-top: 1px solid var(--rule-soft); }
+    /* wrapped rows: a pulled-up divider would cut into the row above */
+    .page-head + .statband .stat { margin-top: 0; padding-top: var(--sp-4); }
 }
 
 @media (max-width: 760px) {
