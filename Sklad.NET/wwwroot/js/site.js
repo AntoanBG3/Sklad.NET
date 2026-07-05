@@ -9,7 +9,14 @@
         // navigate away, so they opt out with data-no-disable.
         document.querySelectorAll("form[method=post]:not([data-no-disable])").forEach(function (form) {
             form.addEventListener("submit", function () {
-                if (window.jQuery && jQuery.fn.validate && !jQuery(form).valid()) return;
+                if (window.jQuery && jQuery.fn.validate && !jQuery(form).valid()) {
+                    form.querySelectorAll(".input-validation-error").forEach(function (el) {
+                        el.classList.remove("shake");
+                        void el.offsetWidth;
+                        el.classList.add("shake");
+                    });
+                    return;
+                }
                 setTimeout(function () {
                     form.querySelectorAll("button[type=submit], input[type=submit]").forEach(function (btn) {
                         btn.disabled = true;
@@ -52,6 +59,49 @@
         document.querySelectorAll("[data-print]").forEach(function (btn) {
             btn.addEventListener("click", function () { window.print(); });
         });
+
+        // Stat numbers count up briefly on load. The markup keeps the final
+        // localized string, so anything this can't parse back exactly (a
+        // decimal part, digits outside the run) is left untouched rather
+        // than risking a wrong number.
+        if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+            document.querySelectorAll(".stat-num").forEach(function (el) {
+                var finalText = el.textContent;
+                var match = finalText.match(/\d{1,3}(?:([.,\s])\d{3})*/);
+                if (!match) return;
+                if (/\d/.test(finalText.replace(match[0], ""))) return;
+                var sep = match[1] || "";
+                var target = parseInt(match[0].replace(/\D/g, ""), 10);
+                if (!target) return;
+                var start = null;
+                var done = false;
+                function finish() {
+                    if (done) return;
+                    done = true;
+                    el.textContent = finalText;
+                }
+                function group(n) {
+                    var s = String(n);
+                    return sep ? s.replace(/\B(?=(\d{3})+(?!\d))/g, sep) : s;
+                }
+                function frame(ts) {
+                    if (done) return;
+                    if (start === null) start = ts;
+                    var t = Math.min((ts - start) / 500, 1);
+                    if (t < 1) {
+                        var eased = 1 - Math.pow(1 - t, 3);
+                        el.textContent = finalText.replace(match[0], group(Math.round(target * eased)));
+                        requestAnimationFrame(frame);
+                    } else {
+                        finish();
+                    }
+                }
+                el.textContent = finalText.replace(match[0], "0");
+                requestAnimationFrame(frame);
+                // rAF is throttled to nothing in background tabs; never leave a zero standing
+                setTimeout(finish, 700);
+            });
+        }
     });
 
     // Back/forward cache restores the page with buttons still disabled.

@@ -509,6 +509,7 @@ a.stat:hover .stat-label { color: var(--black); }
 }
 /* the tint is a promise of clickability, so only rows that navigate get it */
 .data-table tbody tr[data-href] { cursor: pointer; }
+.data-table tbody tr[data-href] td { transition: background-color 120ms ease; }
 .data-table tbody tr[data-href]:hover td { background: var(--gray); }
 .data-table .col-num { text-align: right; font-variant-numeric: tabular-nums; }
 .data-table th.col-num, .data-table td.col-num { white-space: nowrap; }
@@ -1044,8 +1045,38 @@ a.stat:hover .stat-label { color: var(--black); }
     .scan-form .field-input { font-size: 1rem; }
 }
 
+/* ============================================================
+   Motion — feedback and state change only; nothing performs.
+   Entrances stay under 200ms so navigation never feels slower.
+   ============================================================ */
+@keyframes page-enter {
+    from { opacity: 0; transform: translateY(4px); }
+}
+@keyframes drop-in {
+    from { opacity: 0; transform: translateY(-4px); }
+}
+@keyframes fade-in {
+    from { opacity: 0; }
+}
+@keyframes bar-grow {
+    from { transform: scaleX(0); }
+}
+@keyframes shake {
+    20% { transform: translateX(-3px); }
+    45% { transform: translateX(3px); }
+    70% { transform: translateX(-2px); }
+    90% { transform: translateX(1px); }
+}
+
+main { animation: page-enter 180ms ease-out; }
+.flash { animation: drop-in 240ms ease-out; }
+.notice { animation: drop-in 240ms ease-out; }
+.share-bar span { transform-origin: left; animation: bar-grow 500ms ease-out; }
+.field-error:not(:empty) { animation: fade-in 150ms ease-out; }
+.shake { animation: shake 240ms ease-out; }
+
 @media (prefers-reduced-motion: reduce) {
-    * { transition: none !important; }
+    * { transition: none !important; animation: none !important; }
 }
 
 /* ============================================================
