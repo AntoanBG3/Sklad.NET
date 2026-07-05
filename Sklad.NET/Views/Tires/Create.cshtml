@@ -15,7 +15,7 @@
             </div>
         </div>
 
-        <form asp-action="Create" class="form">
+        <form asp-action="Create" class="form" data-guard>
 
             <div asp-validation-summary="ModelOnly" class="form-errors"></div>
 
@@ -66,6 +66,9 @@
                         <span asp-validation-for="Diameter" class="field-error"></span>
                     </div>
                 </div>
+                <p class="field-hint" id="size-preview" hidden aria-live="polite">
+                    @L["Size"]: <strong class="mono" id="size-preview-value"></strong>
+                </p>
             </div>
 
             <div class="form-section">
@@ -136,4 +139,23 @@
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        (function () {
+            var w = document.getElementById("Width");
+            var p = document.getElementById("Profile");
+            var d = document.getElementById("Diameter");
+            var row = document.getElementById("size-preview");
+            var value = document.getElementById("size-preview-value");
+            function update() {
+                if (w.value && p.value && d.value) {
+                    row.hidden = false;
+                    value.textContent = w.value + "/" + p.value + " R" + d.value;
+                } else {
+                    row.hidden = true;
+                }
+            }
+            [w, p, d].forEach(function (el) { el.addEventListener("input", update); });
+            update();
+        })();
+    </script>
 }

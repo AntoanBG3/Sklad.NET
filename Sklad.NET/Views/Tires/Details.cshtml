@@ -18,8 +18,7 @@
             <div class="head-actions">
                 <a asp-action="RegisterMovement" asp-route-id="@Model.Id" class="btn btn-secondary btn-sm">@L["Add Movement"]</a>
                 <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary btn-sm">@L["Edit"]</a>
-                <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-danger btn-sm">@L["Delete"]</a>
-                <a asp-action="Index" class="btn btn-secondary btn-sm">@L["Back"]</a>
+                <a href="@(ViewBag.ReturnUrl is string r ? Redirects.Safe(r) : Url.Action("Index"))" class="btn btn-secondary btn-sm">@L["Back"]</a>
             </div>
         </div>
 
@@ -125,6 +124,10 @@
                     }
                 </div>
             </div>
+        </div>
+
+        <div class="page-tail">
+            <a class="quiet-danger" asp-action="Delete" asp-route-id="@Model.Id">@L["Delete Tire"]</a>
         </div>
 
     </div>

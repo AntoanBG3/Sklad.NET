@@ -14,18 +14,31 @@
                 <p class="page-lede">@L["Inventory value at cost, grouped by brand and season."]</p>
             </div>
             <div class="head-actions">
-                <form asp-controller="Maintenance" asp-action="Backup" method="post">
+                <button type="button" class="btn btn-secondary btn-sm" data-print>@L["Print"]</button>
+                <form asp-controller="Maintenance" asp-action="Backup" method="post" data-no-disable>
                     <button type="submit" class="btn btn-secondary btn-sm">@L["Download backup"]</button>
                 </form>
                 <a asp-action="Index" class="btn btn-secondary btn-sm">@L["All Inventory"]</a>
             </div>
         </div>
 
+        @{
+            var totalSkus = Model.ByBrand.Sum(g => g.Skus);
+            var totalUnits = Model.ByBrand.Sum(g => g.Units);
+        }
         <div class="statband">
             <div class="stat">
                 <div class="stat-num num">@Money.Euro(Model.TotalValue, 0)</div>
                 <div class="stat-label">@L["Inventory Value"]</div>
                 <div class="stat-sub">@Money.Lev(Model.TotalValue, 0)</div>
+            </div>
+            <div class="stat">
+                <div class="stat-num num">@totalSkus</div>
+                <div class="stat-label">@L["Total SKUs"]</div>
+            </div>
+            <div class="stat">
+                <div class="stat-num num">@totalUnits</div>
+                <div class="stat-label">@L["Units in Stock"]</div>
             </div>
         </div>
 
@@ -63,7 +76,11 @@
                                         <td class="col-num">@g.Skus</td>
                                         <td class="col-num">@g.Units</td>
                                         <td class="col-num"><money value="g.Value" /></td>
-                                        <td class="col-num">@((Model.TotalValue > 0 ? g.Value / Model.TotalValue : 0).ToString("P1"))</td>
+                                        <td class="col-num">
+                                            @{ var share = Model.TotalValue > 0 ? g.Value / Model.TotalValue : 0; }
+                                            <span class="cell-stack">@share.ToString("P1")</span>
+                                            <span class="share-bar" aria-hidden="true"><span style="width: @(Math.Round(share * 100, 1).ToString(System.Globalization.CultureInfo.InvariantCulture))%"></span></span>
+                                        </td>
                                     </tr>
                                 }
                             </tbody>

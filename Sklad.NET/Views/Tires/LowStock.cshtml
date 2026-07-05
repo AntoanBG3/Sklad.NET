@@ -24,6 +24,10 @@
                 </p>
             </div>
             <div class="head-actions">
+                @if (count > 0)
+                {
+                    <button type="button" class="btn btn-secondary btn-sm" data-print>@L["Print"]</button>
+                }
                 <a asp-action="Index" class="btn btn-secondary btn-sm">@L["All Inventory"]</a>
             </div>
         </div>
@@ -67,10 +71,10 @@
                             @foreach (var t in Model)
                             {
                                 int deficit = t.MinStock - t.Quantity;
-                                <tr class="is-low">
-                                    <td class="mono"><a class="row-link" asp-action="Details" asp-route-id="@t.Id">@t.Sku</a></td>
+                                <tr class="is-low" data-href="@Url.Action("Details", new { id = t.Id, returnUrl = "/Tires/LowStock" })">
+                                    <td class="mono"><a class="row-link" asp-action="Details" asp-route-id="@t.Id" asp-route-returnUrl="/Tires/LowStock">@t.Sku</a></td>
                                     <td>
-                                        <a class="row-link" asp-action="Details" asp-route-id="@t.Id">
+                                        <a class="row-link" asp-action="Details" asp-route-id="@t.Id" asp-route-returnUrl="/Tires/LowStock">
                                             <span class="cell-stack cell-strong">@t.Brand</span>
                                             <span class="cell-sub">@t.Model</span>
                                         </a>

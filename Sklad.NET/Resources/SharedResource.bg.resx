@@ -87,7 +87,6 @@
   <data name="Adjust the filter or clear it to see the full inventory." xml:space="preserve"><value>Променете филтъра или го изчистете, за да видите цялата наличност.</value></data>
   <data name="Move" xml:space="preserve"><value>Движение</value></data>
   <data name="Edit" xml:space="preserve"><value>Редакция</value></data>
-  <data name="Delete" xml:space="preserve"><value>Изтрий</value></data>
 
   <!-- Table headers -->
   <data name="SKU" xml:space="preserve"><value>SKU</value></data>
@@ -192,7 +191,6 @@
   <data name="The tire was modified by someone else. Reload the page and try again." xml:space="preserve"><value>Гумата беше променена от друг потребител. Презаредете страницата и опитайте отново.</value></data>
 
   <!-- Sign in / sign out -->
-  <data name="Account" xml:space="preserve"><value>Профил</value></data>
   <data name="Sign in" xml:space="preserve"><value>Вход</value></data>
   <data name="Sign in to manage the tire warehouse." xml:space="preserve"><value>Влезте, за да управлявате склада за гуми.</value></data>
   <data name="Sign out" xml:space="preserve"><value>Изход</value></data>
@@ -263,4 +261,9 @@
 
   <!-- Edit form -->
   <data name="Stock on hand ({0}) is managed through movements and cannot be edited here." xml:space="preserve"><value>Наличността ({0}) се управлява чрез движения и не може да се редактира тук.</value></data>
+
+  <!-- Audit round: empty states, print, quick actions -->
+  <data name="The warehouse is empty" xml:space="preserve"><value>Складът е празен</value></data>
+  <data name="Add your first tire to start tracking stock." xml:space="preserve"><value>Добавете първата гума, за да започнете да следите наличността.</value></data>
+  <data name="Print" xml:space="preserve"><value>Печат</value></data>
 </root>

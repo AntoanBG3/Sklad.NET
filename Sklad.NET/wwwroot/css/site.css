@@ -84,6 +84,8 @@ main { flex: 1; }
 
 h1, h2, h3, h4, p, dl, dd, figure { margin: 0; }
 ul { margin: 0; padding: 0; list-style: none; }
+fieldset { margin: 0; padding: 0; border: 0; min-width: 0; }
+legend { padding: 0; }
 
 a { color: var(--red); text-decoration: none; }
 a:hover { text-decoration: underline; text-underline-offset: 2px; }
@@ -367,6 +369,11 @@ img, svg { display: block; max-width: 100%; }
     color: var(--ink-50);
 }
 .stat.is-alert .stat-num { color: var(--red); }
+/* stats that navigate (Low Stock → report, Value → report) */
+a.stat { color: inherit; }
+a.stat:hover { text-decoration: none; }
+a.stat:hover .stat-num { color: var(--red); }
+a.stat:hover .stat-label { color: var(--black); }
 .stat-sub {
     margin-top: var(--sp-1);
     font-size: var(--f--1);
@@ -481,13 +488,19 @@ img, svg { display: block; max-width: 100%; }
     border-bottom: 1px solid var(--rule);
     white-space: nowrap;
 }
+/* sortable headers stay chrome-coloured; the active sort mark alone is red,
+   keeping red reserved for alerts instead of painting six headers with it */
+.data-table thead th a { color: inherit; }
+.sort-mark { color: var(--red); }
 .data-table tbody td {
     padding: var(--sp-2);
     border-bottom: 1px solid var(--rule-soft);
     vertical-align: top;
     overflow-wrap: anywhere;
 }
-.data-table tbody tr:hover td { background: var(--gray); }
+/* the tint is a promise of clickability, so only rows that navigate get it */
+.data-table tbody tr[data-href] { cursor: pointer; }
+.data-table tbody tr[data-href]:hover td { background: var(--gray); }
 .data-table .col-num { text-align: right; font-variant-numeric: tabular-nums; }
 .data-table th.col-num, .data-table td.col-num { white-space: nowrap; }
 .data-table .cell-strong { font-weight: 600; }
@@ -539,6 +552,16 @@ img, svg { display: block; max-width: 100%; }
     text-transform: uppercase;
     color: var(--ink-70);
 }
+
+/* inline share bar — value concentration at a glance, still four colours */
+.share-bar {
+    display: block;
+    width: 100%;
+    height: 3px;
+    margin-top: 4px;
+    background: var(--rule-soft);
+}
+.share-bar span { display: block; height: 100%; background: var(--black); }
 
 /* row-level low-stock flag */
 .flag-low {
@@ -683,6 +706,41 @@ img, svg { display: block; max-width: 100%; }
 }
 .field-textarea { resize: vertical; min-height: 5rem; }
 
+/* segmented radio group — all options visible, one tap to choose */
+.segmented { display: flex; border: 1px solid var(--black); }
+.segmented .segment { flex: 1; display: block; cursor: pointer; }
+.segmented .segment + .segment { border-left: 1px solid var(--black); }
+.segmented .segment input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    opacity: 0;
+}
+.segmented .segment span {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--sp-2) var(--sp-2);
+    font-size: var(--f--1);
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    background: var(--white);
+    color: var(--black);
+    transition: background-color 120ms ease, color 120ms ease;
+}
+.segmented .segment:hover input:not(:checked) + span { background: var(--gray); }
+.segmented .segment input:checked + span { background: var(--black); color: var(--white); }
+.segmented .segment input:focus-visible + span {
+    outline: 2px solid var(--red);
+    outline-offset: -2px;
+}
+
+/* input with attached quick-action buttons (e.g. movement quantity) */
+.input-group { display: flex; gap: var(--sp-1); }
+.input-group .field-input { flex: 1; min-width: 0; }
+
 .field-error { display: block; margin-top: var(--sp-1); font-size: var(--f--1); color: var(--red); font-weight: 500; }
 .field-hint  { margin-top: var(--sp-1); font-size: var(--f--1); color: var(--ink-50); }
 .field-hint strong { color: var(--black); font-weight: 700; }
@@ -730,6 +788,12 @@ img, svg { display: block; max-width: 100%; }
     white-space: nowrap;
 }
 .btn:hover { text-decoration: none; }
+.btn:active { transform: translateY(1px); }
+.btn:disabled, .btn[aria-busy="true"] {
+    opacity: 0.55;
+    cursor: default;
+    transform: none;
+}
 
 .btn, .row-actions a, .topnav a, .lang a {
     transition: background-color 120ms ease, color 120ms ease, border-color 120ms ease;
@@ -776,6 +840,36 @@ img, svg { display: block; max-width: 100%; }
     font-size: var(--f-0);
 }
 .empty strong { display: block; color: var(--black); font-size: var(--f-1); font-weight: 700; margin-bottom: var(--sp-1); }
+.empty-action { margin-top: var(--sp-4); }
+
+/* ============================================================
+   Notice — in-page status strip (scan misses); red stays for errors
+   ============================================================ */
+.notice {
+    border-left: 3px solid var(--black);
+    background: var(--gray);
+    padding: var(--sp-2) var(--sp-3);
+    margin-bottom: var(--sp-4);
+    font-size: 0.9375rem;
+}
+
+/* ============================================================
+   Page tail — quiet home for rare destructive actions
+   ============================================================ */
+.page-tail {
+    margin-top: var(--sp-6);
+    padding-top: var(--sp-4);
+    border-top: 1px solid var(--rule-soft);
+}
+.quiet-danger {
+    font-size: var(--f--1);
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-50);
+    transition: color 120ms ease;
+}
+.quiet-danger:hover { color: var(--red); text-decoration: none; }
 
 /* ============================================================
    Confirm (delete)
@@ -838,7 +932,8 @@ img, svg { display: block; max-width: 100%; }
 .field-buttons { display: flex; gap: var(--sp-2); }
 /* match the .field-input box height (1rem text × 1.45 line-height + 2×sp-2
    padding + 1px borders) so the filter row reads as one control strip */
-.field-buttons .btn { height: calc(1.45 * var(--f-0) + 2 * var(--sp-2) + 2px); }
+.field-buttons .btn,
+.input-group .btn { height: calc(1.45 * var(--f-0) + 2 * var(--sp-2) + 2px); }
 
 .pager {
     display: flex;
@@ -947,7 +1042,7 @@ img, svg { display: block; max-width: 100%; }
    ============================================================ */
 @media print {
     .topbar, .site-footer, .head-actions, .filter, .row-actions,
-    .pager, .flash, .scan-form { display: none !important; }
+    .pager, .flash, .scan-form, .notice, .page-tail { display: none !important; }
     .page { padding-block: 0; }
     body { font-size: 12px; }
     a, .page-lede .accent, .filter-count { color: inherit !important; }

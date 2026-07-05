@@ -31,7 +31,7 @@
 
     async Task SortHeader(string key, string label, bool numeric = false)
     {
-        <th scope="col" aria-sort="@AriaSort(key)" class="@(numeric ? "col-num" : null)"><a asp-action="Index" asp-all-route-data="@Route(SortToggle(key), 1)">@L[label]<span aria-hidden="true">@SortMark(key)</span></a></th>
+        <th scope="col" aria-sort="@AriaSort(key)" class="@(numeric ? "col-num" : null)"><a asp-action="Index" asp-all-route-data="@Route(SortToggle(key), 1)">@L[label]<span class="sort-mark" aria-hidden="true">@SortMark(key)</span></a></th>
     }
 }
 
@@ -59,7 +59,7 @@
 
         @if (TempData["ScanMessage"] is string scanMessage)
         {
-            <div class="form-errors">@scanMessage</div>
+            <div class="notice" role="status">@scanMessage</div>
         }
 
         <div class="statband">
@@ -71,15 +71,15 @@
                 <div class="stat-num num">@Model.Stats.TotalUnits</div>
                 <div class="stat-label">@L["Units in Stock"]</div>
             </div>
-            <div class="stat @(Model.Stats.LowStockCount > 0 ? "is-alert" : "")">
+            <a class="stat @(Model.Stats.LowStockCount > 0 ? "is-alert" : "")" asp-action="LowStock">
                 <div class="stat-num num">@Model.Stats.LowStockCount</div>
                 <div class="stat-label">@L["Low Stock"]</div>
-            </div>
-            <div class="stat">
+            </a>
+            <a class="stat" asp-action="Report">
                 <div class="stat-num num">@Money.Euro(Model.Stats.TotalValue, 0)</div>
                 <div class="stat-label">@L["Inventory Value"]</div>
                 <div class="stat-sub">@Money.Lev(Model.Stats.TotalValue, 0)</div>
-            </div>
+            </a>
         </div>
 
         <details class="filter" @(f.HasAnyFilter ? "open" : "")>
@@ -168,10 +168,23 @@
             <div class="table-scroll" tabindex="0" role="region" aria-label="@L["Inventory"]">
                 @if (!Model.Results.Items.Any())
                 {
-                    <div class="empty">
-                        <strong>@L["No matching tires"]</strong>
-                        @L["Adjust the filter or clear it to see the full inventory."]
-                    </div>
+                    @if (f.HasAnyFilter)
+                    {
+                        <div class="empty">
+                            <strong>@L["No matching tires"]</strong>
+                            @L["Adjust the filter or clear it to see the full inventory."]
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="empty">
+                            <strong>@L["The warehouse is empty"]</strong>
+                            @L["Add your first tire to start tracking stock."]
+                            <div class="empty-action">
+                                <a asp-action="Create" class="btn btn-primary">@L["Add Tire"]</a>
+                            </div>
+                        </div>
+                    }
                 }
                 else
                 {
@@ -200,10 +213,10 @@
                         <tbody>
                             @foreach (var t in Model.Results.Items)
                             {
-                                <tr class="@(t.IsLowStock ? "is-low" : "")">
-                                    <td class="mono"><a class="row-link" asp-action="Details" asp-route-id="@t.Id">@t.Sku</a></td>
+                                <tr class="@(t.IsLowStock ? "is-low" : "")" data-href="@Url.Action("Details", new { id = t.Id, returnUrl = here })">
+                                    <td class="mono"><a class="row-link" asp-action="Details" asp-route-id="@t.Id" asp-route-returnUrl="@here">@t.Sku</a></td>
                                     <td>
-                                        <a class="row-link" asp-action="Details" asp-route-id="@t.Id">
+                                        <a class="row-link" asp-action="Details" asp-route-id="@t.Id" asp-route-returnUrl="@here">
                                             <span class="cell-stack cell-strong">@t.Brand</span>
                                             <span class="cell-sub">@t.Model</span>
                                         </a>

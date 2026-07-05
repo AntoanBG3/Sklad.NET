@@ -15,7 +15,7 @@
             </div>
         </div>
 
-        <form asp-action="Edit" asp-route-returnUrl="@ViewBag.ReturnUrl" class="form">
+        <form asp-action="Edit" asp-route-returnUrl="@ViewBag.ReturnUrl" class="form" data-guard>
             <input type="hidden" asp-for="Id" />
             <input type="hidden" asp-for="Version" />
 

@@ -5,6 +5,7 @@
     var type = ViewBag.Type as MovementType?;
     var tireId = ViewBag.TireId as int?;
     var tire = ViewBag.Tire as Sklad.Models.Tire;
+    var here = $"{Context.Request.Path}{Context.Request.QueryString}";
 }
 
 <div class="page">
@@ -47,6 +48,9 @@
                     <div class="empty">
                         <strong>@L["No movements yet"]</strong>
                         @L["Record a stock movement to start the audit trail."]
+                        <div class="empty-action">
+                            <a asp-controller="Tires" asp-action="Index" class="btn btn-secondary btn-sm">@L["All Inventory"]</a>
+                        </div>
                     </div>
                 }
                 else
@@ -69,10 +73,10 @@
                         <tbody>
                             @foreach (var m in Model.Items)
                             {
-                                <tr>
+                                <tr data-href="@Url.Action("Details", "Tires", new { id = m.TireId, returnUrl = here })">
                                     <td class="mono">@Dates.Stamp(m.Date)</td>
                                     <td>
-                                        <a asp-controller="Tires" asp-action="Details" asp-route-id="@m.TireId">
+                                        <a class="row-link" asp-controller="Tires" asp-action="Details" asp-route-id="@m.TireId" asp-route-returnUrl="@here">
                                             <span class="cell-stack cell-strong">@m.Tire.Brand @m.Tire.Model</span>
                                             <span class="cell-sub mono">@m.Tire.Sku</span>
                                         </a>
@@ -82,7 +86,7 @@
                                         @(m.MovementType switch
                                         {
                                             MovementType.In => $"+{m.Quantity}",
-                                            MovementType.Out => $"-{m.Quantity}",
+                                            MovementType.Out => $"−{m.Quantity}",
                                             _ => $"={m.Quantity}"
                                         })
                                     </td>

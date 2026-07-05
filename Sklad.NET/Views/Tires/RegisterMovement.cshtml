@@ -41,7 +41,7 @@
             </div>
 
             <div class="col-7">
-                <form asp-action="RegisterMovement" method="post" asp-route-returnUrl="@ViewBag.ReturnUrl" class="block">
+                <form asp-action="RegisterMovement" method="post" asp-route-returnUrl="@ViewBag.ReturnUrl" class="block" data-guard>
                     <div class="block-head">
                         <h2 class="block-title">@L["Movement Details"]</h2>
                     </div>
@@ -50,23 +50,33 @@
 
                     <div asp-validation-summary="ModelOnly" class="form-errors"></div>
 
-                    <div class="field">
-                        <label asp-for="MovementType" class="field-label">@L["Movement Type"]</label>
-                        <select asp-for="MovementType" class="field-select">
+                    <fieldset class="field">
+                        <legend class="field-label">@L["Movement Type"]</legend>
+                        <div class="segmented">
                             @foreach (MovementType mt in Enum.GetValues<MovementType>())
                             {
-                                <option value="@mt">@L[Enums.Key(mt)]</option>
+                                <label class="segment">
+                                    <input type="radio" asp-for="MovementType" value="@mt" id="mt-@mt" />
+                                    <span>@L[Enums.Key(mt)]</span>
+                                </label>
                             }
-                        </select>
+                        </div>
                         <span asp-validation-for="MovementType" class="field-error"></span>
-                        <p class="field-hint">
-                            @Html.Raw($"<strong>{L[Enums.Key(MovementType.In)]}</strong> {L["adds units"]} &bull; <strong>{L[Enums.Key(MovementType.Out)]}</strong> {L["subtracts units"]} &bull; <strong>{L[Enums.Key(MovementType.Adjustment)]}</strong> {L["sets the exact quantity"]}")
+                        <p class="field-hint" id="mt-hint">
+                            <span data-mt="In"><strong>@L[Enums.Key(MovementType.In)]</strong> @L["adds units"]</span>
+                            <span data-mt="Out"><strong>@L[Enums.Key(MovementType.Out)]</strong> @L["subtracts units"]</span>
+                            <span data-mt="Adjustment"><strong>@L[Enums.Key(MovementType.Adjustment)]</strong> @L["sets the exact quantity"]</span>
                         </p>
-                    </div>
+                    </fieldset>
 
                     <div class="field">
                         <label asp-for="Quantity" class="field-label">@L["Quantity"]</label>
-                        <input asp-for="Quantity" type="number" min="0" class="field-input" placeholder="0" />
+                        <div class="input-group">
+                            <input asp-for="Quantity" type="number" min="0" class="field-input" placeholder="0" />
+                            <button type="button" class="btn btn-secondary btn-sm qty-step" data-step="1">+1</button>
+                            <button type="button" class="btn btn-secondary btn-sm qty-step" data-step="2">+2</button>
+                            <button type="button" class="btn btn-secondary btn-sm qty-step" data-step="4">+4</button>
+                        </div>
                         <span asp-validation-for="Quantity" class="field-error"></span>
                         <p class="field-hint">@L["For Adjustment, enter the target stock count (0 writes off all stock)."]</p>
                         <p class="field-hint" id="stock-projection" hidden aria-live="polite">
@@ -97,22 +107,36 @@
     <script>
         (function () {
             var qty = document.getElementById("Quantity");
-            var type = document.getElementById("MovementType");
+            var radios = document.querySelectorAll("input[name='MovementType']");
             var row = document.getElementById("stock-projection");
             var value = document.getElementById("stock-projection-value");
+            var hints = document.querySelectorAll("#mt-hint span[data-mt]");
             var current = @tire.Quantity;
+            function selectedType() {
+                var checked = document.querySelector("input[name='MovementType']:checked");
+                return checked ? checked.value : "In";
+            }
             function update() {
+                var mt = selectedType();
+                hints.forEach(function (h) { h.hidden = h.dataset.mt !== mt; });
                 var q = parseInt(qty.value, 10);
                 if (isNaN(q) || q < 0) { row.hidden = true; return; }
-                var result = type.value === "In" ? current + q
-                           : type.value === "Out" ? current - q
+                var result = mt === "In" ? current + q
+                           : mt === "Out" ? current - q
                            : q;
                 row.hidden = false;
                 value.textContent = result;
                 value.classList.toggle("qty-low", result < 0);
             }
             qty.addEventListener("input", update);
-            type.addEventListener("change", update);
+            radios.forEach(function (r) { r.addEventListener("change", update); });
+            document.querySelectorAll(".qty-step").forEach(function (btn) {
+                btn.addEventListener("click", function () {
+                    var q = parseInt(qty.value, 10);
+                    qty.value = (isNaN(q) || q < 0 ? 0 : q) + parseInt(btn.dataset.step, 10);
+                    qty.dispatchEvent(new Event("input", { bubbles: true }));
+                });
+            });
             update();
         })();
     </script>
