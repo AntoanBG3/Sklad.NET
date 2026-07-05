@@ -345,6 +345,8 @@ img, svg { display: block; max-width: 100%; }
     border-bottom: 1px solid var(--rule);
     margin-bottom: var(--sp-6);
 }
+/* bands with three stats — dividers at the third marks, no empty column */
+.statband-3 { grid-template-columns: repeat(3, 1fr); }
 /* the page-head already closes with a rule — don't stack a second one */
 .page-head + .statband { border-top: 0; }
 .stat {

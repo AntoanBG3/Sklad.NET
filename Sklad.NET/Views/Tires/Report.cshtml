@@ -26,7 +26,7 @@
             var totalSkus = Model.ByBrand.Sum(g => g.Skus);
             var totalUnits = Model.ByBrand.Sum(g => g.Units);
         }
-        <div class="statband">
+        <div class="statband statband-3">
             <div class="stat">
                 <div class="stat-num num">@Money.Euro(Model.TotalValue, 0)</div>
                 <div class="stat-label">@L["Inventory Value"]</div>
