@@ -52,8 +52,19 @@ Brand/width/profile/diameter filters became dropdowns listing only values presen
 
 ---
 
+## [x] 8. Excel export, suppliers/purchase orders, multi-user roles (2026-07-06)
+
+All three backlog features implemented:
+
+- **Excel export (ClosedXML)**: `ExcelExportService` produces .xlsx workbooks for the inventory (filter- and sort-aware, `/Tires/ExportExcel`) and the movements journal (filter-aware, `/Movements/Export`) with localized bold headers, frozen header row, autofilter, EUR/BGN price columns, stock value column, shop-time date cells, and capped auto-fit column widths.
+- **Suppliers / purchase orders**: `Supplier` (unique NOCASE name) and `PurchaseOrder`/`PurchaseOrderItem` models with a Draft → Ordered → Received / Cancelled lifecycle in `PurchasingService`. Receiving an order applies `In` movements through the ledger (tire quantity + version + movement rows in one save, with concurrency retry) and stamps the movement note with the PO number and supplier. Draft-only editing, cancel guards, supplier delete blocked while orders exist, tire delete blocked while referenced by order lines. Dynamic line-item form with blank-row pruning and client-side line totals.
+- **Multi-user accounts with roles**: `AppUser` (PBKDF2 via `PasswordHasher`, unique NOCASE username, security stamp) replaces the single configured account; `UserService` handles credential validation (timing-equalized), user CRUD, last-admin and self-delete guards. Cookies carry a security-stamp claim validated on every request, so password/role changes and deletions end sessions immediately. Roles: `Admin` (user management, backup, tire/supplier deletion) and `User` (day-to-day operations). First run seeds an admin from the existing `Auth:Username`/`Auth:Password` configuration. Styled 403 page for denied access.
+
+Migration `SuppliersOrdersUsers`; tests 94 → 129.
+
+---
+
 ## [ ] Future ideas
 
-- Excel export (ClosedXML package)
-- Supplier / purchase order tracking
-- Multiple user accounts with roles (current auth is a single configured account)
+- Purchase-order PDF/print layout
+- Email notifications on low stock
