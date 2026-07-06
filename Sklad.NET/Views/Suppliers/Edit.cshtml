@@ -1,0 +1,44 @@
+@model Sklad.ViewModels.SupplierViewModel
+
+@{
+    ViewData["Title"] = $"{L["Edit Supplier"].Value} — {Model.Name}";
+}
+
+<div class="page">
+    <div class="container container-narrow">
+
+        <div class="page-head">
+            <div>
+                <div class="eyebrow">@L["Purchasing"]</div>
+                <h1 class="page-title">@L["Edit Supplier"]</h1>
+                <p class="page-lede">@Model.Name</p>
+            </div>
+        </div>
+
+        <form asp-action="Edit" class="form" data-guard>
+            <input type="hidden" asp-for="Id" />
+
+            <div asp-validation-summary="ModelOnly" class="form-errors"></div>
+
+            <partial name="_SupplierForm" model="Model" />
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">@L["Save Supplier"]</button>
+                <a asp-action="Index" class="btn btn-secondary">@L["Cancel"]</a>
+            </div>
+
+        </form>
+
+        @if (User.IsInRole(nameof(UserRole.Admin)))
+        {
+            <div class="page-tail">
+                <a class="quiet-danger" asp-action="Delete" asp-route-id="@Model.Id">@L["Delete Supplier"]</a>
+            </div>
+        }
+
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

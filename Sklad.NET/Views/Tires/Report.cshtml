@@ -15,9 +15,12 @@
             </div>
             <div class="head-actions">
                 <button type="button" class="btn btn-secondary btn-sm" data-print>@L["Print"]</button>
-                <form asp-controller="Maintenance" asp-action="Backup" method="post" data-no-disable>
-                    <button type="submit" class="btn btn-secondary btn-sm">@L["Download backup"]</button>
-                </form>
+                @if (User.IsInRole(nameof(UserRole.Admin)))
+                {
+                    <form asp-controller="Maintenance" asp-action="Backup" method="post" data-no-disable>
+                        <button type="submit" class="btn btn-secondary btn-sm">@L["Download backup"]</button>
+                    </form>
+                }
                 <a asp-action="Index" class="btn btn-secondary btn-sm">@L["All Inventory"]</a>
             </div>
         </div>

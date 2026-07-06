@@ -1,0 +1,132 @@
+@model Sklad.Models.PurchaseOrder
+
+@{
+    ViewData["Title"] = $"{Model.Number} — {Model.Supplier.Name}";
+}
+
+<div class="page">
+    <div class="container">
+
+        <div class="page-head">
+            <div>
+                <div class="eyebrow">@L["Purchase Order"]</div>
+                <h1 class="page-title mono">@Model.Number</h1>
+                <p class="page-lede">@Model.Supplier.Name &bull; @L[Enums.Key(Model.Status)]</p>
+            </div>
+            <div class="head-actions">
+                @if (Model.IsEditable)
+                {
+                    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-secondary btn-sm">@L["Edit"]</a>
+                    <form asp-action="MarkOrdered" asp-route-id="@Model.Id" method="post">
+                        <button type="submit" class="btn btn-secondary btn-sm">@L["Mark as Ordered"]</button>
+                    </form>
+                }
+                @if (Model.IsOpen)
+                {
+                    <form asp-action="Receive" asp-route-id="@Model.Id" method="post">
+                        <button type="submit" class="btn btn-primary btn-sm">@L["Receive Stock"]</button>
+                    </form>
+                }
+                <a asp-action="Index" class="btn btn-secondary btn-sm">@L["All Orders"]</a>
+            </div>
+        </div>
+
+        <div class="grid">
+            <div class="col-5">
+                <div class="block">
+                    <div class="block-head">
+                        <h2 class="block-title">@L["Order Details"]</h2>
+                        <span class="block-meta"><span class="tag">@L[Enums.Key(Model.Status)]</span></span>
+                    </div>
+                    <dl class="specs">
+                        <dt>@L["Supplier"]</dt>
+                        <dd class="dd-strong">@Model.Supplier.Name</dd>
+
+                        <dt>@L["Created"]</dt>
+                        <dd class="mono">@Dates.Stamp(Model.CreatedAt)</dd>
+
+                        @if (!string.IsNullOrWhiteSpace(Model.CreatedBy))
+                        {
+                            <dt>@L["Created by"]</dt>
+                            <dd>@Model.CreatedBy</dd>
+                        }
+
+                        @if (Model.OrderedAt is DateTime orderedAt)
+                        {
+                            <dt>@L["Ordered on"]</dt>
+                            <dd class="mono">@Dates.Stamp(orderedAt)</dd>
+                        }
+
+                        @if (Model.ReceivedAt is DateTime receivedAt)
+                        {
+                            <dt>@L["Received on"]</dt>
+                            <dd class="mono">@Dates.Stamp(receivedAt)</dd>
+                        }
+
+                        @if (!string.IsNullOrWhiteSpace(Model.ReceivedBy))
+                        {
+                            <dt>@L["Received by"]</dt>
+                            <dd>@Model.ReceivedBy</dd>
+                        }
+
+                        <dt>@L["Total units"]</dt>
+                        <dd class="dd-strong">@Model.TotalUnits</dd>
+
+                        <dt>@L["Total"]</dt>
+                        <dd class="dd-strong">@Money.Dual(Model.Total)</dd>
+
+                        <dt>@L["Note"]</dt>
+                        <dd>@(string.IsNullOrWhiteSpace(Model.Note) ? "—" : Model.Note)</dd>
+                    </dl>
+                </div>
+            </div>
+
+            <div class="col-7">
+                <div class="block">
+                    <div class="block-head">
+                        <h2 class="block-title">@L["Order Lines"]</h2>
+                        <span class="block-meta">@L["{0} lines", Model.Items.Count]</span>
+                    </div>
+                    <div class="table-scroll" tabindex="0" role="region" aria-label="@L["Order Lines"]">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th scope="col">@L["SKU"]</th>
+                                    <th scope="col">@L["Tire"]</th>
+                                    <th scope="col" class="col-num">@L["Quantity"]</th>
+                                    <th scope="col" class="col-num">@L["Unit Cost"]</th>
+                                    <th scope="col" class="col-num">@L["Line Total"]</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var i in Model.Items)
+                                {
+                                    <tr>
+                                        <td class="mono"><a class="row-link" asp-controller="Tires" asp-action="Details" asp-route-id="@i.TireId">@i.Tire.Sku</a></td>
+                                        <td>
+                                            <span class="cell-stack cell-strong">@i.Tire.Brand @i.Tire.Model</span>
+                                            <span class="cell-sub mono">@i.Tire.Size</span>
+                                        </td>
+                                        <td class="col-num">@i.Quantity</td>
+                                        <td class="col-num"><money value="i.UnitCost" /></td>
+                                        <td class="col-num"><money value="i.Quantity * i.UnitCost" /></td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @if (Model.IsOpen)
+        {
+            <div class="page-tail">
+                <form asp-action="Cancel" asp-route-id="@Model.Id" method="post">
+                    <button type="submit" class="quiet-danger">@L["Cancel Order"]</button>
+                </form>
+            </div>
+        }
+
+    </div>
+</div>

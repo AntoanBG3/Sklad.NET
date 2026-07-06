@@ -56,6 +56,8 @@
                 </form>
                 <a asp-action="Export" asp-all-route-data="@Route(f.Sort, 1)"
                    class="btn btn-secondary btn-sm">@L["Export CSV"]</a>
+                <a asp-action="ExportExcel" asp-all-route-data="@Route(f.Sort, 1)"
+                   class="btn btn-secondary btn-sm">@L["Export Excel"]</a>
                 <a asp-action="Create" class="btn btn-primary btn-sm">@L["Add Tire"]</a>
             </div>
         </div>

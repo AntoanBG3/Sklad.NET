@@ -24,6 +24,9 @@
                 <p class="page-lede">@L["{0} movements recorded.", Model.TotalCount]</p>
             </div>
             <div class="head-actions">
+                <a asp-action="Export" asp-route-type="@type" asp-route-tireId="@tireId"
+                   asp-route-from="@FromRoute" asp-route-to="@ToRoute"
+                   class="btn btn-secondary btn-sm">@L["Export Excel"]</a>
                 <a asp-controller="Tires" asp-action="Index" class="btn btn-secondary btn-sm">@L["All Inventory"]</a>
             </div>
         </div>

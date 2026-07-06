@@ -1,0 +1,34 @@
+@model Sklad.ViewModels.PurchaseOrderFormViewModel
+
+@{
+    ViewData["Title"] = L["New Purchase Order"].Value;
+}
+
+<div class="page">
+    <div class="container">
+
+        <div class="page-head">
+            <div>
+                <div class="eyebrow">@L["Purchasing"]</div>
+                <h1 class="page-title">@L["New Purchase Order"]</h1>
+                <p class="page-lede">@L["Draft an order to restock from a supplier. Stock changes only when the order is received."]</p>
+            </div>
+        </div>
+
+        <form asp-action="Create" class="form" data-guard>
+
+            <partial name="_OrderForm" model="Model" />
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">@L["Save Draft"]</button>
+                <a asp-action="Index" class="btn btn-secondary">@L["Cancel"]</a>
+            </div>
+
+        </form>
+
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

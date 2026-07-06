@@ -24,8 +24,9 @@ public class TiresControllerTests : IDisposable
     private TiresController CreateController(SkladDbContext context)
     {
         var service = new InventoryService(context, NullLogger<InventoryService>.Instance);
+        var excel = new ExcelExportService(new FakeLocalizer<SharedResource>());
         var httpContext = new DefaultHttpContext();
-        var controller = new TiresController(service, new FakeLocalizer<SharedResource>())
+        var controller = new TiresController(service, excel, new FakeLocalizer<SharedResource>())
         {
             ControllerContext = new ControllerContext { HttpContext = httpContext },
             TempData = new TempDataDictionary(httpContext, new NullTempDataProvider())
@@ -431,7 +432,7 @@ public class MovementsControllerTests : IDisposable
 
         await using var context = _db.CreateContext();
         var service = new InventoryService(context, NullLogger<InventoryService>.Instance);
-        var controller = new MovementsController(service);
+        var controller = new MovementsController(service, new ExcelExportService(new FakeLocalizer<SharedResource>()));
 
         var result = await controller.Index(null, null, new DateOnly(2026, 7, 1), new DateOnly(2026, 7, 1));
 
@@ -443,8 +444,12 @@ public class MovementsControllerTests : IDisposable
     }
 }
 
-public class AccountControllerTests
+public class AccountControllerTests : IDisposable
 {
+    private readonly TestDb _db = new();
+
+    public void Dispose() => _db.Dispose();
+
     private sealed class RecordingAuthService : IAuthenticationService
     {
         public ClaimsPrincipal? SignedIn { get; private set; }
@@ -468,13 +473,8 @@ public class AccountControllerTests
         }
     }
 
-    private static (AccountController Controller, RecordingAuthService Auth) CreateController(string? configuredUser, string? configuredPassword)
+    private static (AccountController Controller, RecordingAuthService Auth) CreateController(SkladDbContext context)
     {
-        var settings = new Dictionary<string, string?>();
-        if (configuredUser is not null) settings["Auth:Username"] = configuredUser;
-        if (configuredPassword is not null) settings["Auth:Password"] = configuredPassword;
-        var config = new ConfigurationBuilder().AddInMemoryCollection(settings).Build();
-
         var auth = new RecordingAuthService();
         var services = new ServiceCollection();
         services.AddSingleton<IAuthenticationService>(auth);
@@ -483,17 +483,27 @@ public class AccountControllerTests
         services.AddSingleton<ITempDataDictionaryFactory>(new TempDataDictionaryFactory(new NullTempDataProvider()));
         var httpContext = new DefaultHttpContext { RequestServices = services.BuildServiceProvider() };
 
-        var controller = new AccountController(config, new FakeLocalizer<SharedResource>())
+        var users = new UserService(context, NullLogger<UserService>.Instance);
+        var controller = new AccountController(users, new FakeLocalizer<SharedResource>())
         {
             ControllerContext = new ControllerContext { HttpContext = httpContext }
         };
         return (controller, auth);
     }
 
+    private async Task SeedUserAsync(string username, string password, UserRole role = UserRole.Admin)
+    {
+        await using var context = _db.CreateContext();
+        var users = new UserService(context, NullLogger<UserService>.Instance);
+        await users.CreateUserAsync(username, password, role);
+    }
+
     [Fact]
     public async Task Login_with_wrong_password_shows_error_and_does_not_sign_in()
     {
-        var (controller, auth) = CreateController("admin", "correct");
+        await SeedUserAsync("admin", "correct-password");
+        await using var context = _db.CreateContext();
+        var (controller, auth) = CreateController(context);
 
         var result = await controller.Login(new LoginViewModel { Username = "admin", Password = "wrong" }, null);
 
@@ -503,21 +513,26 @@ public class AccountControllerTests
     }
 
     [Fact]
-    public async Task Login_with_correct_credentials_signs_in_and_redirects()
+    public async Task Login_with_correct_credentials_signs_in_with_role_and_stamp_claims()
     {
-        var (controller, auth) = CreateController("admin", "correct");
+        await SeedUserAsync("admin", "correct-password");
+        await using var context = _db.CreateContext();
+        var (controller, auth) = CreateController(context);
 
-        var result = await controller.Login(new LoginViewModel { Username = "admin", Password = "correct" }, null);
+        var result = await controller.Login(new LoginViewModel { Username = "admin", Password = "correct-password" }, null);
 
         Assert.IsType<LocalRedirectResult>(result);
         Assert.NotNull(auth.SignedIn);
         Assert.Equal("admin", auth.SignedIn!.Identity?.Name);
+        Assert.True(auth.SignedIn.IsInRole(nameof(UserRole.Admin)));
+        Assert.NotNull(auth.SignedIn.FindFirst(AccountController.SecurityStampClaim));
     }
 
     [Fact]
-    public async Task Login_fails_when_credentials_are_not_configured()
+    public async Task Login_fails_when_no_users_exist()
     {
-        var (controller, auth) = CreateController(null, null);
+        await using var context = _db.CreateContext();
+        var (controller, auth) = CreateController(context);
 
         var result = await controller.Login(new LoginViewModel { Username = "admin", Password = "anything" }, null);
 

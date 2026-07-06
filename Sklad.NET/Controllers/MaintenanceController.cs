@@ -1,9 +1,12 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Sklad.Data;
+using Sklad.Models;
 
 namespace Sklad.Controllers;
 
+[Authorize(Roles = nameof(UserRole.Admin))]
 public class MaintenanceController : Controller
 {
     private readonly SkladDbContext _db;

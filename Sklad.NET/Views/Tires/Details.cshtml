@@ -120,9 +120,12 @@
             </div>
         </div>
 
-        <div class="page-tail">
-            <a class="quiet-danger" asp-action="Delete" asp-route-id="@Model.Id">@L["Delete Tire"]</a>
-        </div>
+        @if (User.IsInRole(nameof(UserRole.Admin)))
+        {
+            <div class="page-tail">
+                <a class="quiet-danger" asp-action="Delete" asp-route-id="@Model.Id">@L["Delete Tire"]</a>
+            </div>
+        }
 
     </div>
 </div>

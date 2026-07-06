@@ -880,6 +880,7 @@ a.stat:hover .stat-label { color: var(--black); }
     transition: color 120ms ease;
 }
 .quiet-danger:hover { color: var(--red); text-decoration: none; }
+button.quiet-danger { border: 0; background: none; padding: 0; cursor: pointer; }
 
 /* ============================================================
    Confirm (delete)

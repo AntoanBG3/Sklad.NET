@@ -1,11 +1,12 @@
+using System.Globalization;
 using System.Security.Claims;
-using System.Security.Cryptography;
-using System.Text;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Localization;
+using Sklad.Models;
+using Sklad.Services;
 using Sklad.ViewModels;
 
 namespace Sklad.Controllers;
@@ -13,12 +14,14 @@ namespace Sklad.Controllers;
 [AllowAnonymous]
 public class AccountController : Controller
 {
-    private readonly IConfiguration _config;
+    public const string SecurityStampClaim = "SecurityStamp";
+
+    private readonly IUserService _users;
     private readonly IStringLocalizer<SharedResource> _l;
 
-    public AccountController(IConfiguration config, IStringLocalizer<SharedResource> l)
+    public AccountController(IUserService users, IStringLocalizer<SharedResource> l)
     {
-        _config = config;
+        _users = users;
         _l = l;
     }
 
@@ -41,18 +44,20 @@ public class AccountController : Controller
         ViewBag.ReturnUrl = returnUrl;
         if (!ModelState.IsValid) return View(vm);
 
-        var configuredUser = _config["Auth:Username"];
-        var configuredPassword = _config["Auth:Password"];
-
-        if (string.IsNullOrEmpty(configuredUser) || string.IsNullOrEmpty(configuredPassword) ||
-            !FixedTimeEquals(vm.Username, configuredUser) || !FixedTimeEquals(vm.Password, configuredPassword))
+        var user = await _users.ValidateCredentialsAsync(vm.Username, vm.Password);
+        if (user is null)
         {
             ModelState.AddModelError(string.Empty, _l["Invalid username or password."]);
             return View(vm);
         }
 
         var identity = new ClaimsIdentity(
-            [new Claim(ClaimTypes.Name, configuredUser)],
+            [
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString(CultureInfo.InvariantCulture)),
+                new Claim(ClaimTypes.Name, user.Username),
+                new Claim(ClaimTypes.Role, user.Role.ToString()),
+                new Claim(SecurityStampClaim, user.SecurityStamp)
+            ],
             CookieAuthenticationDefaults.AuthenticationScheme);
         await HttpContext.SignInAsync(
             CookieAuthenticationDefaults.AuthenticationScheme,
@@ -73,7 +78,4 @@ public class AccountController : Controller
 
     private static string SafeReturnUrl(string? returnUrl)
         => Sklad.Helpers.Redirects.Safe(returnUrl);
-
-    private static bool FixedTimeEquals(string a, string b)
-        => CryptographicOperations.FixedTimeEquals(Encoding.UTF8.GetBytes(a), Encoding.UTF8.GetBytes(b));
 }

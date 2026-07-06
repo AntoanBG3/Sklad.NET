@@ -1,7 +1,8 @@
 @{
     var code = (int)(ViewBag.Code ?? 500);
     var notFound = code == 404;
-    ViewData["Title"] = notFound ? L["Page not found"].Value : L["Error"].Value;
+    var denied = code == 403;
+    ViewData["Title"] = notFound ? L["Page not found"].Value : denied ? L["Access denied"].Value : L["Error"].Value;
 }
 
 <div class="page">
@@ -9,11 +10,13 @@
         <div class="page-head">
             <div>
                 <div class="eyebrow is-alert">HTTP @code</div>
-                <h1 class="page-title">@(notFound ? L["Page not found"] : L["Something went wrong"])</h1>
+                <h1 class="page-title">@(notFound ? L["Page not found"] : denied ? L["Access denied"] : L["Something went wrong"])</h1>
                 <p class="page-lede">
                     @(notFound
                         ? L["The page you are looking for does not exist or was moved."]
-                        : L["An error occurred while processing your request."])
+                        : denied
+                            ? L["You do not have permission to view this page."]
+                            : L["An error occurred while processing your request."])
                 </p>
             </div>
             <div class="head-actions">

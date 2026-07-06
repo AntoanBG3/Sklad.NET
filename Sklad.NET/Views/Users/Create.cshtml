@@ -1,0 +1,60 @@
+@model Sklad.ViewModels.CreateUserViewModel
+
+@{
+    ViewData["Title"] = L["Add User"].Value;
+}
+
+<div class="page">
+    <div class="container container-narrow">
+
+        <div class="page-head">
+            <div>
+                <div class="eyebrow">@L["Administration"]</div>
+                <h1 class="page-title">@L["Add User"]</h1>
+                <p class="page-lede">@L["Create an account for a colleague."]</p>
+            </div>
+        </div>
+
+        <form asp-action="Create" class="form" data-guard>
+
+            <div asp-validation-summary="ModelOnly" class="form-errors"></div>
+
+            <div class="form-section">
+                <div class="form-section-title">@L["Account"]</div>
+                <div class="field">
+                    <label asp-for="Username" class="field-label">@L["Username"]</label>
+                    <input asp-for="Username" class="field-input" autocomplete="off" />
+                    <span asp-validation-for="Username" class="field-error"></span>
+                </div>
+                <div class="field">
+                    <label asp-for="Password" class="field-label">@L["Password"]</label>
+                    <input asp-for="Password" class="field-input" autocomplete="new-password" />
+                    <span asp-validation-for="Password" class="field-error"></span>
+                    <p class="field-hint">@L["At least 8 characters."]</p>
+                </div>
+                <div class="field">
+                    <label asp-for="Role" class="field-label">@L["Role"]</label>
+                    <select asp-for="Role" class="field-select">
+                        @foreach (UserRole r in Enum.GetValues<UserRole>())
+                        {
+                            <option value="@r">@L[Enums.Key(r)]</option>
+                        }
+                    </select>
+                    <span asp-validation-for="Role" class="field-error"></span>
+                    <p class="field-hint">@L["Administrators manage users, backups, and deletions."]</p>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">@L["Create User"]</button>
+                <a asp-action="Index" class="btn btn-secondary">@L["Cancel"]</a>
+            </div>
+
+        </form>
+
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

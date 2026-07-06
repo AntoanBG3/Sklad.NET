@@ -1,0 +1,78 @@
+@model IReadOnlyList<Sklad.Services.SupplierSummary>
+
+@{
+    ViewData["Title"] = L["Suppliers"].Value;
+}
+
+<div class="page">
+    <div class="container">
+
+        <div class="page-head">
+            <div>
+                <div class="eyebrow">@L["Purchasing"]</div>
+                <h1 class="page-title">@L["Suppliers"]</h1>
+                <p class="page-lede">@L["{0} suppliers on file.", Model.Count]</p>
+            </div>
+            <div class="head-actions">
+                <a asp-controller="PurchaseOrders" asp-action="Index" class="btn btn-secondary btn-sm">@L["Purchase Orders"]</a>
+                <a asp-action="Create" class="btn btn-primary btn-sm">@L["Add Supplier"]</a>
+            </div>
+        </div>
+
+        <div class="block">
+            <div class="block-head">
+                <h2 class="block-title">@L["All Suppliers"]</h2>
+            </div>
+            <div class="table-scroll" tabindex="0" role="region" aria-label="@L["Suppliers"]">
+                @if (!Model.Any())
+                {
+                    <div class="empty">
+                        <strong>@L["No suppliers yet"]</strong>
+                        @L["Add a supplier to start tracking purchase orders."]
+                        <div class="empty-action">
+                            <a asp-action="Create" class="btn btn-primary">@L["Add Supplier"]</a>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th scope="col">@L["Supplier"]</th>
+                                <th scope="col">@L["Contact Person"]</th>
+                                <th scope="col">@L["Email"]</th>
+                                <th scope="col" class="col-num">@L["Open orders"]</th>
+                                <th scope="col" class="col-num">@L["Total orders"]</th>
+                                <th scope="col"><span class="visually-hidden">@L["Actions"]</span></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var s in Model)
+                            {
+                                <tr>
+                                    <td class="cell-strong">@s.Supplier.Name</td>
+                                    <td>
+                                        <span class="cell-stack">@(s.Supplier.ContactName ?? "—")</span>
+                                        <span class="cell-sub mono">@(s.Supplier.Phone ?? "")</span>
+                                    </td>
+                                    <td class="cell-muted">@(s.Supplier.Email ?? "—")</td>
+                                    <td class="col-num">@s.OpenOrders</td>
+                                    <td class="col-num">@s.TotalOrders</td>
+                                    <td>
+                                        <div class="row-actions">
+                                            <a asp-controller="PurchaseOrders" asp-action="Index" asp-route-supplierId="@s.Supplier.Id">@L["Orders"]</a>
+                                            <a asp-controller="PurchaseOrders" asp-action="Create" asp-route-supplierId="@s.Supplier.Id">@L["New Order"]</a>
+                                            <a asp-action="Edit" asp-route-id="@s.Supplier.Id">@L["Edit"]</a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+            </div>
+        </div>
+
+    </div>
+</div>

@@ -1,0 +1,35 @@
+@model Sklad.ViewModels.PurchaseOrderFormViewModel
+
+@{
+    ViewData["Title"] = $"{L["Edit Purchase Order"].Value} — PO-{Model.Id:D4}";
+}
+
+<div class="page">
+    <div class="container">
+
+        <div class="page-head">
+            <div>
+                <div class="eyebrow">@L["Purchasing"]</div>
+                <h1 class="page-title">@L["Edit Purchase Order"]</h1>
+                <p class="page-lede mono">PO-@Model.Id.ToString("D4")</p>
+            </div>
+        </div>
+
+        <form asp-action="Edit" class="form" data-guard>
+            <input type="hidden" asp-for="Id" />
+
+            <partial name="_OrderForm" model="Model" />
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">@L["Save Order"]</button>
+                <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-secondary">@L["Cancel"]</a>
+            </div>
+
+        </form>
+
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

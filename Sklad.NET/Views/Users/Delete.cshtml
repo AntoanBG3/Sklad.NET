@@ -1,0 +1,62 @@
+@model Sklad.Models.AppUser
+
+@{
+    ViewData["Title"] = L["Delete User"].Value;
+    var isSelf = (bool)(ViewBag.IsSelf ?? false);
+}
+
+<div class="page">
+    <div class="container container-narrow">
+
+        <div class="page-head">
+            <div>
+                <div class="eyebrow is-alert">@L["Confirm"]</div>
+                <h1 class="page-title">@L["Delete User"]</h1>
+                <p class="page-lede">@L["This action cannot be undone."]</p>
+            </div>
+        </div>
+
+        <div class="confirm">
+            <div asp-validation-summary="ModelOnly" class="form-errors"></div>
+            @if (isSelf)
+            {
+                <div class="confirm-warning">
+                    <div class="eyebrow">@L["Deletion blocked"]</div>
+                    <p>@L["You cannot delete your own account."]</p>
+                </div>
+            }
+            else
+            {
+                <div class="confirm-warning">
+                    <div class="eyebrow">@L["Permanent deletion"]</div>
+                    <p>@L["The account is removed and its session ends immediately. Movements already recorded keep the username."]</p>
+                </div>
+            }
+
+            <dl class="specs">
+                <dt>@L["Username"]</dt>
+                <dd class="dd-strong">@Model.Username</dd>
+                <dt>@L["Role"]</dt>
+                <dd>@L[Enums.Key(Model.Role)]</dd>
+                <dt>@L["Created"]</dt>
+                <dd class="mono">@Dates.Stamp(Model.CreatedAt)</dd>
+            </dl>
+
+            @if (isSelf)
+            {
+                <div class="form-actions">
+                    <a asp-action="Index" class="btn btn-secondary">@L["Cancel"]</a>
+                </div>
+            }
+            else
+            {
+                <form asp-action="Delete" class="form-actions">
+                    <input type="hidden" asp-for="Id" />
+                    <button type="submit" class="btn btn-danger">@L["Delete User"]</button>
+                    <a asp-action="Index" class="btn btn-secondary">@L["Cancel"]</a>
+                </form>
+            }
+        </div>
+
+    </div>
+</div>

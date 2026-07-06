@@ -1,0 +1,103 @@
+@model Sklad.Services.PagedResult<Sklad.Models.PurchaseOrder>
+
+@{
+    ViewData["Title"] = L["Purchase Orders"].Value;
+    var status = ViewBag.Status as PurchaseOrderStatus?;
+    var supplierId = ViewBag.SupplierId as int?;
+    var supplier = ViewBag.Supplier as Sklad.Models.Supplier;
+}
+
+<div class="page">
+    <div class="container">
+
+        <div class="page-head">
+            <div>
+                <div class="eyebrow">@L["Purchasing"]</div>
+                <h1 class="page-title">@L["Purchase Orders"]</h1>
+                <p class="page-lede">@L["{0} purchase orders.", Model.TotalCount]</p>
+            </div>
+            <div class="head-actions">
+                <a asp-controller="Suppliers" asp-action="Index" class="btn btn-secondary btn-sm">@L["Suppliers"]</a>
+                <a asp-action="Create" asp-route-supplierId="@supplierId" class="btn btn-primary btn-sm">@L["New Order"]</a>
+            </div>
+        </div>
+
+        <div class="block">
+            <div class="block-head">
+                <h2 class="block-title">
+                    @L["Order History"]
+                    @if (supplier is not null)
+                    {
+                        <span class="block-title-context">@supplier.Name (<a asp-action="Index" asp-route-status="@status">@L["Clear filter"]</a>)</span>
+                    }
+                </h2>
+                <span class="block-meta">
+                    <a class="@(status is null ? "is-active" : "")" aria-current="@(status is null ? "true" : null)"
+                       asp-action="Index" asp-route-supplierId="@supplierId">@L["All"]</a>
+                    @foreach (PurchaseOrderStatus st in Enum.GetValues<PurchaseOrderStatus>())
+                    {
+                        <a class="@(status == st ? "is-active" : "")" aria-current="@(status == st ? "true" : null)"
+                           asp-action="Index" asp-route-status="@st" asp-route-supplierId="@supplierId">@L[Enums.Key(st)]</a>
+                    }
+                </span>
+            </div>
+
+            <div class="table-scroll" tabindex="0" role="region" aria-label="@L["Purchase Orders"]">
+                @if (!Model.Items.Any())
+                {
+                    <div class="empty">
+                        <strong>@L["No purchase orders yet"]</strong>
+                        @L["Create an order to restock from a supplier."]
+                        <div class="empty-action">
+                            <a asp-action="Create" class="btn btn-primary">@L["New Order"]</a>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <table class="data-table data-table-wide">
+                        <thead>
+                            <tr>
+                                <th scope="col">@L["Order"]</th>
+                                <th scope="col">@L["Supplier"]</th>
+                                <th scope="col">@L["Created"]</th>
+                                <th scope="col">@L["Status"]</th>
+                                <th scope="col" class="col-num">@L["Total units"]</th>
+                                <th scope="col" class="col-num">@L["Total"]</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var o in Model.Items)
+                            {
+                                <tr data-href="@Url.Action("Details", new { id = o.Id })">
+                                    <td class="mono"><a class="row-link" asp-action="Details" asp-route-id="@o.Id">@o.Number</a></td>
+                                    <td class="cell-strong">@o.Supplier.Name</td>
+                                    <td class="mono">@Dates.Stamp(o.CreatedAt)</td>
+                                    <td><span class="tag">@L[Enums.Key(o.Status)]</span></td>
+                                    <td class="col-num">@o.TotalUnits</td>
+                                    <td class="col-num"><money value="o.Total" /></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+            </div>
+
+            @if (Model.TotalPages > 1)
+            {
+                <div class="pager">
+                    @if (Model.HasPrevious)
+                    {
+                        <a class="btn btn-secondary btn-sm" asp-action="Index" asp-route-status="@status" asp-route-supplierId="@supplierId" asp-route-page="@(Model.Page - 1)">@L["Previous"]</a>
+                    }
+                    <span class="pager-info">@L["Page {0} of {1}", Model.Page, Model.TotalPages]</span>
+                    @if (Model.HasNext)
+                    {
+                        <a class="btn btn-secondary btn-sm" asp-action="Index" asp-route-status="@status" asp-route-supplierId="@supplierId" asp-route-page="@(Model.Page + 1)">@L["Next"]</a>
+                    }
+                </div>
+            }
+        </div>
+
+    </div>
+</div>

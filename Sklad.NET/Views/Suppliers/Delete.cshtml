@@ -1,0 +1,65 @@
+@model Sklad.Models.Supplier
+
+@{
+    ViewData["Title"] = L["Delete Supplier"].Value;
+    var blocked = (bool)(ViewBag.HasOrders ?? false);
+}
+
+<div class="page">
+    <div class="container container-narrow">
+
+        <div class="page-head">
+            <div>
+                <div class="eyebrow is-alert">@L["Confirm"]</div>
+                <h1 class="page-title">@L["Delete Supplier"]</h1>
+                <p class="page-lede">@L["This action cannot be undone."]</p>
+            </div>
+        </div>
+
+        <div class="confirm">
+            <div asp-validation-summary="ModelOnly" class="form-errors"></div>
+            @if (blocked)
+            {
+                <div class="confirm-warning">
+                    <div class="eyebrow">@L["Deletion blocked"]</div>
+                    <p>@L["This supplier has purchase orders and cannot be deleted."]</p>
+                </div>
+            }
+            else
+            {
+                <div class="confirm-warning">
+                    <div class="eyebrow">@L["Permanent deletion"]</div>
+                    <p>@L["You are about to permanently remove this supplier. Suppliers with purchase orders cannot be deleted."]</p>
+                </div>
+            }
+
+            <dl class="specs">
+                <dt>@L["Supplier"]</dt>
+                <dd class="dd-strong">@Model.Name</dd>
+                <dt>@L["Contact Person"]</dt>
+                <dd>@(Model.ContactName ?? "—")</dd>
+                <dt>@L["Phone"]</dt>
+                <dd class="mono">@(Model.Phone ?? "—")</dd>
+                <dt>@L["Email"]</dt>
+                <dd>@(Model.Email ?? "—")</dd>
+            </dl>
+
+            @if (blocked)
+            {
+                <div class="form-actions">
+                    <a asp-controller="PurchaseOrders" asp-action="Index" asp-route-supplierId="@Model.Id" class="btn btn-primary">@L["Orders"]</a>
+                    <a asp-action="Index" class="btn btn-secondary">@L["Cancel"]</a>
+                </div>
+            }
+            else
+            {
+                <form asp-action="Delete" class="form-actions">
+                    <input type="hidden" asp-for="Id" />
+                    <button type="submit" class="btn btn-danger">@L["Delete Supplier"]</button>
+                    <a asp-action="Index" class="btn btn-secondary">@L["Cancel"]</a>
+                </form>
+            }
+        </div>
+
+    </div>
+</div>

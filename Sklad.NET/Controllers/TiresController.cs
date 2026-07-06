@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Localization;
 using Sklad.Helpers;
@@ -10,11 +11,13 @@ namespace Sklad.Controllers;
 public class TiresController : Controller
 {
     private readonly IInventoryService _inventory;
+    private readonly IExcelExportService _excel;
     private readonly IStringLocalizer<SharedResource> _l;
 
-    public TiresController(IInventoryService inventory, IStringLocalizer<SharedResource> l)
+    public TiresController(IInventoryService inventory, IExcelExportService excel, IStringLocalizer<SharedResource> l)
     {
         _inventory = inventory;
+        _excel = excel;
         _l = l;
     }
 
@@ -125,6 +128,7 @@ public class TiresController : Controller
     }
 
     // GET: /Tires/Delete/5
+    [Authorize(Roles = nameof(UserRole.Admin))]
     public async Task<IActionResult> Delete(int? id)
     {
         if (id is null) return NotFound();
@@ -137,6 +141,7 @@ public class TiresController : Controller
     // POST: /Tires/Delete/5
     [HttpPost, ActionName("Delete")]
     [ValidateAntiForgeryToken]
+    [Authorize(Roles = nameof(UserRole.Admin))]
     public async Task<IActionResult> DeleteConfirmed(int id)
     {
         var tire = await _inventory.GetTireAsync(id);
@@ -148,6 +153,12 @@ public class TiresController : Controller
         {
             if (tire is null) return RedirectToAction(nameof(Index));
             ModelState.AddModelError(string.Empty, _l["This tire has movement records and cannot be deleted."]);
+            return View("Delete", tire);
+        }
+        catch (TireOnOrderException)
+        {
+            if (tire is null) return RedirectToAction(nameof(Index));
+            ModelState.AddModelError(string.Empty, _l["This tire appears on purchase orders and cannot be deleted."]);
             return View("Delete", tire);
         }
         if (tire is not null)
@@ -228,5 +239,16 @@ public class TiresController : Controller
         var result = await _inventory.SearchAsync(filter, pageSize: int.MaxValue);
         var bytes = await _inventory.ExportCsvAsync(result.Items);
         return File(bytes, "text/csv", $"tires_{DateTime.UtcNow:yyyyMMdd}.csv");
+    }
+
+    // GET: /Tires/ExportExcel
+    public async Task<IActionResult> ExportExcel(TireFilterViewModel filter)
+    {
+        filter.Page = 1;
+        var result = await _inventory.SearchAsync(filter, pageSize: int.MaxValue);
+        var bytes = _excel.ExportTires(result.Items);
+        return File(bytes,
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            $"tires_{DateTime.UtcNow:yyyyMMdd}.xlsx");
     }
 }

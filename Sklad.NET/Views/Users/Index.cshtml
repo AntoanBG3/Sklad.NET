@@ -1,0 +1,66 @@
+@model IReadOnlyList<Sklad.Models.AppUser>
+
+@{
+    ViewData["Title"] = L["Users"].Value;
+    var currentUserId = (int)(ViewBag.CurrentUserId ?? 0);
+}
+
+<div class="page">
+    <div class="container">
+
+        <div class="page-head">
+            <div>
+                <div class="eyebrow">@L["Administration"]</div>
+                <h1 class="page-title">@L["Users"]</h1>
+                <p class="page-lede">@L["{0} user accounts.", Model.Count]</p>
+            </div>
+            <div class="head-actions">
+                <a asp-action="Create" class="btn btn-primary btn-sm">@L["Add User"]</a>
+            </div>
+        </div>
+
+        <div class="block">
+            <div class="block-head">
+                <h2 class="block-title">@L["All Users"]</h2>
+            </div>
+            <div class="table-scroll" tabindex="0" role="region" aria-label="@L["Users"]">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th scope="col">@L["Username"]</th>
+                            <th scope="col">@L["Role"]</th>
+                            <th scope="col">@L["Created"]</th>
+                            <th scope="col"><span class="visually-hidden">@L["Actions"]</span></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var u in Model)
+                        {
+                            <tr>
+                                <td>
+                                    <span class="cell-strong">@u.Username</span>
+                                    @if (u.Id == currentUserId)
+                                    {
+                                        <span class="cell-muted">(@L["you"])</span>
+                                    }
+                                </td>
+                                <td><span class="tag">@L[Enums.Key(u.Role)]</span></td>
+                                <td class="mono">@Dates.Stamp(u.CreatedAt)</td>
+                                <td>
+                                    <div class="row-actions">
+                                        <a asp-action="Edit" asp-route-id="@u.Id">@L["Edit"]</a>
+                                        @if (u.Id != currentUserId)
+                                        {
+                                            <a asp-action="Delete" asp-route-id="@u.Id">@L["Delete"]</a>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</div>

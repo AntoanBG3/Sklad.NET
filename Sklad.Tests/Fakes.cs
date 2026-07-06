@@ -12,6 +12,17 @@ public sealed class NullTempDataProvider : ITempDataProvider
     public void SaveTempData(HttpContext context, IDictionary<string, object> values) { }
 }
 
+/// <summary>
+/// No-op ObjectValidator so controller actions that call TryValidateModel can
+/// run outside the MVC pipeline; tests assert service-level guards instead.
+/// </summary>
+public sealed class NoOpObjectValidator : Microsoft.AspNetCore.Mvc.ModelBinding.Validation.IObjectModelValidator
+{
+    public void Validate(Microsoft.AspNetCore.Mvc.ActionContext actionContext,
+        Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ValidationStateDictionary? validationState,
+        string prefix, object? model) { }
+}
+
 public class FakeLocalizer<T> : IStringLocalizer<T>
 {
     public LocalizedString this[string name] => new(name, name);

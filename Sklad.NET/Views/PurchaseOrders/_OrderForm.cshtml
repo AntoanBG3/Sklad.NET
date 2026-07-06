@@ -1,0 +1,159 @@
+@model Sklad.ViewModels.PurchaseOrderFormViewModel
+
+@{
+    var suppliers = (IReadOnlyList<Sklad.Models.Supplier>)ViewBag.Suppliers;
+    var tires = (IReadOnlyList<Sklad.Models.Tire>)ViewBag.Tires;
+}
+
+<div asp-validation-summary="All" class="form-errors"></div>
+
+<div class="form-section">
+    <div class="form-section-title">@L["Order"]</div>
+    <div class="form-grid-2">
+        <div class="field">
+            <label asp-for="SupplierId" class="field-label">@L["Supplier"]</label>
+            <select asp-for="SupplierId" class="field-select">
+                <option value="">@L["Select supplier"]</option>
+                @foreach (var s in suppliers)
+                {
+                    <option value="@s.Id">@s.Name</option>
+                }
+            </select>
+            <span asp-validation-for="SupplierId" class="field-error"></span>
+        </div>
+        <div class="field">
+            <label asp-for="Note" class="field-label">@L["Note"] <span class="optional">@L["(optional)"]</span></label>
+            <input asp-for="Note" class="field-input" placeholder="…" />
+            <span asp-validation-for="Note" class="field-error"></span>
+        </div>
+    </div>
+</div>
+
+<div class="form-section">
+    <div class="form-section-title">@L["Order Lines"]</div>
+    <div class="table-scroll">
+        <table class="data-table" id="po-lines">
+            <thead>
+                <tr>
+                    <th scope="col">@L["Tire"]</th>
+                    <th scope="col" class="col-num">@L["Quantity"]</th>
+                    <th scope="col" class="col-num">@L["Unit Cost (€)"]</th>
+                    <th scope="col" class="col-num">@L["Line Total"]</th>
+                    <th scope="col"><span class="visually-hidden">@L["Actions"]</span></th>
+                </tr>
+            </thead>
+            <tbody id="po-lines-body">
+                @for (var i = 0; i < Model.Items.Count; i++)
+                {
+                    <tr class="po-line">
+                        <td>
+                            <input type="hidden" name="Items.Index" value="@i" />
+                            <label class="visually-hidden" for="Items_@(i)__TireId">@L["Tire"]</label>
+                            <select id="Items_@(i)__TireId" name="Items[@i].TireId" class="field-select">
+                                <option value="">@L["Select tire"]</option>
+                                @foreach (var t in tires)
+                                {
+                                    <option value="@t.Id" selected="@(Model.Items[i].TireId == t.Id)">@t.Sku — @t.Brand @t.Model (@t.Size)</option>
+                                }
+                            </select>
+                            <span asp-validation-for="Items[i].TireId" class="field-error"></span>
+                        </td>
+                        <td class="col-num">
+                            <label class="visually-hidden" for="Items_@(i)__Quantity">@L["Quantity"]</label>
+                            <input id="Items_@(i)__Quantity" name="Items[@i].Quantity" value="@Model.Items[i].Quantity"
+                                   type="number" min="1" class="field-input po-qty" placeholder="0" />
+                            <span asp-validation-for="Items[i].Quantity" class="field-error"></span>
+                        </td>
+                        <td class="col-num">
+                            <label class="visually-hidden" for="Items_@(i)__UnitCost">@L["Unit Cost (€)"]</label>
+                            <input id="Items_@(i)__UnitCost" name="Items[@i].UnitCost"
+                                   value="@Model.Items[i].UnitCost?.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)"
+                                   class="field-input po-cost" inputmode="decimal" placeholder="0.00" />
+                            <span asp-validation-for="Items[i].UnitCost" class="field-error"></span>
+                        </td>
+                        <td class="col-num mono po-line-total"></td>
+                        <td><button type="button" class="navlink po-remove">@L["Remove"]</button></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <div class="form-actions">
+        <button type="button" id="po-add" class="btn btn-secondary btn-sm">@L["Add Line"]</button>
+        <span class="field-hint">@L["Total"]: <strong id="po-total" class="mono">—</strong></span>
+    </div>
+</div>
+
+<template id="po-line-template">
+    <tr class="po-line">
+        <td>
+            <input type="hidden" name="Items.Index" value="__i__" />
+            <select name="Items[__i__].TireId" class="field-select" aria-label="@L["Tire"]">
+                <option value="">@L["Select tire"]</option>
+                @foreach (var t in tires)
+                {
+                    <option value="@t.Id">@t.Sku — @t.Brand @t.Model (@t.Size)</option>
+                }
+            </select>
+        </td>
+        <td class="col-num">
+            <input name="Items[__i__].Quantity" type="number" min="1" class="field-input po-qty" placeholder="0" aria-label="@L["Quantity"]" />
+        </td>
+        <td class="col-num">
+            <input name="Items[__i__].UnitCost" class="field-input po-cost" inputmode="decimal" placeholder="0.00" aria-label="@L["Unit Cost (€)"]" />
+        </td>
+        <td class="col-num mono po-line-total"></td>
+        <td><button type="button" class="navlink po-remove">@L["Remove"]</button></td>
+    </tr>
+</template>
+
+<script>
+    (function () {
+        var body = document.getElementById("po-lines-body");
+        var template = document.getElementById("po-line-template");
+        var addButton = document.getElementById("po-add");
+        var total = document.getElementById("po-total");
+        var next = 0;
+
+        function money(n) {
+            return n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " €";
+        }
+
+        function recalc() {
+            var sum = 0;
+            body.querySelectorAll("tr.po-line").forEach(function (row) {
+                var qty = parseInt(row.querySelector(".po-qty").value, 10);
+                var cost = parseFloat((row.querySelector(".po-cost").value || "").replace(",", "."));
+                var cell = row.querySelector(".po-line-total");
+                if (!isNaN(qty) && qty > 0 && !isNaN(cost) && cost >= 0) {
+                    var line = qty * cost;
+                    sum += line;
+                    cell.textContent = money(line);
+                } else {
+                    cell.textContent = "";
+                }
+            });
+            total.textContent = money(sum);
+        }
+
+        addButton.addEventListener("click", function () {
+            var html = template.innerHTML.replace(/__i__/g, "n" + next++);
+            var stub = document.createElement("tbody");
+            stub.innerHTML = html;
+            var row = stub.querySelector("tr");
+            body.appendChild(row);
+            row.querySelector("select").focus();
+            recalc();
+        });
+
+        body.addEventListener("click", function (e) {
+            var remove = e.target.closest(".po-remove");
+            if (!remove) return;
+            remove.closest("tr").remove();
+            recalc();
+        });
+
+        body.addEventListener("input", recalc);
+        recalc();
+    })();
+</script>

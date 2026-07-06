@@ -12,9 +12,11 @@ public static class Dates
         catch (TimeZoneNotFoundException) { return TimeZoneInfo.FindSystemTimeZoneById("FLE Standard Time"); }
     }
 
+    public static DateTime Shop(DateTime utc)
+        => TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(utc, DateTimeKind.Utc), Sofia);
+
     public static string Stamp(DateTime utc)
-        => TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(utc, DateTimeKind.Utc), Sofia)
-            .ToString("dd MMM yyyy HH:mm");
+        => Shop(utc).ToString("dd MMM yyyy HH:mm");
 
     // Movements are stored UTC but users filter by shop-local calendar days.
     public static DateTime StartOfDayUtc(DateOnly day)

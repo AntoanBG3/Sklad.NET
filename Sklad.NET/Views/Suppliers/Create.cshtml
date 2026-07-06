@@ -1,0 +1,36 @@
+@model Sklad.ViewModels.SupplierViewModel
+
+@{
+    ViewData["Title"] = L["Add Supplier"].Value;
+}
+
+<div class="page">
+    <div class="container container-narrow">
+
+        <div class="page-head">
+            <div>
+                <div class="eyebrow">@L["Purchasing"]</div>
+                <h1 class="page-title">@L["Add Supplier"]</h1>
+                <p class="page-lede">@L["Register a company you order tires from."]</p>
+            </div>
+        </div>
+
+        <form asp-action="Create" class="form" data-guard>
+
+            <div asp-validation-summary="ModelOnly" class="form-errors"></div>
+
+            <partial name="_SupplierForm" model="Model" />
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">@L["Save Supplier"]</button>
+                <a asp-action="Index" class="btn btn-secondary">@L["Cancel"]</a>
+            </div>
+
+        </form>
+
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

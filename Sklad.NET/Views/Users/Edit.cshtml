@@ -1,0 +1,61 @@
+@model Sklad.ViewModels.EditUserViewModel
+
+@{
+    ViewData["Title"] = $"{L["Edit User"].Value} — {Model.Username}";
+}
+
+<div class="page">
+    <div class="container container-narrow">
+
+        <div class="page-head">
+            <div>
+                <div class="eyebrow">@L["Administration"]</div>
+                <h1 class="page-title">@L["Edit User"]</h1>
+                <p class="page-lede mono">@Model.Username</p>
+            </div>
+        </div>
+
+        <form asp-action="Edit" class="form" data-guard>
+            <input type="hidden" asp-for="Id" />
+            <input type="hidden" asp-for="Username" />
+
+            <div asp-validation-summary="ModelOnly" class="form-errors"></div>
+
+            <div class="form-section">
+                <div class="form-section-title">@L["Account"]</div>
+                <div class="field">
+                    <label asp-for="Role" class="field-label">@L["Role"]</label>
+                    <select asp-for="Role" class="field-select">
+                        @foreach (UserRole r in Enum.GetValues<UserRole>())
+                        {
+                            <option value="@r">@L[Enums.Key(r)]</option>
+                        }
+                    </select>
+                    <span asp-validation-for="Role" class="field-error"></span>
+                    <p class="field-hint">@L["Administrators manage users, backups, and deletions."]</p>
+                </div>
+                <div class="field">
+                    <label asp-for="NewPassword" class="field-label">@L["New Password"] <span class="optional">@L["(optional)"]</span></label>
+                    <input asp-for="NewPassword" class="field-input" autocomplete="new-password" />
+                    <span asp-validation-for="NewPassword" class="field-error"></span>
+                    <p class="field-hint">@L["Leave blank to keep the current password. Role and password changes sign the user out."]</p>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">@L["Save User"]</button>
+                <a asp-action="Index" class="btn btn-secondary">@L["Cancel"]</a>
+            </div>
+
+        </form>
+
+        <div class="page-tail">
+            <a class="quiet-danger" asp-action="Delete" asp-route-id="@Model.Id">@L["Delete User"]</a>
+        </div>
+
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

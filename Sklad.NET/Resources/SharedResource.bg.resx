@@ -276,4 +276,124 @@
   <data name="The warehouse is empty" xml:space="preserve"><value>Складът е празен</value></data>
   <data name="Add your first tire to start tracking stock." xml:space="preserve"><value>Добавете първата гума, за да започнете да следите наличността.</value></data>
   <data name="Print" xml:space="preserve"><value>Печат</value></data>
+
+  <!-- Excel export -->
+  <data name="Export Excel" xml:space="preserve"><value>Експорт в Excel</value></data>
+  <data name="Unit Price (EUR)" xml:space="preserve"><value>Единична цена (EUR)</value></data>
+  <data name="Unit Price (BGN)" xml:space="preserve"><value>Единична цена (BGN)</value></data>
+  <data name="Stock Value (EUR)" xml:space="preserve"><value>Стойност на наличността (EUR)</value></data>
+
+  <!-- Suppliers -->
+  <data name="Purchasing" xml:space="preserve"><value>Доставки</value></data>
+  <data name="Suppliers" xml:space="preserve"><value>Доставчици</value></data>
+  <data name="Supplier" xml:space="preserve"><value>Доставчик</value></data>
+  <data name="All Suppliers" xml:space="preserve"><value>Всички доставчици</value></data>
+  <data name="{0} suppliers on file." xml:space="preserve"><value>{0} доставчици в списъка.</value></data>
+  <data name="Add Supplier" xml:space="preserve"><value>Добави доставчик</value></data>
+  <data name="Edit Supplier" xml:space="preserve"><value>Редакция на доставчик</value></data>
+  <data name="Delete Supplier" xml:space="preserve"><value>Изтрий доставчика</value></data>
+  <data name="Save Supplier" xml:space="preserve"><value>Запази доставчика</value></data>
+  <data name="Register a company you order tires from." xml:space="preserve"><value>Запишете фирма, от която поръчвате гуми.</value></data>
+  <data name="No suppliers yet" xml:space="preserve"><value>Все още няма доставчици</value></data>
+  <data name="Add a supplier to start tracking purchase orders." xml:space="preserve"><value>Добавете доставчик, за да започнете да следите поръчките за доставка.</value></data>
+  <data name="Company" xml:space="preserve"><value>Фирма</value></data>
+  <data name="Contact" xml:space="preserve"><value>Контакт</value></data>
+  <data name="Contact Person" xml:space="preserve"><value>Лице за контакт</value></data>
+  <data name="Phone" xml:space="preserve"><value>Телефон</value></data>
+  <data name="Email" xml:space="preserve"><value>Имейл</value></data>
+  <data name="Notes" xml:space="preserve"><value>Бележки</value></data>
+  <data name="Open orders" xml:space="preserve"><value>Отворени поръчки</value></data>
+  <data name="Total orders" xml:space="preserve"><value>Общо поръчки</value></data>
+  <data name="Orders" xml:space="preserve"><value>Поръчки</value></data>
+  <data name="A supplier named {0} already exists." xml:space="preserve"><value>Вече съществува доставчик с име {0}.</value></data>
+  <data name="Supplier {0} created." xml:space="preserve"><value>Доставчик {0} е създаден.</value></data>
+  <data name="Supplier {0} saved." xml:space="preserve"><value>Доставчик {0} е записан.</value></data>
+  <data name="Supplier {0} deleted." xml:space="preserve"><value>Доставчик {0} е изтрит.</value></data>
+  <data name="This supplier has purchase orders and cannot be deleted." xml:space="preserve"><value>Този доставчик има поръчки за доставка и не може да бъде изтрит.</value></data>
+  <data name="You are about to permanently remove this supplier. Suppliers with purchase orders cannot be deleted." xml:space="preserve"><value>На път сте да премахнете завинаги този доставчик. Доставчици с поръчки не могат да бъдат изтривани.</value></data>
+
+  <!-- Purchase orders -->
+  <data name="Purchase Orders" xml:space="preserve"><value>Поръчки за доставка</value></data>
+  <data name="Purchase Order" xml:space="preserve"><value>Поръчка за доставка</value></data>
+  <data name="{0} purchase orders." xml:space="preserve"><value>{0} поръчки за доставка.</value></data>
+  <data name="New Order" xml:space="preserve"><value>Нова поръчка</value></data>
+  <data name="New Purchase Order" xml:space="preserve"><value>Нова поръчка за доставка</value></data>
+  <data name="Edit Purchase Order" xml:space="preserve"><value>Редакция на поръчка</value></data>
+  <data name="All Orders" xml:space="preserve"><value>Всички поръчки</value></data>
+  <data name="Order" xml:space="preserve"><value>Поръчка</value></data>
+  <data name="Order History" xml:space="preserve"><value>История на поръчките</value></data>
+  <data name="Order Details" xml:space="preserve"><value>Детайли на поръчката</value></data>
+  <data name="Order Lines" xml:space="preserve"><value>Редове на поръчката</value></data>
+  <data name="No purchase orders yet" xml:space="preserve"><value>Все още няма поръчки за доставка</value></data>
+  <data name="Create an order to restock from a supplier." xml:space="preserve"><value>Създайте поръчка за зареждане от доставчик.</value></data>
+  <data name="Draft an order to restock from a supplier. Stock changes only when the order is received." xml:space="preserve"><value>Съставете поръчка за зареждане от доставчик. Наличността се променя едва при получаване на поръчката.</value></data>
+  <data name="Status" xml:space="preserve"><value>Статус</value></data>
+  <data name="Total units" xml:space="preserve"><value>Общо бройки</value></data>
+  <data name="Total" xml:space="preserve"><value>Общо</value></data>
+  <data name="Line Total" xml:space="preserve"><value>Сума на реда</value></data>
+  <data name="Unit Cost" xml:space="preserve"><value>Доставна цена</value></data>
+  <data name="Unit Cost (€)" xml:space="preserve"><value>Доставна цена (€)</value></data>
+  <data name="{0} lines" xml:space="preserve"><value>{0} реда</value></data>
+  <data name="Created" xml:space="preserve"><value>Създадена</value></data>
+  <data name="Created by" xml:space="preserve"><value>Създадена от</value></data>
+  <data name="Ordered on" xml:space="preserve"><value>Поръчана на</value></data>
+  <data name="Received on" xml:space="preserve"><value>Получена на</value></data>
+  <data name="Received by" xml:space="preserve"><value>Получена от</value></data>
+  <data name="Select supplier" xml:space="preserve"><value>Изберете доставчик</value></data>
+  <data name="Select tire" xml:space="preserve"><value>Изберете гума</value></data>
+  <data name="Add Line" xml:space="preserve"><value>Добави ред</value></data>
+  <data name="Remove" xml:space="preserve"><value>Премахни</value></data>
+  <data name="Save Draft" xml:space="preserve"><value>Запази черновата</value></data>
+  <data name="Save Order" xml:space="preserve"><value>Запази поръчката</value></data>
+  <data name="Mark as Ordered" xml:space="preserve"><value>Отбележи като поръчана</value></data>
+  <data name="Receive Stock" xml:space="preserve"><value>Получи стоката</value></data>
+  <data name="Cancel Order" xml:space="preserve"><value>Откажи поръчката</value></data>
+  <data name="Purchase order {0} created." xml:space="preserve"><value>Поръчка {0} е създадена.</value></data>
+  <data name="Purchase order saved." xml:space="preserve"><value>Поръчката е записана.</value></data>
+  <data name="Purchase order marked as ordered." xml:space="preserve"><value>Поръчката е отбелязана като поръчана.</value></data>
+  <data name="Purchase order received — stock updated." xml:space="preserve"><value>Поръчката е получена — наличността е обновена.</value></data>
+  <data name="Purchase order cancelled." xml:space="preserve"><value>Поръчката е отказана.</value></data>
+  <data name="Only draft orders can be edited." xml:space="preserve"><value>Само чернови на поръчки могат да се редактират.</value></data>
+  <data name="The order status no longer allows this action." xml:space="preserve"><value>Статусът на поръчката вече не позволява това действие.</value></data>
+  <data name="The order could not be saved." xml:space="preserve"><value>Поръчката не можа да бъде записана.</value></data>
+  <data name="The selected supplier no longer exists." xml:space="preserve"><value>Избраният доставчик вече не съществува.</value></data>
+  <data name="One of the selected tires no longer exists." xml:space="preserve"><value>Една от избраните гуми вече не съществува.</value></data>
+  <data name="A purchase order needs at least one line." xml:space="preserve"><value>Поръчката за доставка се нуждае от поне един ред.</value></data>
+  <data name="Order lines need a quantity of at least 1 and a non-negative cost." xml:space="preserve"><value>Редовете изискват количество поне 1 и неотрицателна цена.</value></data>
+  <data name="The stock changed while receiving. Try again." xml:space="preserve"><value>Наличността се промени по време на получаването. Опитайте отново.</value></data>
+  <data name="This tire appears on purchase orders and cannot be deleted." xml:space="preserve"><value>Тази гума фигурира в поръчки за доставка и не може да бъде изтрита.</value></data>
+  <data name="Draft" xml:space="preserve"><value>Чернова</value></data>
+  <data name="Ordered" xml:space="preserve"><value>Поръчана</value></data>
+  <data name="Received" xml:space="preserve"><value>Получена</value></data>
+  <data name="Cancelled" xml:space="preserve"><value>Отказана</value></data>
+
+  <!-- Users -->
+  <data name="Users" xml:space="preserve"><value>Потребители</value></data>
+  <data name="All Users" xml:space="preserve"><value>Всички потребители</value></data>
+  <data name="{0} user accounts." xml:space="preserve"><value>{0} потребителски акаунта.</value></data>
+  <data name="Administration" xml:space="preserve"><value>Администрация</value></data>
+  <data name="Account" xml:space="preserve"><value>Акаунт</value></data>
+  <data name="Add User" xml:space="preserve"><value>Добави потребител</value></data>
+  <data name="Edit User" xml:space="preserve"><value>Редакция на потребител</value></data>
+  <data name="Delete User" xml:space="preserve"><value>Изтрий потребителя</value></data>
+  <data name="Create User" xml:space="preserve"><value>Създай потребител</value></data>
+  <data name="Save User" xml:space="preserve"><value>Запази потребителя</value></data>
+  <data name="Create an account for a colleague." xml:space="preserve"><value>Създайте акаунт за колега.</value></data>
+  <data name="Role" xml:space="preserve"><value>Роля</value></data>
+  <data name="Admin" xml:space="preserve"><value>Администратор</value></data>
+  <data name="New Password" xml:space="preserve"><value>Нова парола</value></data>
+  <data name="At least 8 characters." xml:space="preserve"><value>Поне 8 знака.</value></data>
+  <data name="Administrators manage users, backups, and deletions." xml:space="preserve"><value>Администраторите управляват потребители, резервни копия и изтривания.</value></data>
+  <data name="Leave blank to keep the current password. Role and password changes sign the user out." xml:space="preserve"><value>Оставете празно, за да запазите текущата парола. Промяна на роля или парола прекратява сесията на потребителя.</value></data>
+  <data name="The account is removed and its session ends immediately. Movements already recorded keep the username." xml:space="preserve"><value>Акаунтът се премахва и сесията му се прекратява веднага. Вече записаните движения запазват потребителското име.</value></data>
+  <data name="A user named {0} already exists." xml:space="preserve"><value>Вече съществува потребител с име {0}.</value></data>
+  <data name="User {0} created." xml:space="preserve"><value>Потребител {0} е създаден.</value></data>
+  <data name="User {0} saved." xml:space="preserve"><value>Потребител {0} е записан.</value></data>
+  <data name="User {0} deleted." xml:space="preserve"><value>Потребител {0} е изтрит.</value></data>
+  <data name="The last administrator cannot be removed or demoted." xml:space="preserve"><value>Последният администратор не може да бъде изтрит или понижен.</value></data>
+  <data name="You cannot delete your own account." xml:space="preserve"><value>Не можете да изтриете собствения си акаунт.</value></data>
+  <data name="you" xml:space="preserve"><value>вие</value></data>
+  <data name="Delete" xml:space="preserve"><value>Изтрий</value></data>
+  <data name="Access denied" xml:space="preserve"><value>Отказан достъп</value></data>
+  <data name="You do not have permission to view this page." xml:space="preserve"><value>Нямате права да видите тази страница.</value></data>
 </root>

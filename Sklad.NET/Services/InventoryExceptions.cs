@@ -23,6 +23,11 @@ public sealed class TireHasMovementsException : InventoryException
     public TireHasMovementsException() : base("The tire has movement records and cannot be deleted.") { }
 }
 
+public sealed class TireOnOrderException : InventoryException
+{
+    public TireOnOrderException() : base("The tire appears on purchase orders and cannot be deleted.") { }
+}
+
 public sealed class InsufficientStockException : InventoryException
 {
     public int Available { get; }

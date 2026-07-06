@@ -1,0 +1,40 @@
+@model Sklad.ViewModels.SupplierViewModel
+
+<div class="form-section">
+    <div class="form-section-title">@L["Company"]</div>
+    <div class="field">
+        <label asp-for="Name" class="field-label">@L["Supplier"]</label>
+        <input asp-for="Name" class="field-input" placeholder="Tyre Trade Ltd." />
+        <span asp-validation-for="Name" class="field-error"></span>
+    </div>
+</div>
+
+<div class="form-section">
+    <div class="form-section-title">@L["Contact"]</div>
+    <div class="form-grid-2">
+        <div class="field">
+            <label asp-for="ContactName" class="field-label">@L["Contact Person"] <span class="optional">@L["(optional)"]</span></label>
+            <input asp-for="ContactName" class="field-input" />
+            <span asp-validation-for="ContactName" class="field-error"></span>
+        </div>
+        <div class="field">
+            <label asp-for="Phone" class="field-label">@L["Phone"] <span class="optional">@L["(optional)"]</span></label>
+            <input asp-for="Phone" class="field-input" placeholder="+359 ..." />
+            <span asp-validation-for="Phone" class="field-error"></span>
+        </div>
+    </div>
+    <div class="field">
+        <label asp-for="Email" class="field-label">@L["Email"] <span class="optional">@L["(optional)"]</span></label>
+        <input asp-for="Email" class="field-input" placeholder="orders@example.com" />
+        <span asp-validation-for="Email" class="field-error"></span>
+    </div>
+</div>
+
+<div class="form-section">
+    <div class="form-section-title">@L["Notes"]</div>
+    <div class="field">
+        <label asp-for="Notes" class="field-label">@L["Notes"] <span class="optional">@L["(optional)"]</span></label>
+        <textarea asp-for="Notes" class="field-textarea" placeholder="…"></textarea>
+        <span asp-validation-for="Notes" class="field-error"></span>
+    </div>
+</div>

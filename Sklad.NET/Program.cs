@@ -1,7 +1,9 @@
 using System.Globalization;
+using System.Security.Claims;
 using System.Text.Encodings.Web;
 using System.Text.Unicode;
 using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.DataProtection;
@@ -37,6 +39,9 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
     .AddCookie(options =>
     {
         options.LoginPath = "/Account/Login";
+        // Role checks can now fail for signed-in users; land on the styled 403
+        // instead of cookie auth's default /Account/AccessDenied (a 404 here).
+        options.AccessDeniedPath = "/Home/Denied";
         options.Cookie.Name = "Sklad.Auth";
         options.Cookie.SameSite = SameSiteMode.Lax;
         // Always outside Development; Auth:AllowInsecureHttp opts a plain-HTTP
@@ -47,6 +52,20 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
                 : CookieSecurePolicy.Always;
         options.ExpireTimeSpan = TimeSpan.FromHours(12);
         options.SlidingExpiration = true;
+        // Cookies minted before a password reset, role change, or user deletion
+        // carry a stale stamp; reject them instead of honouring the 12-hour TTL.
+        options.Events.OnValidatePrincipal = async context =>
+        {
+            var idClaim = context.Principal?.FindFirstValue(System.Security.Claims.ClaimTypes.NameIdentifier);
+            var stamp = context.Principal?.FindFirstValue(Sklad.Controllers.AccountController.SecurityStampClaim);
+            var users = context.HttpContext.RequestServices.GetRequiredService<Sklad.Services.IUserService>();
+            if (!int.TryParse(idClaim, out var userId) || stamp is null ||
+                !await users.IsSecurityStampValidAsync(userId, stamp))
+            {
+                context.RejectPrincipal();
+                await context.HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            }
+        };
     });
 
 builder.Services.AddRateLimiter(options =>
@@ -92,6 +111,9 @@ builder.Services.AddDbContext<SkladDbContext>(options =>
         .AddInterceptors(new SqliteFunctionsInterceptor()));
 
 builder.Services.AddScoped<IInventoryService, InventoryService>();
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IPurchasingService, PurchasingService>();
+builder.Services.AddScoped<IExcelExportService, ExcelExportService>();
 
 var app = builder.Build();
 
@@ -136,6 +158,20 @@ using (var scope = app.Services.CreateScope())
     db.Database.ExecuteSqlRaw("PRAGMA journal_mode=WAL;");
     if (app.Environment.IsDevelopment())
         DbInitializer.Seed(db);
+
+    // First run after the multi-user migration: bootstrap the admin account from
+    // the same Auth:Username/Auth:Password configuration the single-account
+    // sign-in used, so an existing install keeps its credentials.
+    if (!db.Users.Any())
+    {
+        var seedUser = app.Configuration["Auth:Username"];
+        var seedPassword = app.Configuration["Auth:Password"];
+        if (!string.IsNullOrEmpty(seedUser) && !string.IsNullOrEmpty(seedPassword))
+        {
+            var users = scope.ServiceProvider.GetRequiredService<IUserService>();
+            await users.CreateUserAsync(seedUser, seedPassword, Sklad.Models.UserRole.Admin);
+        }
+    }
 }
 
 app.Run();

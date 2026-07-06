@@ -9,6 +9,10 @@ public class SkladDbContext : DbContext
 
     public DbSet<Tire> Tires => Set<Tire>();
     public DbSet<StockMovement> StockMovements => Set<StockMovement>();
+    public DbSet<AppUser> Users => Set<AppUser>();
+    public DbSet<Supplier> Suppliers => Set<Supplier>();
+    public DbSet<PurchaseOrder> PurchaseOrders => Set<PurchaseOrder>();
+    public DbSet<PurchaseOrderItem> PurchaseOrderItems => Set<PurchaseOrderItem>();
 
     // Maps to the connection-level unilower() (see SqliteFunctionsInterceptor);
     // the body is only a client-evaluation fallback.
@@ -43,6 +47,41 @@ public class SkladDbContext : DbContext
         modelBuilder.Entity<StockMovement>(entity =>
         {
             entity.Property(m => m.Date).HasDefaultValueSql("CURRENT_TIMESTAMP");
+        });
+
+        modelBuilder.Entity<AppUser>(entity =>
+        {
+            entity.HasIndex(u => u.Username).IsUnique();
+            entity.Property(u => u.Username).UseCollation("NOCASE");
+        });
+
+        modelBuilder.Entity<Supplier>(entity =>
+        {
+            entity.HasIndex(s => s.Name).IsUnique();
+            entity.Property(s => s.Name).UseCollation("NOCASE");
+
+            entity.HasMany(s => s.PurchaseOrders)
+                  .WithOne(o => o.Supplier)
+                  .HasForeignKey(o => o.SupplierId)
+                  .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<PurchaseOrder>(entity =>
+        {
+            entity.HasMany(o => o.Items)
+                  .WithOne(i => i.PurchaseOrder)
+                  .HasForeignKey(i => i.PurchaseOrderId)
+                  .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<PurchaseOrderItem>(entity =>
+        {
+            entity.Property(i => i.UnitCost).HasPrecision(18, 2);
+
+            entity.HasOne(i => i.Tire)
+                  .WithMany()
+                  .HasForeignKey(i => i.TireId)
+                  .OnDelete(DeleteBehavior.Restrict);
         });
     }
 }
