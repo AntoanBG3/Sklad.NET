@@ -348,6 +348,10 @@ public class InventoryService : IInventoryService
     public Task<byte[]> ExportCsvAsync(IEnumerable<Tire> tires)
     {
         var sb = new StringBuilder();
+        // European locales use ';' as the list separator, so Excel there dumps a
+        // comma CSV into one column; the sep= directive overrides that (Excel
+        // consumes the line, other spreadsheet apps at worst show it as a row).
+        sb.AppendLine("sep=,");
         sb.AppendLine("SKU,Barcode,Brand,Model,Size,Season,Type,UnitPrice,Qty,MinStock,Location");
         foreach (var t in tires)
         {

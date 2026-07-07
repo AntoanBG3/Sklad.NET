@@ -566,6 +566,17 @@ public class InventoryServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task Export_declares_comma_separator_so_excel_splits_columns_in_any_locale()
+    {
+        await using var context = _db.CreateContext();
+
+        var bytes = await CreateService(context).ExportCsvAsync(new[] { NewTire("SEP-1") });
+        var text = System.Text.Encoding.UTF8.GetString(bytes);
+
+        Assert.StartsWith("﻿sep=,", text);
+    }
+
+    [Fact]
     public async Task Export_quotes_fields_containing_carriage_returns()
     {
         await using var context = _db.CreateContext();
