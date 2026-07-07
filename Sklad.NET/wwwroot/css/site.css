@@ -565,7 +565,9 @@ a.stat:hover .stat-label { color: var(--black); }
 .po-table thead th.col-num { white-space: normal; }
 .po-table tbody td { vertical-align: middle; }
 .po-table .po-line-actions { text-align: right; }
-.po-total-hint { margin-left: auto; font-size: var(--f-0); }
+.po-table tfoot td { padding: var(--sp-3) var(--sp-2); vertical-align: middle; }
+.po-table tfoot .po-total-label { font-size: var(--f--1); color: var(--ink-50); }
+.po-table tfoot strong { font-weight: 700; white-space: nowrap; }
 
 /* cells that navigate to the tire — black like data, underline on hover */
 .row-link { color: inherit; display: block; }
@@ -790,7 +792,6 @@ a.stat:hover .stat-label { color: var(--black); }
     border-top: 1px solid var(--rule-soft);
     margin-top: var(--sp-5);
 }
-.form-actions .field-hint { margin-top: 0; }
 
 /* ============================================================
    Buttons — flat, square
@@ -847,7 +848,8 @@ a.stat:hover .stat-label { color: var(--black); }
     justify-content: end;
     justify-items: start;
 }
-.row-actions a {
+.row-actions a,
+.row-actions .ghost {
     font-size: var(--f--1);
     font-weight: 600;
     letter-spacing: 0.03em;
@@ -855,6 +857,9 @@ a.stat:hover .stat-label { color: var(--black); }
     color: var(--black);
     white-space: nowrap;
 }
+/* same-width stand-in for a missing action, so the ones present stay
+   in their columns across rows */
+.row-actions .ghost { visibility: hidden; }
 .row-actions a:hover { color: var(--red); text-decoration: none; }
 .row-actions a.act-danger:hover { color: var(--red); }
 

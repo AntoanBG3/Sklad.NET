@@ -83,11 +83,15 @@
                     </tr>
                 }
             </tbody>
+            <tfoot>
+                <tr>
+                    <td><button type="button" id="po-add" class="btn btn-secondary btn-sm">@L["Add Line"]</button></td>
+                    <td colspan="2" class="col-num po-total-label">@L["Total"]:</td>
+                    <td class="col-num"><strong id="po-total" class="mono" aria-live="polite">—</strong></td>
+                    <td></td>
+                </tr>
+            </tfoot>
         </table>
-    </div>
-    <div class="form-actions">
-        <button type="button" id="po-add" class="btn btn-secondary btn-sm">@L["Add Line"]</button>
-        <span class="field-hint po-total-hint">@L["Total"]: <strong id="po-total" class="mono">—</strong></span>
     </div>
 </div>
 

@@ -53,6 +53,10 @@
                                         {
                                             <a asp-action="Delete" asp-route-id="@u.Id">@L["Delete"]</a>
                                         }
+                                        else
+                                        {
+                                            <span class="ghost" aria-hidden="true">@L["Delete"]</span>
+                                        }
                                     </div>
                                 </td>
                             </tr>
