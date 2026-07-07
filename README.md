@@ -10,7 +10,7 @@ ASP.NET Core 10 MVC tire warehouse manager with EF Core (SQLite), a bilingual Bu
 - Low-stock report with deficit counts
 - Global movements journal with type, per-tire, and date-range filters (dates interpreted in shop time, Europe/Sofia)
 - Stock value report grouped by brand and season, with share-of-value breakdown
-- CSV export (respects the active filter, formula-injection safe, UTF-8 BOM for Excel) and Excel export (ClosedXML .xlsx with formatted headers, typed price/date cells, and EUR/BGN columns) for both the inventory and the movements journal
+- CSV export (respects the active filter, formula-injection safe, UTF-8 BOM and a `sep=,` header so Excel opens it correctly in any locale) and Excel export (ClosedXML .xlsx with formatted headers, typed price/date cells, and EUR/BGN columns) for both the inventory and the movements journal
 - Supplier management and purchase orders with a Draft → Ordered → Received / Cancelled lifecycle; receiving an order books the stock through the movement ledger with the PO number in the audit trail
 - One-click database backup download (consistent `VACUUM INTO` snapshot, no downtime)
 - Multi-user accounts with Admin/User roles: hashed passwords, per-IP login rate limiting, and immediate session invalidation on password or role changes; admin-only user management, backups, and deletions
@@ -39,7 +39,7 @@ Accounts live in the database. On first start with an empty `Users` table, an ad
 dotnet test Sklad.Tests/Sklad.Tests.csproj
 ```
 
-The xUnit suite (129 tests) covers the inventory service (movement rules, concurrency, search/filtering/paging, CSV escaping), the purchasing service (order lifecycle, receive-to-ledger, guards), the user service (hashing, credential validation, last-admin/self-delete guards, session invalidation), Excel workbook contents, controller error paths, flexible decimal binding, Bulgarian resource coverage, the money helpers and tag helper, and the backup endpoint. CI runs build (warnings as errors) + tests on every push and pull request (`.github/workflows/ci.yml`).
+The xUnit suite (130 tests) covers the inventory service (movement rules, concurrency, search/filtering/paging, CSV escaping), the purchasing service (order lifecycle, receive-to-ledger, guards), the user service (hashing, credential validation, last-admin/self-delete guards, session invalidation), Excel workbook contents, controller error paths, flexible decimal binding, Bulgarian resource coverage, the money helpers and tag helper, and the backup endpoint. CI runs build (warnings as errors) + tests on every push and pull request (`.github/workflows/ci.yml`).
 
 ## Database
 
