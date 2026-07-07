@@ -396,4 +396,5 @@
   <data name="Delete" xml:space="preserve"><value>Изтрий</value></data>
   <data name="Access denied" xml:space="preserve"><value>Отказан достъп</value></data>
   <data name="You do not have permission to view this page." xml:space="preserve"><value>Нямате права да видите тази страница.</value></data>
+  <data name="Rack A-3" xml:space="preserve"><value>Рафт А-3</value></data>
 </root>

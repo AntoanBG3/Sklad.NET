@@ -1063,6 +1063,9 @@ button.quiet-danger { border: 0; background: none; padding: 0; cursor: pointer; 
     .statband { grid-template-columns: 1fr; }
     .stat { border-left: 0; padding-left: 0; border-top: 1px solid var(--rule-soft); }
     .stat:first-child { border-top: 0; }
+    /* three uppercase Bulgarian labels (ВХОДЯЩО / ИЗХОДЯЩО / КОРЕКЦИЯ) crowd the
+       equal thirds at phone widths; trim spacing so they stay on one line */
+    .segmented .segment span { padding-inline: var(--sp-1); letter-spacing: 0.02em; }
 }
 
 /* iOS Safari zooms into any focused input under 16px */
