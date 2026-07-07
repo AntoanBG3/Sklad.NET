@@ -208,7 +208,7 @@ public class PurchasingServiceTests : IDisposable
         }
 
         await using var context = _db.CreateContext();
-        var inventory = new InventoryService(context, NullLogger<InventoryService>.Instance);
+        var inventory = new InventoryService(context, NullLogger<InventoryService>.Instance, new FakeLocalizer<SharedResource>());
         await Assert.ThrowsAsync<TireOnOrderException>(() => inventory.DeleteTireAsync(tireId));
     }
 

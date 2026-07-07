@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 using Sklad.Data;
 using Sklad.Helpers;
@@ -16,11 +17,13 @@ public class InventoryService : IInventoryService
 
     private readonly SkladDbContext _db;
     private readonly ILogger<InventoryService> _logger;
+    private readonly IStringLocalizer<SharedResource> _l;
 
-    public InventoryService(SkladDbContext db, ILogger<InventoryService> logger)
+    public InventoryService(SkladDbContext db, ILogger<InventoryService> logger, IStringLocalizer<SharedResource> l)
     {
         _db = db;
         _logger = logger;
+        _l = l;
     }
 
     public async Task<PagedResult<Tire>> SearchAsync(TireFilterViewModel filter, int pageSize = DefaultPageSize)
@@ -352,12 +355,19 @@ public class InventoryService : IInventoryService
         // comma CSV into one column; the sep= directive overrides that (Excel
         // consumes the line, other spreadsheet apps at worst show it as a row).
         sb.AppendLine("sep=,");
-        sb.AppendLine("SKU,Barcode,Brand,Model,Size,Season,Type,UnitPrice,Qty,MinStock,Location");
+        // Headers and Season/Type go through the localizer so the CSV matches the
+        // Excel export instead of dumping raw enum names under a Bulgarian UI.
+        sb.AppendLine(string.Join(',', new[]
+        {
+            "SKU", "Barcode", "Brand", "Model", "Size", "Season", "Type",
+            "Unit Price (EUR)", "Quantity", "Min Stock", "Location"
+        }.Select(h => Csv(_l[h].Value))));
         foreach (var t in tires)
         {
             sb.AppendLine(
                 $"{Csv(t.Sku)},{Csv(t.Barcode ?? "")},{Csv(t.Brand)},{Csv(t.Model)},{Csv(t.Size)}," +
-                $"{t.Season},{t.Type},{t.UnitPrice.ToString("F2", CultureInfo.InvariantCulture)},{t.Quantity},{t.MinStock},{Csv(t.Location ?? "")}");
+                $"{Csv(_l[Enums.Key(t.Season)].Value)},{Csv(_l[Enums.Key(t.Type)].Value)}," +
+                $"{t.UnitPrice.ToString("F2", CultureInfo.InvariantCulture)},{t.Quantity},{t.MinStock},{Csv(t.Location ?? "")}");
         }
         // BOM: Excel otherwise opens UTF-8 CSV as ANSI and garbles Cyrillic.
         var payload = Encoding.UTF8.GetBytes(sb.ToString());

@@ -12,7 +12,7 @@ public class InventoryServiceTests : IDisposable
     private readonly TestDb _db = new();
 
     private InventoryService CreateService(Data.SkladDbContext context) =>
-        new(context, NullLogger<InventoryService>.Instance);
+        new(context, NullLogger<InventoryService>.Instance, new FakeLocalizer<SharedResource>());
 
     private static Tire NewTire(string sku, string brand = "Michelin", string model = "Primacy 4",
         int width = 205, int profile = 55, int diameter = 16,
@@ -574,6 +574,35 @@ public class InventoryServiceTests : IDisposable
         var text = System.Text.Encoding.UTF8.GetString(bytes);
 
         Assert.StartsWith("﻿sep=,", text);
+    }
+
+    [Fact]
+    public async Task Export_localizes_season_and_type_instead_of_raw_enum_names()
+    {
+        // Enums.Key maps AllSeason to "All-Season"; a raw ToString would emit
+        // "AllSeason". The hyphen proves the value went through the localizer.
+        var tire = NewTire("LOC-1", season: Season.AllSeason, type: TireType.Retreaded);
+        await using var context = _db.CreateContext();
+
+        var bytes = await CreateService(context).ExportCsvAsync(new[] { tire });
+        var text = System.Text.Encoding.UTF8.GetString(bytes);
+
+        Assert.Contains("All-Season", text);
+        Assert.DoesNotContain("AllSeason", text);
+        Assert.Contains("Retreaded", text);
+    }
+
+    [Fact]
+    public async Task Export_localizes_header_row_to_match_excel()
+    {
+        await using var context = _db.CreateContext();
+
+        var bytes = await CreateService(context).ExportCsvAsync(new[] { NewTire("HDR-1") });
+        var text = System.Text.Encoding.UTF8.GetString(bytes);
+        var headerLine = text.Split('\n')[1];
+
+        Assert.Contains("Unit Price (EUR)", headerLine);
+        Assert.Contains("Min Stock", headerLine);
     }
 
     [Fact]

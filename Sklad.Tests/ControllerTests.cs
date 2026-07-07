@@ -23,7 +23,7 @@ public class TiresControllerTests : IDisposable
 
     private TiresController CreateController(SkladDbContext context)
     {
-        var service = new InventoryService(context, NullLogger<InventoryService>.Instance);
+        var service = new InventoryService(context, NullLogger<InventoryService>.Instance, new FakeLocalizer<SharedResource>());
         var excel = new ExcelExportService(new FakeLocalizer<SharedResource>());
         var httpContext = new DefaultHttpContext();
         var controller = new TiresController(service, excel, new FakeLocalizer<SharedResource>())
@@ -239,7 +239,7 @@ public class TiresControllerTests : IDisposable
             seed.Tires.Add(tire);
             await seed.SaveChangesAsync();
             tireId = tire.Id;
-            var service = new InventoryService(seed, NullLogger<InventoryService>.Instance);
+            var service = new InventoryService(seed, NullLogger<InventoryService>.Instance, new FakeLocalizer<SharedResource>());
             await service.RegisterMovementAsync(tireId, MovementType.In, 1, null);
         }
 
@@ -431,7 +431,7 @@ public class MovementsControllerTests : IDisposable
         }
 
         await using var context = _db.CreateContext();
-        var service = new InventoryService(context, NullLogger<InventoryService>.Instance);
+        var service = new InventoryService(context, NullLogger<InventoryService>.Instance, new FakeLocalizer<SharedResource>());
         var controller = new MovementsController(service, new ExcelExportService(new FakeLocalizer<SharedResource>()));
 
         var result = await controller.Index(null, null, new DateOnly(2026, 7, 1), new DateOnly(2026, 7, 1));

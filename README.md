@@ -39,7 +39,7 @@ Accounts live in the database. On first start with an empty `Users` table, an ad
 dotnet test Sklad.Tests/Sklad.Tests.csproj
 ```
 
-The xUnit suite (130 tests) covers the inventory service (movement rules, concurrency, search/filtering/paging, CSV escaping), the purchasing service (order lifecycle, receive-to-ledger, guards), the user service (hashing, credential validation, last-admin/self-delete guards, session invalidation), Excel workbook contents, controller error paths, flexible decimal binding, Bulgarian resource coverage, the money helpers and tag helper, and the backup endpoint. CI runs build (warnings as errors) + tests on every push and pull request (`.github/workflows/ci.yml`).
+The xUnit suite (132 tests) covers the inventory service (movement rules, concurrency, search/filtering/paging, CSV escaping and localized headers), the purchasing service (order lifecycle, receive-to-ledger, guards), the user service (hashing, credential validation, last-admin/self-delete guards, session invalidation), Excel workbook contents, controller error paths, flexible decimal binding, Bulgarian resource coverage, the money helpers and tag helper, and the backup endpoint. CI runs build (warnings as errors) + tests on every push and pull request (`.github/workflows/ci.yml`).
 
 ## Database
 

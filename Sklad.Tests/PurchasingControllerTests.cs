@@ -21,7 +21,7 @@ public class PurchaseOrdersControllerTests : IDisposable
     private static PurchaseOrdersController CreateController(SkladDbContext context, string? userName = null)
     {
         var purchasing = new PurchasingService(context, NullLogger<PurchasingService>.Instance);
-        var inventory = new InventoryService(context, NullLogger<InventoryService>.Instance);
+        var inventory = new InventoryService(context, NullLogger<InventoryService>.Instance, new FakeLocalizer<SharedResource>());
         var httpContext = new DefaultHttpContext();
         if (userName is not null)
             httpContext.User = new ClaimsPrincipal(new ClaimsIdentity([new Claim(ClaimTypes.Name, userName)], "test"));
