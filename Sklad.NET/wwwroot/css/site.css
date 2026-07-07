@@ -516,7 +516,9 @@ a.stat:hover .stat-label { color: var(--black); }
 .data-table tbody tr[data-href] td { transition: background-color 120ms ease; }
 .data-table tbody tr[data-href]:hover td { background: var(--gray); }
 .data-table .col-num { text-align: right; font-variant-numeric: tabular-nums; }
-.data-table th.col-num, .data-table td.col-num { white-space: nowrap; }
+/* headers may wrap (fixed layout would let long bg-BG labels overlap
+   neighbours otherwise); data cells stay on one line */
+.data-table td.col-num { white-space: nowrap; }
 .data-table .cell-strong { font-weight: 600; }
 .data-table .cell-muted { color: var(--ink-50); }
 .data-table td.mono { white-space: nowrap; }
@@ -562,7 +564,6 @@ a.stat:hover .stat-label { color: var(--black); }
 .data-table col.w-po-total { width: 17%; }
 .data-table col.w-po-act   { width: 14%; }
 .po-table { min-width: 40rem; }
-.po-table thead th.col-num { white-space: normal; }
 .po-table tbody td { vertical-align: middle; }
 .po-table .po-line-actions { text-align: right; }
 .po-table tfoot td { padding: var(--sp-3) var(--sp-2); vertical-align: middle; }
