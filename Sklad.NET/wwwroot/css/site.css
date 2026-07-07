@@ -202,6 +202,7 @@ img, svg { display: block; max-width: 100%; }
     letter-spacing: 0.06em;
     color: var(--ink-50);
     font-variant-numeric: tabular-nums;
+    white-space: nowrap;
 }
 
 .topnav {
@@ -213,20 +214,23 @@ img, svg { display: block; max-width: 100%; }
 .topnav a {
     display: flex;
     align-items: center;
-    padding-inline: var(--sp-4);
+    padding-inline: var(--sp-3);
     color: var(--black);
     font-size: var(--f--1);
     font-weight: 600;
     letter-spacing: 0.04em;
     text-transform: uppercase;
+    /* labels never break mid-word; when the row is too tight the nav
+       drops to its own row instead (see the responsive block) */
+    white-space: nowrap;
     position: relative;
 }
 .topnav a:hover { text-decoration: none; }
 .topnav a::after {
     content: "";
     position: absolute;
-    left: var(--sp-4);
-    right: var(--sp-4);
+    left: var(--sp-3);
+    right: var(--sp-3);
     bottom: -1px;
     height: 3px;
     background: var(--red);
@@ -551,6 +555,18 @@ a.stat:hover .stat-label { color: var(--black); }
 .data-table col.w-muser { width: 12%; }
 .data-table col.w-mnote { width: 30%; }
 
+/* purchase order line editor — inputs need room, headers may wrap */
+.data-table col.w-po-tire  { width: 40%; }
+.data-table col.w-po-qty   { width: 13%; }
+.data-table col.w-po-cost  { width: 16%; }
+.data-table col.w-po-total { width: 17%; }
+.data-table col.w-po-act   { width: 14%; }
+.po-table { min-width: 40rem; }
+.po-table thead th.col-num { white-space: normal; }
+.po-table tbody td { vertical-align: middle; }
+.po-table .po-line-actions { text-align: right; }
+.po-total-hint { margin-left: auto; font-size: var(--f-0); }
+
 /* cells that navigate to the tire — black like data, underline on hover */
 .row-link { color: inherit; display: block; }
 .row-link:hover { color: inherit; text-decoration: underline; }
@@ -768,11 +784,13 @@ a.stat:hover .stat-label { color: var(--black); }
 .form-actions {
     display: flex;
     flex-wrap: wrap;
+    align-items: center;
     gap: var(--sp-2);
     padding-top: var(--sp-5);
     border-top: 1px solid var(--rule-soft);
     margin-top: var(--sp-5);
 }
+.form-actions .field-hint { margin-top: 0; }
 
 /* ============================================================
    Buttons — flat, square
@@ -995,9 +1013,10 @@ button.quiet-danger { border: 0; background: none; padding: 0; cursor: pointer; 
 /* ============================================================
    Responsive
    ============================================================ */
-/* topbar: below this width the tab row overflows, so the nav drops to
-   its own full-bleed, horizontally scrollable row under the wordmark */
-@media (max-width: 1080px) {
+/* topbar: below this width the tab row overflows (Bulgarian labels set
+   the bar), so the nav drops to its own full-bleed, horizontally
+   scrollable row under the wordmark */
+@media (max-width: 1360px) {
     .topbar-inner { height: auto; flex-wrap: wrap; }
     .wordmark { height: var(--topbar-h); }
     .topnav {

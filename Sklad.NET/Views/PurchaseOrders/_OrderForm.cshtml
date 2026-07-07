@@ -5,7 +5,7 @@
     var tires = (IReadOnlyList<Sklad.Models.Tire>)ViewBag.Tires;
 }
 
-<div asp-validation-summary="All" class="form-errors"></div>
+<div asp-validation-summary="ModelOnly" class="form-errors"></div>
 
 <div class="form-section">
     <div class="form-section-title">@L["Order"]</div>
@@ -32,7 +32,14 @@
 <div class="form-section">
     <div class="form-section-title">@L["Order Lines"]</div>
     <div class="table-scroll">
-        <table class="data-table" id="po-lines">
+        <table class="data-table po-table" id="po-lines">
+            <colgroup>
+                <col class="w-po-tire" />
+                <col class="w-po-qty" />
+                <col class="w-po-cost" />
+                <col class="w-po-total" />
+                <col class="w-po-act" />
+            </colgroup>
             <thead>
                 <tr>
                     <th scope="col">@L["Tire"]</th>
@@ -72,7 +79,7 @@
                             <span asp-validation-for="Items[i].UnitCost" class="field-error"></span>
                         </td>
                         <td class="col-num mono po-line-total"></td>
-                        <td><button type="button" class="navlink po-remove">@L["Remove"]</button></td>
+                        <td class="po-line-actions"><button type="button" class="quiet-danger po-remove">@L["Remove"]</button></td>
                     </tr>
                 }
             </tbody>
@@ -80,7 +87,7 @@
     </div>
     <div class="form-actions">
         <button type="button" id="po-add" class="btn btn-secondary btn-sm">@L["Add Line"]</button>
-        <span class="field-hint">@L["Total"]: <strong id="po-total" class="mono">—</strong></span>
+        <span class="field-hint po-total-hint">@L["Total"]: <strong id="po-total" class="mono">—</strong></span>
     </div>
 </div>
 
@@ -103,7 +110,7 @@
             <input name="Items[__i__].UnitCost" class="field-input po-cost" inputmode="decimal" placeholder="0.00" aria-label="@L["Unit Cost (€)"]" />
         </td>
         <td class="col-num mono po-line-total"></td>
-        <td><button type="button" class="navlink po-remove">@L["Remove"]</button></td>
+        <td class="po-line-actions"><button type="button" class="quiet-danger po-remove">@L["Remove"]</button></td>
     </tr>
 </template>
 
