@@ -1,6 +1,6 @@
 # TODO — Sklad.NET feature backlog
 
-Status markers: [ ] not started, [~] in progress, [x] done
+All planned work is complete. This log records what shipped, in order.
 
 ---
 
@@ -34,15 +34,15 @@ Full CRUD for Tire, EF Core with SQLite, seed data (15 tires), Bootstrap UI. Don
 
 ---
 
-## [x] 5. Hardening and feature round (from IMPROVEMENTS.md, 2026-07-03)
+## [x] 5. Hardening and feature round (2026-07-03)
 
-All items from `IMPROVEMENTS.md` implemented: barcode-wipe/duplicate-SKU/delete-guard/NRE bug fixes, ledger-only quantity changes with `Tire.Version` concurrency token, typed service exceptions with localized messages, cookie authentication with per-movement user attribution, movements journal (`/Movements`), stock value report, scan box, pagination + sorting, CSV formula-injection guard, self-hosted Inter font, dev-only seeding, DataProtection key persistence, culture validation, `Sklad.Tests` xUnit suite (48 tests), GitHub Actions CI, dead-asset cleanup (Bootstrap dist, unreachable views, SqlServer package). Also fixed two newly discovered pre-existing bugs: Bulgarian localization never resolved at runtime (assembly-name vs root-namespace mismatch), and decimal ORDER BY crashed EF's SQLite provider under the bg-BG culture.
+Barcode-wipe/duplicate-SKU/delete-guard/NRE bug fixes, ledger-only quantity changes with `Tire.Version` concurrency token, typed service exceptions with localized messages, cookie authentication with per-movement user attribution, movements journal (`/Movements`), stock value report, scan box, pagination + sorting, CSV formula-injection guard, self-hosted Inter font, dev-only seeding, DataProtection key persistence, culture validation, `Sklad.Tests` xUnit suite (48 tests), GitHub Actions CI, dead-asset cleanup (Bootstrap dist, unreachable views, SqlServer package). Also fixed two newly discovered pre-existing bugs: Bulgarian localization never resolved at runtime (assembly-name vs root-namespace mismatch), and decimal ORDER BY crashed EF's SQLite provider under the bg-BG culture.
 
 ---
 
-## [x] 6. Second review round (from IMPROVEMENTS-2.md, 2026-07-04)
+## [x] 6. Second review round (2026-07-04)
 
-All 38 items from `IMPROVEMENTS-2.md` implemented: culture-safe decimal binding (dot and comma both accepted, comma never a group separator), client-side validation restored (jQuery include had been lost) with comma-aware rules, movement-retry 500 fixed plus a latent change-tracker bug in the retry loop, CSV UTF-8 BOM, NOCASE SKU/barcode collation with Cyrillic-insensitive search (`unilower`), duplicate-SKU race handling, safe culture returnUrl, login rate limiting, pinned cookie policy, security headers, styled 404, flash confirmations with redirect-to-details, blank-start numeric forms, page clamping, tire links in tables, scan button + autofocus, movement type preselect and live stock projection, delete pre-warn, filter clear, per-tire movements journal with capped Details history, Europe/Sofia timestamps, a11y round (scope/aria-sort/aria-current), database backup download (`VACUUM INTO`), WAL mode, brand favicon, print styles, share-of-value report column, and housekeeping. Tests 48 → 82.
+Culture-safe decimal binding (dot and comma both accepted, comma never a group separator), client-side validation restored (jQuery include had been lost) with comma-aware rules, movement-retry 500 fixed plus a latent change-tracker bug in the retry loop, CSV UTF-8 BOM, NOCASE SKU/barcode collation with Cyrillic-insensitive search (`unilower`), duplicate-SKU race handling, safe culture returnUrl, login rate limiting, pinned cookie policy, security headers, styled 404, flash confirmations with redirect-to-details, blank-start numeric forms, page clamping, tire links in tables, scan button + autofocus, movement type preselect and live stock projection, delete pre-warn, filter clear, per-tire movements journal with capped Details history, Europe/Sofia timestamps, a11y round (scope/aria-sort/aria-current), database backup download (`VACUUM INTO`), WAL mode, brand favicon, print styles, share-of-value report column, and housekeeping. Tests 48 → 82.
 
 ---
 
@@ -64,7 +64,6 @@ Migration `SuppliersOrdersUsers`; tests 94 → 129.
 
 ---
 
-## [ ] Future ideas
+## [x] 9. Quick-reorder a tire into a pre-filled purchase order (2026-07-08)
 
-- Purchase-order PDF/print layout
-- Email notifications on low stock
+An "Order from supplier" action on a tire's Details page and an "Order" link in the Low Stock list open the purchase order Create form with the tire pre-selected on the first order line. When the tire is below its minimum, the line quantity is pre-filled with the deficit (MinStock - Quantity) so restocking is one confirmation away. Create (GET) accepts an optional `tireId` and falls back to a blank line for an unknown id. Suite now at 135 tests.

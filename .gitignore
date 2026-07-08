@@ -6,9 +6,10 @@ out/
 ## Tool / agent logs
 *.log
 
-## AI assistant files — local only, never publish
+## Local developer files
 CLAUDE.md
 .claude/
+
 ## NuGet
 *.nupkg
 *.snupkg
