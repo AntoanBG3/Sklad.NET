@@ -1,26 +1,26 @@
-# Sklad.NET — Tire Warehouse Management System
+# Sklad.NET: Tire Warehouse Management System
 
-ASP.NET Core 10 MVC tire warehouse manager with EF Core (SQLite), a bilingual Bulgarian/English UI, and dual EUR/BGN price display.
+An ASP.NET Core 10 MVC application for running a tire shop's stock. It uses EF Core with SQLite, a bilingual Bulgarian and English interface, and shows every price in EUR with BGN alongside.
 
 ## Features
 
-- Tire inventory CRUD with search, sortable columns, and pagination; filter dropdowns (brand, width, profile, diameter) list only values actually in stock, plus season, type, location, and low-stock-only filters
-- Stock movement ledger: In / Out / Adjustment with a full audit trail and per-user attribution; stock counts change only through movements, with optimistic-concurrency protection against simultaneous edits
-- Barcode support: scan box on the inventory page jumps straight to a tire by SKU or barcode (Cyrillic- and case-insensitive)
-- Low-stock report with deficit counts
-- Global movements journal with type, per-tire, and date-range filters (dates interpreted in shop time, Europe/Sofia)
-- Stock value report grouped by brand and season, with share-of-value breakdown
-- CSV export (respects the active filter, formula-injection safe, UTF-8 BOM and a `sep=,` header so Excel opens it correctly in any locale) and Excel export (ClosedXML .xlsx with formatted headers, typed price/date cells, and EUR/BGN columns) for both the inventory and the movements journal
-- Supplier management and purchase orders with a Draft → Ordered → Received / Cancelled lifecycle; receiving an order books the stock through the movement ledger with the PO number in the audit trail
-- One-click database backup download (consistent `VACUUM INTO` snapshot, no downtime)
-- Multi-user accounts with Admin/User roles: hashed passwords, per-IP login rate limiting, and immediate session invalidation on password or role changes; admin-only user management, backups, and deletions
-- Bulgarian (default) and English UI; prices shown in EUR with BGN alongside at the fixed 1.95583 rate
-- Print-friendly styles, styled error/404 pages, unsaved-changes and double-submit guards
+- Tire inventory with create, edit, delete, search, sortable columns, and pagination. Filter dropdowns for brand, width, profile, and diameter list only values that are actually in stock, and there are separate filters for season, type, location, and low stock.
+- A stock movement ledger with In, Out, and Adjustment entries. Every movement is recorded with the user who made it, and stock counts change only through movements. Concurrent edits are caught by optimistic concurrency instead of silently overwriting each other.
+- Barcode lookup: the scan box on the inventory page jumps straight to a tire by SKU or barcode, and it handles Cyrillic and mixed case.
+- A low-stock report that shows how many units each tire is short.
+- A global movements journal filtered by type, by tire, and by date range, with dates read in shop time (Europe/Sofia).
+- A stock value report grouped by brand and season, showing each group's share of total value.
+- CSV export and Excel export for both the inventory and the movements journal. The CSV respects the active filter, guards against formula injection, and starts with a `sep=,` line and a UTF-8 BOM so Excel opens it correctly under any locale. The Excel file (ClosedXML) has formatted headers, typed price and date cells, and separate EUR and BGN columns.
+- Supplier records and purchase orders that move through a Draft, Ordered, Received, or Cancelled lifecycle. Receiving an order books the stock through the same movement ledger and records the purchase order number in the audit trail.
+- One-click database backup download using a consistent `VACUUM INTO` snapshot, with no downtime.
+- Multi-user accounts with Admin and User roles. Passwords are hashed, sign-in is rate limited per IP, and changing a password or role invalidates that user's session immediately. User management, backups, and deletions are restricted to admins.
+- Bulgarian by default with an English option throughout. Prices are stored in EUR and shown with BGN at the fixed 1.95583 rate.
+- Print-friendly styles, styled error and 404 pages, and unsaved-changes and double-submit guards on forms.
 
 ## Prerequisites
 
 - .NET 10 SDK
-- `dotnet ef` global tool for migrations (`dotnet tool install --global dotnet-ef`)
+- The `dotnet ef` global tool for migrations (`dotnet tool install --global dotnet-ef`)
 
 ## Quick start
 
@@ -31,7 +31,7 @@ dotnet run
 
 The app applies migrations automatically and, in Development, seeds 15 sample tires with opening-stock movements on first start. Open `http://localhost:5246` and sign in with the development credentials from `appsettings.Development.json`: username `admin`, password `sklad-dev`.
 
-Accounts live in the database. On first start with an empty `Users` table, an administrator account is created from the `Auth:Username`/`Auth:Password` configuration (environment variables `Auth__Username` and `Auth__Password`, or user secrets); after that, manage accounts from the **Users** page (admin only). Sign-in is impossible until the first admin exists, and sample data is not seeded outside Development. If the app is served over plain HTTP on a trusted LAN, set `Auth__AllowInsecureHttp=true`; otherwise the auth cookie is marked secure-only and sign-in will not stick without HTTPS.
+Accounts live in the database. On first start with an empty `Users` table, an administrator account is created from the `Auth:Username` and `Auth:Password` configuration (environment variables `Auth__Username` and `Auth__Password`, or user secrets). After that, manage accounts from the **Users** page, which is admin only. Sign-in is impossible until the first admin exists, and sample data is not seeded outside Development. If the app is served over plain HTTP on a trusted LAN, set `Auth__AllowInsecureHttp=true`; otherwise the auth cookie is marked secure-only and sign-in will not stick without HTTPS.
 
 ## Tests
 
@@ -39,11 +39,11 @@ Accounts live in the database. On first start with an empty `Users` table, an ad
 dotnet test Sklad.Tests/Sklad.Tests.csproj
 ```
 
-The xUnit suite (132 tests) covers the inventory service (movement rules, concurrency, search/filtering/paging, CSV escaping and localized headers), the purchasing service (order lifecycle, receive-to-ledger, guards), the user service (hashing, credential validation, last-admin/self-delete guards, session invalidation), Excel workbook contents, controller error paths, flexible decimal binding, Bulgarian resource coverage, the money helpers and tag helper, and the backup endpoint. CI runs build (warnings as errors) + tests on every push and pull request (`.github/workflows/ci.yml`).
+The xUnit suite has 135 tests. They cover the inventory service (movement rules, concurrency, search, filtering, paging, CSV escaping, and localized headers), the purchasing service (order lifecycle, receive-to-ledger, and guards), the user service (hashing, credential validation, last-admin and self-delete guards, and session invalidation), the Excel workbook contents, controller error paths, flexible decimal binding, Bulgarian resource coverage, the money helpers and tag helper, and the backup endpoint. CI builds with warnings as errors and runs the suite on every push and pull request (`.github/workflows/ci.yml`).
 
 ## Database
 
-Dev database is **SQLite** (`sklad.db` in the project folder, auto-created on first run, WAL journal mode). `Tire.Version` is a concurrency token: concurrent edits or simultaneous stock movements are detected instead of silently losing updates. A consistent backup can be downloaded from the stock value report page at any time.
+The development database is **SQLite** (`sklad.db` in the project folder, created on first run, WAL journal mode). `Tire.Version` is a concurrency token, so concurrent edits or simultaneous stock movements are detected rather than losing an update. A consistent backup can be downloaded from the stock value report page at any time.
 
 ### Switch to SQL Server LocalDB
 
@@ -53,17 +53,17 @@ Dev database is **SQLite** (`sklad.db` in the project folder, auto-created on fi
    ```json
    "DefaultConnection": "Server=(localdb)\\mssqllocaldb;Database=SkladDb;Trusted_Connection=True;MultipleActiveResultSets=true"
    ```
-4. In `Program.cs` replace `UseSqlite` with `UseSqlServer` and remove the SQLite-specific pieces (`SqliteFunctionsInterceptor`, the WAL `PRAGMA`).
+4. In `Program.cs` replace `UseSqlite` with `UseSqlServer` and remove the SQLite-specific pieces (`SqliteFunctionsInterceptor` and the WAL `PRAGMA`).
 5. Remove `Microsoft.EntityFrameworkCore.Sqlite` and `SQLitePCLRaw.lib.e_sqlite3` from the `.csproj`.
-6. Remove the `CURRENT_TIMESTAMP` default for `StockMovement.Date` in `SkladDbContext.OnModelCreating` (SQL Server syntax differs; the service sets the date explicitly anyway).
-7. Drop the existing migrations and recreate:
+6. Remove the `CURRENT_TIMESTAMP` default for `StockMovement.Date` in `SkladDbContext.OnModelCreating` (SQL Server syntax differs, and the service sets the date explicitly anyway).
+7. Drop the existing migrations and recreate them:
    ```bash
    dotnet ef migrations remove
    dotnet ef migrations add InitialCreate
    dotnet ef database update
    ```
 
-Note: case/Cyrillic-insensitive search relies on a custom SQLite function (`unilower`); on SQL Server, replace those queries with an appropriate collation.
+Note: the case-insensitive and Cyrillic-insensitive search relies on a custom SQLite function (`unilower`). On SQL Server, replace those queries with an appropriate collation.
 
 ## Project structure
 
@@ -93,4 +93,4 @@ Sklad.Tests/             xUnit test suite
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT. See [LICENSE](LICENSE).
