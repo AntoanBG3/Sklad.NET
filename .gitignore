@@ -3,6 +3,8 @@ bin/
 obj/
 out/
 
+## Tool / agent logs
+*.log
 ## NuGet
 *.nupkg
 *.snupkg
