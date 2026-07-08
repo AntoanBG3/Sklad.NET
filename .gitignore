@@ -5,6 +5,10 @@ out/
 
 ## Tool / agent logs
 *.log
+
+## AI assistant files — local only, never publish
+CLAUDE.md
+.claude/
 ## NuGet
 *.nupkg
 *.snupkg
