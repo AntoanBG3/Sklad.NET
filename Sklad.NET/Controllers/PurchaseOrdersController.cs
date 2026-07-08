@@ -40,14 +40,22 @@ public class PurchaseOrdersController : Controller
         return View(order);
     }
 
-    // GET: /PurchaseOrders/Create?supplierId=5
-    public async Task<IActionResult> Create(int? supplierId)
+    // GET: /PurchaseOrders/Create?supplierId=5&tireId=12
+    public async Task<IActionResult> Create(int? supplierId, int? tireId)
     {
         await LoadFormOptionsAsync();
+        var item = new PurchaseOrderItemViewModel();
+        if (tireId is int id && await _inventory.GetTireAsync(id) is { } tire)
+        {
+            item.TireId = tire.Id;
+            var deficit = tire.MinStock - tire.Quantity;
+            if (deficit > 0)
+                item.Quantity = deficit;
+        }
         return View(new PurchaseOrderFormViewModel
         {
             SupplierId = supplierId,
-            Items = [new PurchaseOrderItemViewModel()]
+            Items = [item]
         });
     }
 

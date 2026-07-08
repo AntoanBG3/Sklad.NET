@@ -90,6 +90,7 @@
                                     <td>
                                         <div class="row-actions">
                                             <a asp-action="RegisterMovement" asp-route-id="@t.Id" asp-route-type="@MovementType.In" asp-route-returnUrl="/Tires/LowStock">@L["Move"]</a>
+                                            <a asp-controller="PurchaseOrders" asp-action="Create" asp-route-tireId="@t.Id">@L["Order"]</a>
                                             <a asp-action="Edit" asp-route-id="@t.Id" asp-route-returnUrl="/Tires/LowStock">@L["Edit"]</a>
                                         </div>
                                     </td>

@@ -94,6 +94,60 @@ public class PurchaseOrdersControllerTests : IDisposable
     }
 
     [Fact]
+    public async Task Create_get_with_tireId_prefills_an_order_line()
+    {
+        var (_, tireId) = await SeedAsync();
+        await using var context = _db.CreateContext();
+        var controller = CreateController(context);
+
+        var result = await controller.Create(supplierId: null, tireId: tireId);
+
+        var view = Assert.IsType<ViewResult>(result);
+        var vm = Assert.IsType<PurchaseOrderFormViewModel>(view.Model);
+        var item = Assert.Single(vm.Items);
+        Assert.Equal(tireId, item.TireId);
+        Assert.Null(item.Quantity);
+        Assert.Null(item.UnitCost);
+    }
+
+    [Fact]
+    public async Task Create_get_with_low_stock_tire_suggests_the_deficit_quantity()
+    {
+        int tireId;
+        await using (var setup = _db.CreateContext())
+        {
+            var tire = new Tire
+            {
+                Sku = "LOW-1", Brand = "Test", Model = "M", Width = 195, Profile = 65, Diameter = 15,
+                Season = Season.Winter, Type = TireType.New, UnitPrice = 80m, Quantity = 1, MinStock = 5
+            };
+            setup.Tires.Add(tire);
+            await setup.SaveChangesAsync();
+            tireId = tire.Id;
+        }
+        await using var context = _db.CreateContext();
+        var controller = CreateController(context);
+
+        var result = await controller.Create(supplierId: null, tireId: tireId);
+
+        var vm = Assert.IsType<PurchaseOrderFormViewModel>(Assert.IsType<ViewResult>(result).Model);
+        Assert.Equal(4, Assert.Single(vm.Items).Quantity);
+    }
+
+    [Fact]
+    public async Task Create_get_with_unknown_tireId_falls_back_to_a_blank_line()
+    {
+        await SeedAsync();
+        await using var context = _db.CreateContext();
+        var controller = CreateController(context);
+
+        var result = await controller.Create(supplierId: null, tireId: 9999);
+
+        var vm = Assert.IsType<PurchaseOrderFormViewModel>(Assert.IsType<ViewResult>(result).Model);
+        Assert.True(Assert.Single(vm.Items).IsBlank);
+    }
+
+    [Fact]
     public async Task Receive_post_updates_stock_and_redirects_to_details()
     {
         var (supplierId, tireId) = await SeedAsync();

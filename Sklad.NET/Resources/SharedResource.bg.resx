@@ -321,6 +321,7 @@
   <data name="Edit Purchase Order" xml:space="preserve"><value>Редакция на поръчка</value></data>
   <data name="All Orders" xml:space="preserve"><value>Всички поръчки</value></data>
   <data name="Order" xml:space="preserve"><value>Поръчка</value></data>
+  <data name="Order from supplier" xml:space="preserve"><value>Поръчай от доставчик</value></data>
   <data name="Order History" xml:space="preserve"><value>История на поръчките</value></data>
   <data name="Order Details" xml:space="preserve"><value>Детайли на поръчката</value></data>
   <data name="Order Lines" xml:space="preserve"><value>Редове на поръчката</value></data>
