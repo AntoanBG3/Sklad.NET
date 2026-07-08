@@ -1,6 +1,6 @@
 # TODO — Sklad.NET feature backlog
 
-All planned work is complete. This log records what shipped, in order.
+Delivered work is marked `[x]`; open ideas are `[ ]`.
 
 ---
 
@@ -67,3 +67,10 @@ Migration `SuppliersOrdersUsers`; tests 94 → 129.
 ## [x] 9. Quick-reorder a tire into a pre-filled purchase order (2026-07-08)
 
 An "Order from supplier" action on a tire's Details page and an "Order" link in the Low Stock list open the purchase order Create form with the tire pre-selected on the first order line. When the tire is below its minimum, the line quantity is pre-filled with the deficit (MinStock - Quantity) so restocking is one confirmation away. Create (GET) accepts an optional `tireId` and falls back to a blank line for an unknown id. Suite now at 135 tests.
+
+---
+
+## [ ] Future ideas
+
+- Purchase-order PDF/print layout
+- Email notifications on low stock
