@@ -398,4 +398,12 @@
   <data name="Access denied" xml:space="preserve"><value>Отказан достъп</value></data>
   <data name="You do not have permission to view this page." xml:space="preserve"><value>Нямате права да видите тази страница.</value></data>
   <data name="Rack A-3" xml:space="preserve"><value>Рафт А-3</value></data>
+  <data name="Settings" xml:space="preserve"><value>Настройки</value></data>
+  <data name="Shop Details" xml:space="preserve"><value>Данни за магазина</value></data>
+  <data name="These details appear on the letterhead of printed purchase orders." xml:space="preserve"><value>Тези данни се отпечатват в заглавната част на поръчките за доставка.</value></data>
+  <data name="Shop Name" xml:space="preserve"><value>Име на магазина</value></data>
+  <data name="Address" xml:space="preserve"><value>Адрес</value></data>
+  <data name="VAT / EIK" xml:space="preserve"><value>ДДС № / ЕИК</value></data>
+  <data name="Save Shop Details" xml:space="preserve"><value>Запази данните</value></data>
+  <data name="Shop details saved." xml:space="preserve"><value>Данните за магазина са запазени.</value></data>
 </root>

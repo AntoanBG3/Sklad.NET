@@ -1,0 +1,69 @@
+@model Sklad.ViewModels.ShopSettingsViewModel
+
+@{
+    ViewData["Title"] = L["Shop Details"].Value;
+}
+
+<div class="page">
+    <div class="container container-narrow">
+
+        <div class="page-head">
+            <div>
+                <div class="eyebrow">@L["Settings"]</div>
+                <h1 class="page-title">@L["Shop Details"]</h1>
+                <p class="page-lede">@L["These details appear on the letterhead of printed purchase orders."]</p>
+            </div>
+        </div>
+
+        <form asp-action="Index" class="form" data-guard>
+
+            <div asp-validation-summary="ModelOnly" class="form-errors"></div>
+
+            <div class="form-section">
+                <div class="form-section-title">@L["Company"]</div>
+                <div class="field">
+                    <label asp-for="Name" class="field-label">@L["Shop Name"] <span class="optional">@L["(optional)"]</span></label>
+                    <input asp-for="Name" class="field-input" placeholder="Гуми Сервиз ЕООД" />
+                    <span asp-validation-for="Name" class="field-error"></span>
+                </div>
+                <div class="field">
+                    <label asp-for="Address" class="field-label">@L["Address"] <span class="optional">@L["(optional)"]</span></label>
+                    <textarea asp-for="Address" class="field-textarea" placeholder="ул. Витоша 1, 1000 София"></textarea>
+                    <span asp-validation-for="Address" class="field-error"></span>
+                </div>
+                <div class="field">
+                    <label asp-for="VatNumber" class="field-label">@L["VAT / EIK"] <span class="optional">@L["(optional)"]</span></label>
+                    <input asp-for="VatNumber" class="field-input mono" placeholder="BG123456789" />
+                    <span asp-validation-for="VatNumber" class="field-error"></span>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <div class="form-section-title">@L["Contact"]</div>
+                <div class="form-grid-2">
+                    <div class="field">
+                        <label asp-for="Phone" class="field-label">@L["Phone"] <span class="optional">@L["(optional)"]</span></label>
+                        <input asp-for="Phone" class="field-input" placeholder="+359 ..." />
+                        <span asp-validation-for="Phone" class="field-error"></span>
+                    </div>
+                    <div class="field">
+                        <label asp-for="Email" class="field-label">@L["Email"] <span class="optional">@L["(optional)"]</span></label>
+                        <input asp-for="Email" class="field-input" placeholder="shop@example.com" />
+                        <span asp-validation-for="Email" class="field-error"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">@L["Save Shop Details"]</button>
+                <a asp-controller="Tires" asp-action="Index" class="btn btn-secondary">@L["Cancel"]</a>
+            </div>
+
+        </form>
+
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

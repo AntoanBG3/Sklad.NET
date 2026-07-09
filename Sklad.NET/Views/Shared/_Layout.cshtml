@@ -8,6 +8,7 @@
     var isInventory = ctrl == "Tires" && !isLowStock && !isReport;
     var isPurchasing = ctrl is "Suppliers" or "PurchaseOrders";
     var isUsers = ctrl == "Users";
+    var isSettings = ctrl == "ShopSettings";
     var lang = System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName;
     var here = $"{Context.Request.Path}{Context.Request.QueryString}";
 }
@@ -39,6 +40,7 @@
                     @if (User.IsInRole(nameof(Sklad.Models.UserRole.Admin)))
                     {
                         <a class="@(isUsers ? "is-active" : "")" aria-current="@(isUsers ? "page" : null)" asp-controller="Users" asp-action="Index">@L["Users"]</a>
+                        <a class="@(isSettings ? "is-active" : "")" aria-current="@(isSettings ? "page" : null)" asp-controller="ShopSettings" asp-action="Index">@L["Settings"]</a>
                     }
                 }
                 <span class="lang" role="group" aria-label="@L["Language"]">
