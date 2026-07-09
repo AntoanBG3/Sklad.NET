@@ -25,7 +25,8 @@ public class PurchaseOrdersControllerTests : IDisposable
         var httpContext = new DefaultHttpContext();
         if (userName is not null)
             httpContext.User = new ClaimsPrincipal(new ClaimsIdentity([new Claim(ClaimTypes.Name, userName)], "test"));
-        return new PurchaseOrdersController(purchasing, inventory, new FakeLocalizer<SharedResource>())
+        var settings = new ShopSettingsService(context, NullLogger<ShopSettingsService>.Instance);
+        return new PurchaseOrdersController(purchasing, inventory, settings, new FakeLocalizer<SharedResource>())
         {
             ControllerContext = new ControllerContext { HttpContext = httpContext },
             TempData = new TempDataDictionary(httpContext, new NullTempDataProvider()),
@@ -46,6 +47,61 @@ public class PurchaseOrdersControllerTests : IDisposable
         context.Tires.Add(tire);
         await context.SaveChangesAsync();
         return (supplier.Id, tire.Id);
+    }
+
+    [Fact]
+    public async Task Print_returns_the_order_with_the_shop_letterhead()
+    {
+        var (supplierId, tireId) = await SeedAsync();
+        int orderId;
+        await using (var context = _db.CreateContext())
+        {
+            var purchasing = new PurchasingService(context, NullLogger<PurchasingService>.Instance);
+            var order = await purchasing.CreateOrderAsync(supplierId, "urgent", [new PurchaseOrderLine(tireId, 4, 80m)], "boss");
+            orderId = order.Id;
+            context.ShopSettings.Add(new ShopSettings { Id = ShopSettings.SingletonId, Name = "Гуми ЕООД", VatNumber = "BG123" });
+            await context.SaveChangesAsync();
+        }
+
+        await using (var context = _db.CreateContext())
+        {
+            var result = Assert.IsType<ViewResult>(await CreateController(context).Print(orderId));
+            var vm = Assert.IsType<PurchaseOrderPrintViewModel>(result.Model);
+
+            Assert.Equal(orderId, vm.Order.Id);
+            Assert.Single(vm.Order.Items);
+            Assert.Equal("Гуми ЕООД", vm.Shop.Name);
+            Assert.True(vm.HasLetterhead);
+        }
+    }
+
+    [Fact]
+    public async Task Print_without_configured_shop_settings_still_renders()
+    {
+        var (supplierId, tireId) = await SeedAsync();
+        int orderId;
+        await using (var context = _db.CreateContext())
+        {
+            var purchasing = new PurchasingService(context, NullLogger<PurchasingService>.Instance);
+            orderId = (await purchasing.CreateOrderAsync(supplierId, null, [new PurchaseOrderLine(tireId, 1, 10m)])).Id;
+        }
+
+        await using (var context = _db.CreateContext())
+        {
+            var result = Assert.IsType<ViewResult>(await CreateController(context).Print(orderId));
+            var vm = Assert.IsType<PurchaseOrderPrintViewModel>(result.Model);
+
+            Assert.False(vm.HasLetterhead);
+            Assert.Null(vm.Shop.Name);
+        }
+    }
+
+    [Fact]
+    public async Task Print_of_an_unknown_order_is_not_found()
+    {
+        await using var context = _db.CreateContext();
+
+        Assert.IsType<NotFoundResult>(await CreateController(context).Print(4242));
     }
 
     [Fact]

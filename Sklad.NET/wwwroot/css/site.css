@@ -1156,7 +1156,49 @@ main { animation: page-enter 180ms ease-out; }
 }
 
 /* ============================================================
-   Print — stock lists and the low-stock reorder sheet
+   Document — the printable purchase order
+   ============================================================ */
+.doc { border: 1px solid var(--rule-soft); padding: var(--sp-6); }
+
+.doc-head {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--sp-5);
+    padding-bottom: var(--sp-4);
+    border-bottom: 2px solid var(--rule);
+}
+
+.doc-issuer-name { font-size: var(--f-1); font-weight: 600; }
+.doc-line { color: var(--ink-70); font-size: var(--f--1); }
+
+.doc-meta { text-align: right; }
+.doc-kind { text-transform: uppercase; letter-spacing: .08em; font-size: var(--f--1); color: var(--ink-50); }
+.doc-number { font-size: var(--f-1); font-weight: 600; }
+
+.doc-dates { margin-top: var(--sp-2); font-size: var(--f--1); }
+.doc-dates dt { color: var(--ink-50); }
+.doc-dates dd { margin: 0 0 var(--sp-1); }
+
+.doc-party { margin: var(--sp-5) 0; }
+.doc-party-label { text-transform: uppercase; letter-spacing: .08em; font-size: var(--f--1); color: var(--ink-50); }
+.doc-party-name { font-weight: 600; }
+
+.doc-lines { margin-top: var(--sp-4); }
+
+.doc-totals { display: flex; justify-content: flex-end; margin-top: var(--sp-4); }
+.doc-totals dl { display: grid; grid-template-columns: auto auto; gap: var(--sp-1) var(--sp-4); }
+.doc-totals dt { color: var(--ink-50); }
+.doc-totals dd { margin: 0; text-align: right; }
+
+.doc-note { margin-top: var(--sp-5); }
+
+.signatures { display: flex; gap: var(--sp-6); margin-top: var(--sp-7); }
+.signature { flex: 1; }
+.signature-rule { border-top: 1px solid var(--rule); }
+.signature-label { margin-top: var(--sp-1); font-size: var(--f--1); color: var(--ink-50); }
+
+/* ============================================================
+   Print — stock lists, the low-stock reorder sheet, purchase orders
    ============================================================ */
 @media print {
     .topbar, .site-footer, .head-actions, .filter, .row-actions,
@@ -1168,4 +1210,18 @@ main { animation: page-enter 180ms ease-out; }
     .data-table-wide { min-width: 0; }
     .data-table tbody tr:hover td { background: transparent; }
     .grid { display: block; }
+}
+
+@page { margin: 16mm; }
+
+@media print {
+    /* The document carries its own letterhead; the app's page heading would
+       duplicate the PO number above it. */
+    .doc { border: 0; padding: 0; }
+    .doc ~ *, .page:has(.doc) .page-head { display: none; }
+    .container-narrow { max-width: none; }
+    .signatures { margin-top: 18mm; }
+    .doc-lines { page-break-inside: auto; }
+    .doc-lines tr { page-break-inside: avoid; }
+    .signatures, .doc-totals { page-break-inside: avoid; }
 }

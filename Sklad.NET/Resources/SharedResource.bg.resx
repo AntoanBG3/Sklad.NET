@@ -406,4 +406,6 @@
   <data name="VAT / EIK" xml:space="preserve"><value>ДДС № / ЕИК</value></data>
   <data name="Save Shop Details" xml:space="preserve"><value>Запази данните</value></data>
   <data name="Shop details saved." xml:space="preserve"><value>Данните за магазина са запазени.</value></data>
+  <data name="Back to order" xml:space="preserve"><value>Обратно към поръчката</value></data>
+  <data name="Ordered by" xml:space="preserve"><value>Поръчал</value></data>
 </root>

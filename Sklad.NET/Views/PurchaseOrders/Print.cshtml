@@ -1,0 +1,143 @@
+@model Sklad.ViewModels.PurchaseOrderPrintViewModel
+
+@{
+    var order = Model.Order;
+    var shop = Model.Shop;
+    ViewData["Title"] = $"{order.Number} — {L["Purchase Order"].Value}";
+}
+
+<div class="page">
+    <div class="container container-narrow">
+
+        <div class="page-head">
+            <div>
+                <div class="eyebrow">@L["Purchase Order"]</div>
+                <h1 class="page-title mono">@order.Number</h1>
+            </div>
+            <div class="head-actions">
+                <button type="button" class="btn btn-primary btn-sm" data-print>@L["Print"]</button>
+                <a asp-action="Details" asp-route-id="@order.Id" class="btn btn-secondary btn-sm">@L["Back to order"]</a>
+            </div>
+        </div>
+
+        <div class="doc">
+
+            <div class="doc-head">
+                <div class="doc-issuer">
+                    @if (Model.HasLetterhead)
+                    {
+                        @if (!string.IsNullOrWhiteSpace(shop.Name))
+                        {
+                            <div class="doc-issuer-name">@shop.Name</div>
+                        }
+                        @if (!string.IsNullOrWhiteSpace(shop.Address))
+                        {
+                            <div class="doc-line">@shop.Address</div>
+                        }
+                        @if (!string.IsNullOrWhiteSpace(shop.VatNumber))
+                        {
+                            <div class="doc-line mono">@L["VAT / EIK"]: @shop.VatNumber</div>
+                        }
+                        @if (!string.IsNullOrWhiteSpace(shop.Phone))
+                        {
+                            <div class="doc-line">@shop.Phone</div>
+                        }
+                        @if (!string.IsNullOrWhiteSpace(shop.Email))
+                        {
+                            <div class="doc-line">@shop.Email</div>
+                        }
+                    }
+                </div>
+                <div class="doc-meta">
+                    <div class="doc-kind">@L["Purchase Order"]</div>
+                    <div class="doc-number mono">@order.Number</div>
+                    <dl class="doc-dates">
+                        <dt>@L["Created"]</dt>
+                        <dd class="mono">@Dates.Stamp(order.CreatedAt)</dd>
+                        @if (order.OrderedAt is DateTime orderedAt)
+                        {
+                            <dt>@L["Ordered on"]</dt>
+                            <dd class="mono">@Dates.Stamp(orderedAt)</dd>
+                        }
+                        <dt>@L["Status"]</dt>
+                        <dd>@L[Enums.Key(order.Status)]</dd>
+                    </dl>
+                </div>
+            </div>
+
+            <div class="doc-party">
+                <div class="doc-party-label">@L["Supplier"]</div>
+                <div class="doc-party-name">@order.Supplier.Name</div>
+                @if (!string.IsNullOrWhiteSpace(order.Supplier.ContactName))
+                {
+                    <div class="doc-line">@order.Supplier.ContactName</div>
+                }
+                @if (!string.IsNullOrWhiteSpace(order.Supplier.Phone))
+                {
+                    <div class="doc-line">@order.Supplier.Phone</div>
+                }
+                @if (!string.IsNullOrWhiteSpace(order.Supplier.Email))
+                {
+                    <div class="doc-line">@order.Supplier.Email</div>
+                }
+            </div>
+
+            <table class="data-table doc-lines">
+                <thead>
+                    <tr>
+                        <th scope="col">@L["SKU"]</th>
+                        <th scope="col">@L["Tire"]</th>
+                        <th scope="col" class="col-num">@L["Quantity"]</th>
+                        <th scope="col" class="col-num">@L["Unit Cost"]</th>
+                        <th scope="col" class="col-num">@L["Line Total"]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var i in order.Items)
+                    {
+                        <tr>
+                            <td class="mono">@i.Tire.Sku</td>
+                            <td>
+                                <span class="cell-stack cell-strong">@i.Tire.Brand @i.Tire.Model</span>
+                                <span class="cell-sub mono">@i.Tire.Size</span>
+                            </td>
+                            <td class="col-num">@i.Quantity</td>
+                            <td class="col-num"><money value="i.UnitCost" /></td>
+                            <td class="col-num"><money value="i.Quantity * i.UnitCost" /></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+
+            <div class="doc-totals">
+                <dl>
+                    <dt>@L["Total units"]</dt>
+                    <dd class="num">@order.TotalUnits</dd>
+                    <dt>@L["Total"]</dt>
+                    <dd class="num dd-strong">@Money.Dual(order.Total)</dd>
+                </dl>
+            </div>
+
+            @if (!string.IsNullOrWhiteSpace(order.Note))
+            {
+                <div class="doc-note">
+                    <div class="doc-party-label">@L["Note"]</div>
+                    <p>@order.Note</p>
+                </div>
+            }
+
+            <div class="signatures">
+                <div class="signature">
+                    <div class="signature-rule"></div>
+                    <div class="signature-label">@L["Ordered by"]</div>
+                </div>
+                <div class="signature">
+                    <div class="signature-rule"></div>
+                    <div class="signature-label">@L["Received by"]</div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+</div>

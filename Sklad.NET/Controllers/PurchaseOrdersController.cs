@@ -10,12 +10,18 @@ public class PurchaseOrdersController : Controller
 {
     private readonly IPurchasingService _purchasing;
     private readonly IInventoryService _inventory;
+    private readonly IShopSettingsService _settings;
     private readonly IStringLocalizer<SharedResource> _l;
 
-    public PurchaseOrdersController(IPurchasingService purchasing, IInventoryService inventory, IStringLocalizer<SharedResource> l)
+    public PurchaseOrdersController(
+        IPurchasingService purchasing,
+        IInventoryService inventory,
+        IShopSettingsService settings,
+        IStringLocalizer<SharedResource> l)
     {
         _purchasing = purchasing;
         _inventory = inventory;
+        _settings = settings;
         _l = l;
     }
 
@@ -38,6 +44,15 @@ public class PurchaseOrdersController : Controller
         var order = await _purchasing.GetOrderAsync(id.Value);
         if (order is null) return NotFound();
         return View(order);
+    }
+
+    // GET: /PurchaseOrders/Print/5
+    public async Task<IActionResult> Print(int? id)
+    {
+        if (id is null) return NotFound();
+        var order = await _purchasing.GetOrderAsync(id.Value);
+        if (order is null) return NotFound();
+        return View(new PurchaseOrderPrintViewModel { Order = order, Shop = await _settings.GetAsync() });
     }
 
     // GET: /PurchaseOrders/Create?supplierId=5&tireId=12
