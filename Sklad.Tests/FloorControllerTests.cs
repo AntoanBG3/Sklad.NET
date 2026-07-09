@@ -140,11 +140,14 @@ public class FloorControllerTests : IDisposable
     }
 
     // Adjustment sets stock ABSOLUTELY and permits a quantity of zero, so a crafted
-    // post would silently zero a tire. The floor books flows only.
+    // post would silently zero a tire. The floor books flows only. The out-of-range
+    // case pins the guard as an allow-list: the enum binder accepts any int, so a
+    // deny-list on Adjustment alone would let (MovementType)99 through.
     [Theory]
     [InlineData(MovementType.Adjustment, 0)]
     [InlineData(MovementType.Adjustment, 99)]
-    public async Task Book_refuses_an_adjustment(MovementType type, int quantity)
+    [InlineData((MovementType)99, 1)]
+    public async Task Book_refuses_a_type_that_is_not_a_flow(MovementType type, int quantity)
     {
         var tire = await SeedAsync(NewTire("MI-302", qty: 4));
         using var context = _db.CreateContext();
