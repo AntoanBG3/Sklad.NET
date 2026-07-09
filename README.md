@@ -9,7 +9,7 @@ An ASP.NET Core 10 MVC application for running a tire shop's stock. It uses EF C
 - Barcode lookup: the scan box on the inventory page jumps straight to a tire by SKU or barcode, and it handles Cyrillic and mixed case.
 - A low-stock report that shows how many units each tire is short.
 - A global movements journal filtered by type, by tire, and by date range, with dates read in shop time (Europe/Sofia).
-- A stock value report grouped by brand and season, showing each group's share of total value.
+- A stock value report grouped by brand and season, showing each group's share of total value, with charts of value by brand and by season and a movement chart of units received against units shipped over a date range you choose. Adjustments are counted separately rather than drawn as movement, because an adjustment sets an absolute stock level instead of moving units.
 - CSV export and Excel export for both the inventory and the movements journal. The CSV respects the active filter, guards against formula injection, and starts with a `sep=,` line and a UTF-8 BOM so Excel opens it correctly under any locale. The Excel file (ClosedXML) has formatted headers, typed price and date cells, and separate EUR and BGN columns.
 - Supplier records and purchase orders that move through a Draft, Ordered, Received, or Cancelled lifecycle. Receiving an order books the stock through the same movement ledger and records the purchase order number in the audit trail.
 - One-click database backup download using a consistent `VACUUM INTO` snapshot, with no downtime.
@@ -39,7 +39,7 @@ Accounts live in the database. On first start with an empty `Users` table, an ad
 dotnet test Sklad.Tests/Sklad.Tests.csproj
 ```
 
-The xUnit suite has 148 tests. They cover the inventory service (movement rules, concurrency, search, filtering, paging, CSV escaping, and localized headers), the purchasing service (order lifecycle, receive-to-ledger, and guards), the user service (hashing, credential validation, last-admin and self-delete guards, and session invalidation), the Excel workbook contents, controller error paths, flexible decimal binding, Bulgarian resource coverage (every localized key is asserted present in the resx), the money helpers and tag helper, and the backup endpoint. CI builds with warnings as errors and runs the suite on every push and pull request (`.github/workflows/ci.yml`).
+The xUnit suite has 169 tests. They cover the inventory service (movement rules, concurrency, search, filtering, paging, CSV escaping, localized headers, and the movement trend's date bucketing in shop time), the purchasing service (order lifecycle, receive-to-ledger, and guards), the user service (hashing, credential validation, last-admin and self-delete guards, and session invalidation), the Excel workbook contents, controller error paths, flexible decimal binding, Bulgarian resource coverage (every localized key is asserted present in the resx), the money helpers and tag helper, and the backup endpoint. CI builds with warnings as errors and runs the suite on every push and pull request (`.github/workflows/ci.yml`).
 
 ## Database
 
@@ -87,7 +87,8 @@ Sklad.NET/               main web app
   ViewModels/            filter, index, create/edit, movement, order, supplier,
                          user, login view models
   Views/                 Razor views (custom design system in wwwroot/css/site.css)
-  wwwroot/js/            site.js page behaviors, locale-aware validation rules
+  wwwroot/js/            site.js page behaviors, locale-aware validation rules,
+                         report-charts.js (Chart.js, self-hosted in wwwroot/lib)
 Sklad.Tests/             xUnit test suite
 ```
 
