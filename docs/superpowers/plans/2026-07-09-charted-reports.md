@@ -645,39 +645,63 @@ git commit -m "feat(reports): add a date range to the stock value report"
 **Files:**
 - Create: `Sklad.NET/wwwroot/lib/chart.js/dist/chart.umd.js`
 - Create: `Sklad.NET/wwwroot/lib/chart.js/LICENSE.md`
+- Create: `Sklad.Tests/TestPaths.cs`
+- Modify: `Sklad.Tests/LocalizationTests.cs` (drop its private `RepoRoot`, use `TestPaths.RepoRoot`)
 - Test: `Sklad.Tests/SmokeTests.cs` (append)
 
 **Interfaces:**
 - Consumes: nothing.
-- Produces: the global `Chart` constructor at `~/lib/chart.js/dist/chart.umd.js`, consumed by Task 5.
+- Produces: the global `Chart` constructor at `~/lib/chart.js/dist/chart.umd.js`, consumed by Task 5. `Sklad.Tests.TestPaths.RepoRoot() -> string` and `TestPaths.App() -> string`.
 
 Vendoring gets its own commit because it is a licence-bearing third-party asset, and a reviewer should be able to approve or reject it without also reviewing chart code.
 
-- [ ] **Step 1: Write the failing test**
+- [ ] **Step 1: Extract the shared path helper**
 
-Append to `Sklad.Tests/SmokeTests.cs`. If the file has no `RepoRoot` helper, add the one shown; `LocalizationTests.cs:103` has the same helper and it is `private static`, so it cannot be reused across classes.
+`LocalizationTests.cs:103` already has a `private static RepoRoot([CallerFilePath])`. Rather than duplicate it, lift it into a shared helper. `[CallerFilePath]` resolves at compile time to the source file of the **call site**, so the helper must not compute the root from its own path — it takes the caller's path as a defaulted parameter exactly as before, and every test file in `Sklad.Tests/` sits one level below the repo root.
+
+Create `Sklad.Tests/TestPaths.cs`:
+
+```csharp
+using System.Runtime.CompilerServices;
+
+namespace Sklad.Tests;
+
+internal static class TestPaths
+{
+    public static string RepoRoot([CallerFilePath] string callerPath = "") =>
+        Directory.GetParent(Path.GetDirectoryName(callerPath)!)!.FullName;
+
+    public static string App([CallerFilePath] string callerPath = "") =>
+        Path.Combine(RepoRoot(callerPath), "Sklad.NET");
+}
+```
+
+In `Sklad.Tests/LocalizationTests.cs`, delete the private `RepoRoot` method and replace the single call `RepoRoot()` in `Resx_covers_every_localized_key` with `TestPaths.RepoRoot()`. Remove the now-unused `using System.Runtime.CompilerServices;` if nothing else needs it, or `--warnaserror` will not complain but the reviewer will.
+
+Run `dotnet test Sklad.Tests/Sklad.Tests.csproj --filter LocalizationTests` and expect all 3 to still pass. This is a pure refactor; if `Resx_covers_every_localized_key` starts reporting `Only N localized keys found`, the path resolution broke and `TestPaths.RepoRoot` is computing from the wrong file.
+
+- [ ] **Step 2: Write the failing test**
+
+Append to `Sklad.Tests/SmokeTests.cs`:
 
 ```csharp
     [Fact]
     public void Chart_js_is_vendored_and_tracked()
     {
-        var lib = Path.Combine(RepoRoot(), "Sklad.NET", "wwwroot", "lib", "chart.js");
+        var lib = Path.Combine(TestPaths.App(), "wwwroot", "lib", "chart.js");
         Assert.True(File.Exists(Path.Combine(lib, "dist", "chart.umd.js")),
             "Chart.js must be self-hosted; the report page loads it from wwwroot.");
         Assert.True(File.Exists(Path.Combine(lib, "LICENSE.md")),
             "Every vendored library in wwwroot/lib ships its licence.");
     }
-
-    private static string RepoRoot([System.Runtime.CompilerServices.CallerFilePath] string path = "") =>
-        Directory.GetParent(Path.GetDirectoryName(path)!)!.FullName;
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [ ] **Step 3: Run the test to verify it fails**
 
 Run: `dotnet test Sklad.Tests/Sklad.Tests.csproj --filter Chart_js_is_vendored_and_tracked`
 Expected: FAIL, "Chart.js must be self-hosted".
 
-- [ ] **Step 3: Download the library**
+- [ ] **Step 4: Download the library**
 
 ```bash
 mkdir -p Sklad.NET/wwwroot/lib/chart.js/dist
@@ -694,20 +718,20 @@ head -c 80 Sklad.NET/wwwroot/lib/chart.js/LICENSE.md
 
 Expected: roughly 206,670 bytes, and the licence begins with the MIT header. If the byte count is under 100,000, the download failed; do not commit it.
 
-- [ ] **Step 4: Run the test to verify it passes**
+- [ ] **Step 5: Run the test to verify it passes**
 
 Run: `dotnet test Sklad.Tests/Sklad.Tests.csproj --filter Chart_js_is_vendored_and_tracked`
 Expected: PASS.
 
-- [ ] **Step 5: Confirm git does not ignore it**
+- [ ] **Step 6: Confirm git does not ignore it**
 
 Run: `git check-ignore -v Sklad.NET/wwwroot/lib/chart.js/dist/chart.umd.js; echo "exit=$?"`
 Expected: no output and `exit=1`, meaning the file is not ignored.
 
-- [ ] **Step 6: Commit**
+- [ ] **Step 7: Commit**
 
 ```bash
-git add Sklad.NET/wwwroot/lib/chart.js Sklad.Tests/SmokeTests.cs
+git add Sklad.NET/wwwroot/lib/chart.js Sklad.Tests/SmokeTests.cs Sklad.Tests/TestPaths.cs Sklad.Tests/LocalizationTests.cs
 git commit -m "chore(assets): vendor Chart.js 4.4.9"
 ```
 
