@@ -142,13 +142,20 @@ calls.
 `FloorController.Book` accepts a movement type from the form post, and
 `Adjustment` sets stock absolutely rather than moving it, with a permitted
 quantity of zero for write-offs. Leaving `Adjustment` off the view's buttons
-would not have stopped a crafted POST from reaching it, since the model
-binder accepts any integer for the enum, so the controller checks the
-movement type against an allow-list of `In` and `Out` before calling the
-service at all, rejecting everything else including `Adjustment` and any
-out-of-range value.
+would not have stopped a crafted POST from reaching it, so the controller
+checks the movement type against an allow-list of `In` and `Out` before
+calling the service at all.
 
-No migration; tests 171 → 183.
+Driving the running app then found what the tests could not, because they
+call the action directly and never exercise model binding. The type bound
+non-nullable, so a missing, unparseable or out-of-range value failed binding
+and fell back to `default(MovementType)`, which is `In`: posting
+`movementType=bogus` silently booked a movement. Binding a nullable enum
+makes the absence representable, and the allow-list then rejects it.
+`TiresController.RegisterMovement` was never affected, because it checks
+`ModelState.IsValid`.
+
+No migration; tests 171 → 184.
 
 ---
 

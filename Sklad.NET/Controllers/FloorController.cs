@@ -68,7 +68,8 @@ public class FloorController : Controller
         }
         catch (InvalidMovementQuantityException)
         {
-            ModelState.AddModelError(nameof(quantity), _l["Enter a quantity of at least 1."]);
+            // Model-level: the screen shows a ModelOnly summary and no per-field slot.
+            ModelState.AddModelError(string.Empty, _l["Enter a quantity of at least 1."]);
         }
         catch (TireNotFoundException)
         {

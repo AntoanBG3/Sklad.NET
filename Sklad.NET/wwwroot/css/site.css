@@ -1245,8 +1245,9 @@ main { animation: page-enter 180ms ease-out; }
 .floor-fact-num { font-size: var(--f-3); font-weight: 700; line-height: 1; }
 .floor-fact-label { font-size: var(--f--1); color: var(--ink-50); text-transform: uppercase; letter-spacing: .04em; margin-top: var(--sp-1); }
 .floor-stepper { display: flex; gap: var(--sp-2); }
-.floor-stepper .floor-input { flex: 1; text-align: center; }
-.floor-step { min-height: 3.25rem; min-width: 3.25rem; }
+/* without min-width:0 the input's intrinsic width pushes the + button off a phone */
+.floor-stepper .floor-input { flex: 1; min-width: 0; text-align: center; }
+.floor-step { flex: none; min-height: 3.25rem; min-width: 3.25rem; }
 .floor-back { display: block; text-align: center; padding-block: var(--sp-3); }
 
 /* ============================================================
