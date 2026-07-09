@@ -1,5 +1,4 @@
 using System.Globalization;
-using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using Microsoft.Extensions.DependencyInjection;
@@ -58,7 +57,7 @@ public class LocalizationTests
     [Fact]
     public void Resx_covers_every_localized_key()
     {
-        var app = Path.Combine(RepoRoot(), "Sklad.NET");
+        var app = Path.Combine(TestPaths.RepoRoot(), "Sklad.NET");
 
         var translated = XDocument
             .Load(Path.Combine(app, "Resources", "SharedResource.bg.resx"))
@@ -99,7 +98,4 @@ public class LocalizationTests
     private static string Unescape(string literal) =>
         literal.Replace("\\\"", "\"", StringComparison.Ordinal)
                .Replace("\\\\", "\\", StringComparison.Ordinal);
-
-    private static string RepoRoot([CallerFilePath] string path = "") =>
-        Directory.GetParent(Path.GetDirectoryName(path)!)!.FullName;
 }
