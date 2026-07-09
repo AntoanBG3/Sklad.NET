@@ -69,7 +69,8 @@ public class LocalizationTests
 
         var sources = Directory
             .EnumerateFiles(Path.Combine(app, "Views"), "*.cshtml", SearchOption.AllDirectories)
-            .Concat(Directory.EnumerateFiles(Path.Combine(app, "Controllers"), "*.cs"));
+            .Concat(Directory.EnumerateFiles(Path.Combine(app, "Controllers"), "*.cs"))
+            .Concat(Directory.EnumerateFiles(Path.Combine(app, "Services"), "*.cs"));
 
         var missing = new SortedSet<string>(StringComparer.Ordinal);
         var scanned = 0;
