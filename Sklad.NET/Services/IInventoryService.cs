@@ -31,5 +31,7 @@ public interface IInventoryService
 
     Task<ValueReport> GetValueReportAsync();
 
+    Task<MovementTrend> GetMovementTrendAsync(DateOnly from, DateOnly to);
+
     Task<byte[]> ExportCsvAsync(IEnumerable<Tire> tires);
 }
