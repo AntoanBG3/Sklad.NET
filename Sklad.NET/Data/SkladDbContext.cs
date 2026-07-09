@@ -13,6 +13,7 @@ public class SkladDbContext : DbContext
     public DbSet<Supplier> Suppliers => Set<Supplier>();
     public DbSet<PurchaseOrder> PurchaseOrders => Set<PurchaseOrder>();
     public DbSet<PurchaseOrderItem> PurchaseOrderItems => Set<PurchaseOrderItem>();
+    public DbSet<ShopSettings> ShopSettings => Set<ShopSettings>();
 
     // Maps to the connection-level unilower() (see SqliteFunctionsInterceptor);
     // the body is only a client-evaluation fallback.
