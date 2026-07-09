@@ -116,7 +116,7 @@ named `</script>` cannot break out of the script tag. Charts draw with
 animation off, because the Print button calls `window.print()` immediately and
 a canvas ignores the stylesheet's reduced-motion rule.
 
-No migration; tests 148 → 170.
+No migration; tests 148 → 171.
 
 ---
 

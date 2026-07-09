@@ -826,6 +826,23 @@ public class InventoryServiceTests : IDisposable
         Assert.Equal(6, trend.Buckets[1].In);
     }
 
+    // Sofia is UTC+2 in winter, so 21:30 UTC is still the same shop day. Paired
+    // with the summer test above this pins both offsets: that one fails under UTC
+    // bucketing, this one fails if the offset is hardcoded to summer's +3.
+    [Fact]
+    public async Task GetMovementTrendAsync_honours_the_winter_utc_offset()
+    {
+        await using var context = _db.CreateContext();
+        var tire = await SeedTireAsync(NewTire("TREND-DST"));
+        await SeedMovementAsync(context, tire.Id, MovementType.In, 6, new DateTime(2026, 1, 8, 21, 30, 0, DateTimeKind.Utc));
+
+        var trend = await CreateService(context)
+            .GetMovementTrendAsync(new DateOnly(2026, 1, 8), new DateOnly(2026, 1, 9));
+
+        Assert.Equal(6, trend.Buckets[0].In);
+        Assert.Equal(0, trend.Buckets[1].In);
+    }
+
     [Fact]
     public async Task GetMovementTrendAsync_groups_by_month_over_a_long_range()
     {
