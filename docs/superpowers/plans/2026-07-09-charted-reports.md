@@ -214,7 +214,7 @@ Append to `Sklad.Tests/InventoryServiceTests.cs`, inside the class:
     [Fact]
     public async Task GetMovementTrendAsync_sums_in_and_out_into_separate_series()
     {
-        using var context = _db.CreateContext();
+        await using var context = _db.CreateContext();
         var tire = await SeedTireAsync(NewTire("TREND-1"));
         await SeedMovementAsync(context, tire.Id, MovementType.In, 7, new DateTime(2026, 3, 10, 9, 0, 0, DateTimeKind.Utc));
         await SeedMovementAsync(context, tire.Id, MovementType.In, 3, new DateTime(2026, 3, 10, 11, 0, 0, DateTimeKind.Utc));
@@ -231,7 +231,7 @@ Append to `Sklad.Tests/InventoryServiceTests.cs`, inside the class:
     [Fact]
     public async Task GetMovementTrendAsync_excludes_adjustments_from_both_series_and_counts_them()
     {
-        using var context = _db.CreateContext();
+        await using var context = _db.CreateContext();
         var tire = await SeedTireAsync(NewTire("TREND-2"));
         await SeedMovementAsync(context, tire.Id, MovementType.Adjustment, 500, new DateTime(2026, 3, 10, 9, 0, 0, DateTimeKind.Utc));
         await SeedMovementAsync(context, tire.Id, MovementType.In, 2, new DateTime(2026, 3, 10, 9, 0, 0, DateTimeKind.Utc));
@@ -248,7 +248,7 @@ Append to `Sklad.Tests/InventoryServiceTests.cs`, inside the class:
     [Fact]
     public async Task GetMovementTrendAsync_emits_empty_buckets_as_zeros()
     {
-        using var context = _db.CreateContext();
+        await using var context = _db.CreateContext();
         var tire = await SeedTireAsync(NewTire("TREND-3"));
         await SeedMovementAsync(context, tire.Id, MovementType.In, 5, new DateTime(2026, 3, 12, 9, 0, 0, DateTimeKind.Utc));
 
@@ -265,7 +265,7 @@ Append to `Sklad.Tests/InventoryServiceTests.cs`, inside the class:
     [Fact]
     public async Task GetMovementTrendAsync_buckets_by_shop_day_not_utc_day()
     {
-        using var context = _db.CreateContext();
+        await using var context = _db.CreateContext();
         var tire = await SeedTireAsync(NewTire("TREND-4"));
         await SeedMovementAsync(context, tire.Id, MovementType.In, 6, new DateTime(2026, 7, 8, 22, 30, 0, DateTimeKind.Utc));
 
@@ -279,7 +279,7 @@ Append to `Sklad.Tests/InventoryServiceTests.cs`, inside the class:
     [Fact]
     public async Task GetMovementTrendAsync_groups_by_month_over_a_long_range()
     {
-        using var context = _db.CreateContext();
+        await using var context = _db.CreateContext();
         var tire = await SeedTireAsync(NewTire("TREND-5"));
         await SeedMovementAsync(context, tire.Id, MovementType.In, 1, new DateTime(2026, 1, 5, 9, 0, 0, DateTimeKind.Utc));
         await SeedMovementAsync(context, tire.Id, MovementType.In, 2, new DateTime(2026, 1, 25, 9, 0, 0, DateTimeKind.Utc));
@@ -295,7 +295,7 @@ Append to `Sklad.Tests/InventoryServiceTests.cs`, inside the class:
     [Fact]
     public async Task GetMovementTrendAsync_ignores_movements_outside_the_range()
     {
-        using var context = _db.CreateContext();
+        await using var context = _db.CreateContext();
         var tire = await SeedTireAsync(NewTire("TREND-6"));
         await SeedMovementAsync(context, tire.Id, MovementType.In, 9, new DateTime(2026, 3, 1, 9, 0, 0, DateTimeKind.Utc));
 
@@ -423,18 +423,19 @@ Append to `TiresControllerTests` in `Sklad.Tests/ControllerTests.cs`:
     [Fact]
     public async Task Report_defaults_to_the_last_twelve_months()
     {
-        using var context = _db.CreateContext();
+        await using var context = _db.CreateContext();
         var result = Assert.IsType<ViewResult>(await CreateController(context).Report());
         var vm = Assert.IsType<ValueReportViewModel>(result.Model);
 
-        Assert.Equal(vm.To.AddMonths(-12), vm.From);
+        Assert.Equal(vm.To.AddMonths(-11), vm.From);
         Assert.Equal(Sklad.Helpers.TrendGranularity.Month, vm.Trend.Granularity);
+        Assert.Equal(12, vm.Trend.Buckets.Count);
     }
 
     [Fact]
     public async Task Report_rejects_a_start_after_the_end_and_falls_back()
     {
-        using var context = _db.CreateContext();
+        await using var context = _db.CreateContext();
         var controller = CreateController(context);
 
         var result = Assert.IsType<ViewResult>(
@@ -442,13 +443,13 @@ Append to `TiresControllerTests` in `Sklad.Tests/ControllerTests.cs`:
         var vm = Assert.IsType<ValueReportViewModel>(result.Model);
 
         Assert.False(controller.ModelState.IsValid);
-        Assert.Equal(vm.To.AddMonths(-12), vm.From);
+        Assert.Equal(vm.To.AddMonths(-11), vm.From);
     }
 
     [Fact]
     public async Task Report_rejects_a_span_over_ten_years_and_falls_back()
     {
-        using var context = _db.CreateContext();
+        await using var context = _db.CreateContext();
         var controller = CreateController(context);
 
         var result = Assert.IsType<ViewResult>(
@@ -456,13 +457,13 @@ Append to `TiresControllerTests` in `Sklad.Tests/ControllerTests.cs`:
         var vm = Assert.IsType<ValueReportViewModel>(result.Model);
 
         Assert.False(controller.ModelState.IsValid);
-        Assert.Equal(vm.To.AddMonths(-12), vm.From);
+        Assert.Equal(vm.To.AddMonths(-11), vm.From);
     }
 
     [Fact]
     public async Task Report_honours_an_explicit_range()
     {
-        using var context = _db.CreateContext();
+        await using var context = _db.CreateContext();
         var result = Assert.IsType<ViewResult>(
             await CreateController(context).Report(new DateOnly(2026, 3, 1), new DateOnly(2026, 3, 20)));
         var vm = Assert.IsType<ValueReportViewModel>(result.Model);
@@ -507,7 +508,8 @@ Replace `Sklad.NET/Controllers/TiresController.cs:176-181` with:
     public async Task<IActionResult> Report(DateOnly? from = null, DateOnly? to = null)
     {
         var today = DateOnly.FromDateTime(Dates.Shop(DateTime.UtcNow));
-        var defaultFrom = today.AddMonths(-12);
+        // Endpoints are inclusive, so -11 yields exactly 12 monthly buckets.
+        var defaultFrom = today.AddMonths(-11);
 
         var start = from ?? defaultFrom;
         var end = to ?? today;

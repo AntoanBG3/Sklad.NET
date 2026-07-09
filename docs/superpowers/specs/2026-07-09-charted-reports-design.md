@@ -112,8 +112,10 @@ public static TrendGranularity Granularity(DateOnly from, DateOnly to)
 
 `TiresController.Report` gains optional `DateOnly? from, DateOnly? to`.
 
-- Both absent: `to` is today in shop time, `from` is twelve months earlier. This
-  yields `Month` granularity, which suits a strongly seasonal business.
+- Both absent: `to` is today in shop time, `from` is `today.AddMonths(-11)`.
+  Because both endpoints are inclusive, that yields exactly twelve monthly
+  buckets; `-12` would render thirteen bars under a "last 12 months" label.
+  `Month` granularity suits a strongly seasonal business.
 - `from > to`: a localized ModelState error, and the default range is used.
 - Span over ten years: a localized ModelState error, and the default range is
   used. This bounds bucket generation; without it, a range of 1900 to 2100 asks
