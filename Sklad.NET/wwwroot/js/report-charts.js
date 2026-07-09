@@ -23,6 +23,9 @@
     // capture a canvas mid-tween; this also honours prefers-reduced-motion,
     // which CSS cannot enforce on a canvas.
     Chart.defaults.animation = false;
+    // Chart.js formats axis ticks with its own locale, which defaults to en-US and
+    // would print "25,000" beside the page's own "140 750".
+    Chart.defaults.locale = document.documentElement.lang || undefined;
     Chart.defaults.color = ink50;
     Chart.defaults.borderColor = ruleSoft;
     Chart.defaults.font.family = getComputedStyle(document.body).fontFamily;
