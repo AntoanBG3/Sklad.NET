@@ -365,7 +365,7 @@ public class InventoryService : IInventoryService
         foreach (var start in Trend.Sequence(from, to, granularity))
         {
             index[start] = buckets.Count;
-            buckets.Add(new TrendBucket(Trend.Label(start, granularity), Dates.StartOfDayUtc(start), 0, 0));
+            buckets.Add(new TrendBucket(Trend.Label(start, granularity), 0, 0));
         }
 
         var adjustments = 0;

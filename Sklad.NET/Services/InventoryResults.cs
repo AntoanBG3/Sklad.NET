@@ -28,7 +28,7 @@ public record ValueReport(
     IReadOnlyList<ValueReportGroup> BySeason,
     decimal TotalValue);
 
-public record TrendBucket(string Label, DateTime StartUtc, int In, int Out);
+public record TrendBucket(string Label, int In, int Out);
 
 public record MovementTrend(
     IReadOnlyList<TrendBucket> Buckets,

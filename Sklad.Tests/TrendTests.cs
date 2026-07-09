@@ -72,4 +72,21 @@ public class TrendTests
             CultureInfo.CurrentCulture = original;
         }
     }
+
+    [Fact]
+    public void Label_omits_the_year_when_daily()
+    {
+        var original = CultureInfo.CurrentCulture;
+        try
+        {
+            CultureInfo.CurrentCulture = new CultureInfo("en-GB");
+            var label = Trend.Label(new DateOnly(2026, 3, 17), TrendGranularity.Day);
+            Assert.Equal("17 Mar", label);
+            Assert.DoesNotContain("2026", label);
+        }
+        finally
+        {
+            CultureInfo.CurrentCulture = original;
+        }
+    }
 }

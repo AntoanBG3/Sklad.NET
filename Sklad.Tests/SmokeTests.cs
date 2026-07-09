@@ -29,9 +29,16 @@ public class SmokeTests
     public void Chart_js_is_vendored_and_tracked()
     {
         var lib = Path.Combine(TestPaths.App(), "wwwroot", "lib", "chart.js");
-        Assert.True(File.Exists(Path.Combine(lib, "dist", "chart.umd.js")),
+        var bundle = Path.Combine(lib, "dist", "chart.umd.js");
+
+        Assert.True(File.Exists(bundle),
             "Chart.js must be self-hosted; the report page loads it from wwwroot.");
         Assert.True(File.Exists(Path.Combine(lib, "LICENSE.md")),
             "Every vendored library in wwwroot/lib ships its licence.");
+
+        // A failed re-vendor writes an error page to the same path, which File.Exists
+        // cannot tell from the real bundle.
+        Assert.True(new FileInfo(bundle).Length > 100_000, "chart.umd.js looks truncated.");
+        Assert.Contains("Chart", File.ReadAllText(bundle)[..2000], StringComparison.Ordinal);
     }
 }
