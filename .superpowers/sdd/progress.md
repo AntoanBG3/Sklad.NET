@@ -40,3 +40,16 @@ Step 7 browser verification (controller, against the running app) — ALL PASS:
 Task 6: complete (commit 58cc62a, 169 tests, docs)
   Plan defect: it told Task 6 to `git add CLAUDE.md`, but CLAUDE.md is
   gitignored (.gitignore:10, commit b5fa111). Edited locally, not staged.
+
+Final review: the dispatched reviewer hit the session limit mid-run. Its named
+risk points were checked directly instead:
+  - TrendBucket.StartUtc was dead (never read) -> removed (2cdd595).
+  - No duplicate resx keys; every key added for this feature is used.
+  - MaxSpanDays=3660 forces monthly granularity, so ~121 buckets max. Bounded.
+  - DST: added a winter-offset test, mutation-verified (4437efa).
+  - Both deferred Minors fixed in 2cdd595.
+Render check (headless Chrome, JS executed): all three charts paint; bg labels;
+black-vs-tint series. Found and fixed a locale bug no test could see: Chart.js
+printed en-US axis ticks ("25,000") next to the page's "140 750 €".
+Dev-db: XSS-1 test tire could NOT be deleted -- it has an opening Adjustment
+movement and the delete guard correctly blocks it. Harmless, gitignored.
