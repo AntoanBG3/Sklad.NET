@@ -1244,5 +1244,5 @@ main { animation: page-enter 180ms ease-out; }
 
 @media print {
     .chart { height: 12rem; page-break-inside: avoid; }
-    .chart-data { display: none; }
+    .chart-data, .filter-inline { display: none; }
 }
