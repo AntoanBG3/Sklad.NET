@@ -1,6 +1,8 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
+using Sklad.Data;
+using Sklad.Helpers;
 using Sklad.Models;
 using Sklad.Services;
 using Sklad.ViewModels;
@@ -746,5 +748,127 @@ public class InventoryServiceTests : IDisposable
 
         await Assert.ThrowsAsync<DuplicateSkuException>(
             () => CreateService(context).CreateTireAsync(NewTire("RACE-DUP")));
+    }
+
+    // --- GetMovementTrendAsync ---
+
+    private async Task SeedMovementAsync(SkladDbContext context, int tireId, MovementType type, int qty, DateTime utc)
+    {
+        context.StockMovements.Add(new StockMovement
+        {
+            TireId = tireId, MovementType = type, Quantity = qty, Date = utc
+        });
+        await context.SaveChangesAsync();
+    }
+
+    [Fact]
+    public async Task GetMovementTrendAsync_sums_in_and_out_into_separate_series()
+    {
+        await using var context = _db.CreateContext();
+        var tire = await SeedTireAsync(NewTire("TREND-1"));
+        await SeedMovementAsync(context, tire.Id, MovementType.In, 7, new DateTime(2026, 3, 10, 9, 0, 0, DateTimeKind.Utc));
+        await SeedMovementAsync(context, tire.Id, MovementType.In, 3, new DateTime(2026, 3, 10, 11, 0, 0, DateTimeKind.Utc));
+        await SeedMovementAsync(context, tire.Id, MovementType.Out, 4, new DateTime(2026, 3, 10, 12, 0, 0, DateTimeKind.Utc));
+
+        var trend = await CreateService(context)
+            .GetMovementTrendAsync(new DateOnly(2026, 3, 10), new DateOnly(2026, 3, 10));
+
+        var bucket = Assert.Single(trend.Buckets);
+        Assert.Equal(10, bucket.In);
+        Assert.Equal(4, bucket.Out);
+    }
+
+    [Fact]
+    public async Task GetMovementTrendAsync_excludes_adjustments_from_both_series_and_counts_them()
+    {
+        await using var context = _db.CreateContext();
+        var tire = await SeedTireAsync(NewTire("TREND-2"));
+        await SeedMovementAsync(context, tire.Id, MovementType.Adjustment, 500, new DateTime(2026, 3, 10, 9, 0, 0, DateTimeKind.Utc));
+        await SeedMovementAsync(context, tire.Id, MovementType.In, 2, new DateTime(2026, 3, 10, 9, 0, 0, DateTimeKind.Utc));
+
+        var trend = await CreateService(context)
+            .GetMovementTrendAsync(new DateOnly(2026, 3, 10), new DateOnly(2026, 3, 10));
+
+        var bucket = Assert.Single(trend.Buckets);
+        Assert.Equal(2, bucket.In);
+        Assert.Equal(0, bucket.Out);
+        Assert.Equal(1, trend.Adjustments);
+    }
+
+    [Fact]
+    public async Task GetMovementTrendAsync_emits_empty_buckets_as_zeros()
+    {
+        await using var context = _db.CreateContext();
+        var tire = await SeedTireAsync(NewTire("TREND-3"));
+        await SeedMovementAsync(context, tire.Id, MovementType.In, 5, new DateTime(2026, 3, 12, 9, 0, 0, DateTimeKind.Utc));
+
+        var trend = await CreateService(context)
+            .GetMovementTrendAsync(new DateOnly(2026, 3, 10), new DateOnly(2026, 3, 13));
+
+        Assert.Equal(4, trend.Buckets.Count);
+        Assert.Equal(TrendGranularity.Day, trend.Granularity);
+        Assert.Equal(0, trend.Buckets[0].In);
+        Assert.Equal(5, trend.Buckets[2].In);
+    }
+
+    // Sofia is UTC+3 in summer, so 22:30 UTC on 8 July is already 9 July in the shop.
+    [Fact]
+    public async Task GetMovementTrendAsync_buckets_by_shop_day_not_utc_day()
+    {
+        await using var context = _db.CreateContext();
+        var tire = await SeedTireAsync(NewTire("TREND-4"));
+        await SeedMovementAsync(context, tire.Id, MovementType.In, 6, new DateTime(2026, 7, 8, 22, 30, 0, DateTimeKind.Utc));
+
+        var trend = await CreateService(context)
+            .GetMovementTrendAsync(new DateOnly(2026, 7, 8), new DateOnly(2026, 7, 9));
+
+        Assert.Equal(0, trend.Buckets[0].In);
+        Assert.Equal(6, trend.Buckets[1].In);
+    }
+
+    // Sofia is UTC+2 in winter, so 21:30 UTC is still the same shop day. Paired
+    // with the summer test above this pins both offsets: that one fails under UTC
+    // bucketing, this one fails if the offset is hardcoded to summer's +3.
+    [Fact]
+    public async Task GetMovementTrendAsync_honours_the_winter_utc_offset()
+    {
+        await using var context = _db.CreateContext();
+        var tire = await SeedTireAsync(NewTire("TREND-DST"));
+        await SeedMovementAsync(context, tire.Id, MovementType.In, 6, new DateTime(2026, 1, 8, 21, 30, 0, DateTimeKind.Utc));
+
+        var trend = await CreateService(context)
+            .GetMovementTrendAsync(new DateOnly(2026, 1, 8), new DateOnly(2026, 1, 9));
+
+        Assert.Equal(6, trend.Buckets[0].In);
+        Assert.Equal(0, trend.Buckets[1].In);
+    }
+
+    [Fact]
+    public async Task GetMovementTrendAsync_groups_by_month_over_a_long_range()
+    {
+        await using var context = _db.CreateContext();
+        var tire = await SeedTireAsync(NewTire("TREND-5"));
+        await SeedMovementAsync(context, tire.Id, MovementType.In, 1, new DateTime(2026, 1, 5, 9, 0, 0, DateTimeKind.Utc));
+        await SeedMovementAsync(context, tire.Id, MovementType.In, 2, new DateTime(2026, 1, 25, 9, 0, 0, DateTimeKind.Utc));
+
+        var trend = await CreateService(context)
+            .GetMovementTrendAsync(new DateOnly(2026, 1, 1), new DateOnly(2026, 6, 30));
+
+        Assert.Equal(TrendGranularity.Month, trend.Granularity);
+        Assert.Equal(6, trend.Buckets.Count);
+        Assert.Equal(3, trend.Buckets[0].In);
+    }
+
+    [Fact]
+    public async Task GetMovementTrendAsync_ignores_movements_outside_the_range()
+    {
+        await using var context = _db.CreateContext();
+        var tire = await SeedTireAsync(NewTire("TREND-6"));
+        await SeedMovementAsync(context, tire.Id, MovementType.In, 9, new DateTime(2026, 3, 1, 9, 0, 0, DateTimeKind.Utc));
+
+        var trend = await CreateService(context)
+            .GetMovementTrendAsync(new DateOnly(2026, 3, 10), new DateOnly(2026, 3, 11));
+
+        Assert.All(trend.Buckets, b => Assert.Equal(0, b.In));
     }
 }

@@ -348,6 +348,47 @@ public class InventoryService : IInventoryService
             byBrand.Sum(g => g.Value));
     }
 
+    public async Task<MovementTrend> GetMovementTrendAsync(DateOnly from, DateOnly to)
+    {
+        var fromUtc = Dates.StartOfDayUtc(from);
+        var toUtc = Dates.StartOfDayUtc(to.AddDays(1));
+
+        var rows = await _db.StockMovements
+            .Where(m => m.Date >= fromUtc && m.Date < toUtc)
+            .Select(m => new { m.Date, m.MovementType, m.Quantity })
+            .ToListAsync();
+
+        var granularity = Trend.Granularity(from, to);
+
+        var buckets = new List<TrendBucket>();
+        var index = new Dictionary<DateOnly, int>();
+        foreach (var start in Trend.Sequence(from, to, granularity))
+        {
+            index[start] = buckets.Count;
+            buckets.Add(new TrendBucket(Trend.Label(start, granularity), 0, 0));
+        }
+
+        var adjustments = 0;
+        foreach (var row in rows)
+        {
+            if (row.MovementType == MovementType.Adjustment)
+            {
+                adjustments++;
+                continue;
+            }
+
+            var shopDay = DateOnly.FromDateTime(Dates.Shop(row.Date));
+            if (!index.TryGetValue(Trend.BucketStart(shopDay, granularity), out var i))
+                continue;
+
+            buckets[i] = row.MovementType == MovementType.In
+                ? buckets[i] with { In = buckets[i].In + row.Quantity }
+                : buckets[i] with { Out = buckets[i].Out + row.Quantity };
+        }
+
+        return new MovementTrend(buckets, granularity, adjustments);
+    }
+
     public Task<byte[]> ExportCsvAsync(IEnumerable<Tire> tires)
     {
         var sb = new StringBuilder();

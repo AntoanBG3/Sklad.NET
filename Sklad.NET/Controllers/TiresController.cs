@@ -173,11 +173,36 @@ public class TiresController : Controller
         return View(tires);
     }
 
-    // GET: /Tires/Report
-    public async Task<IActionResult> Report()
+    private const int MaxSpanDays = 3660;
+
+    // GET: /Tires/Report?from=2026-01-01&to=2026-07-09
+    public async Task<IActionResult> Report(DateOnly? from = null, DateOnly? to = null)
     {
-        var report = await _inventory.GetValueReportAsync();
-        return View(report);
+        var today = DateOnly.FromDateTime(Dates.Shop(DateTime.UtcNow));
+        // Endpoints are inclusive, so -11 yields exactly 12 monthly buckets.
+        var defaultFrom = today.AddMonths(-11);
+
+        var start = from ?? defaultFrom;
+        var end = to ?? today;
+
+        if (start > end)
+        {
+            ModelState.AddModelError(string.Empty, _l["The start date cannot be after the end date."]);
+            (start, end) = (defaultFrom, today);
+        }
+        else if (end.DayNumber - start.DayNumber > MaxSpanDays)
+        {
+            ModelState.AddModelError(string.Empty, _l["Choose a date range of ten years or less."]);
+            (start, end) = (defaultFrom, today);
+        }
+
+        return View(new ValueReportViewModel
+        {
+            Value = await _inventory.GetValueReportAsync(),
+            Trend = await _inventory.GetMovementTrendAsync(start, end),
+            From = start,
+            To = end
+        });
     }
 
     // GET: /Tires/RegisterMovement/5?type=In&returnUrl=...

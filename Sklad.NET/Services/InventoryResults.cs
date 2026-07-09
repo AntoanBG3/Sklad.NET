@@ -27,3 +27,10 @@ public record ValueReport(
     IReadOnlyList<ValueReportGroup> ByBrand,
     IReadOnlyList<ValueReportGroup> BySeason,
     decimal TotalValue);
+
+public record TrendBucket(string Label, int In, int Out);
+
+public record MovementTrend(
+    IReadOnlyList<TrendBucket> Buckets,
+    Helpers.TrendGranularity Granularity,
+    int Adjustments);

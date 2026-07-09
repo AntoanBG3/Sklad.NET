@@ -94,10 +94,35 @@ Migration `ShopSettings`; tests 135 → 148.
 
 ---
 
+## [x] 11. Charted reports over a date range (2026-07-09)
+
+`/Tires/Report` now draws what the warehouse holds and how it moves. Value by
+brand and value by season are charted beside the tables that already
+summarised them, and a new movement chart sets units received against units
+shipped over a range the user picks. The range buckets by day up to sixty days
+and by month beyond that, so a short range reads as a week's work and a long
+one as a season.
+
+Adjustments are excluded from the movement bars and counted separately as
+corrections. An adjustment's quantity is the new absolute stock level rather
+than an amount moved, so adding it to a flow would be meaningless. Buckets are
+cut on Europe/Sofia calendar days, not UTC ones, which means a movement
+recorded at 22:30 UTC belongs to the next shop day.
+
+Chart.js 4.4.9 is vendored into `wwwroot/lib` beside jQuery rather than pulled
+from a CDN. Chart data reaches the browser through a JSON island serialized
+with the default `System.Text.Json` encoder, which escapes `<`, so a tire brand
+named `</script>` cannot break out of the script tag. Charts draw with
+animation off, because the Print button calls `window.print()` immediately and
+a canvas ignores the stylesheet's reduced-motion rule.
+
+No migration; tests 148 → 171.
+
+---
+
 ## [ ] Future ideas
 
 - Email notifications on low stock
-- Charted reports and summary indicators
 - Barcode-scanner integration and label printing
 - A move to a more powerful server database if data volume grows
 - A mobile interface for working on the warehouse floor

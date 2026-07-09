@@ -402,6 +402,59 @@ public class TiresControllerTests : IDisposable
         Assert.IsType<ViewResult>(result);
         Assert.Equal("/Tires?Season=Winter", (string?)controller.ViewBag.ReturnUrl);
     }
+
+    [Fact]
+    public async Task Report_defaults_to_the_last_twelve_months()
+    {
+        await using var context = _db.CreateContext();
+        var result = Assert.IsType<ViewResult>(await CreateController(context).Report());
+        var vm = Assert.IsType<ValueReportViewModel>(result.Model);
+
+        Assert.Equal(vm.To.AddMonths(-11), vm.From);
+        Assert.Equal(Sklad.Helpers.TrendGranularity.Month, vm.Trend.Granularity);
+        Assert.Equal(12, vm.Trend.Buckets.Count);
+    }
+
+    [Fact]
+    public async Task Report_rejects_a_start_after_the_end_and_falls_back()
+    {
+        await using var context = _db.CreateContext();
+        var controller = CreateController(context);
+
+        var result = Assert.IsType<ViewResult>(
+            await controller.Report(new DateOnly(2026, 6, 1), new DateOnly(2026, 1, 1)));
+        var vm = Assert.IsType<ValueReportViewModel>(result.Model);
+
+        Assert.False(controller.ModelState.IsValid);
+        Assert.Equal(vm.To.AddMonths(-11), vm.From);
+    }
+
+    [Fact]
+    public async Task Report_rejects_a_span_over_ten_years_and_falls_back()
+    {
+        await using var context = _db.CreateContext();
+        var controller = CreateController(context);
+
+        var result = Assert.IsType<ViewResult>(
+            await controller.Report(new DateOnly(2000, 1, 1), new DateOnly(2026, 1, 1)));
+        var vm = Assert.IsType<ValueReportViewModel>(result.Model);
+
+        Assert.False(controller.ModelState.IsValid);
+        Assert.Equal(vm.To.AddMonths(-11), vm.From);
+    }
+
+    [Fact]
+    public async Task Report_honours_an_explicit_range()
+    {
+        await using var context = _db.CreateContext();
+        var result = Assert.IsType<ViewResult>(
+            await CreateController(context).Report(new DateOnly(2026, 3, 1), new DateOnly(2026, 3, 20)));
+        var vm = Assert.IsType<ValueReportViewModel>(result.Model);
+
+        Assert.Equal(new DateOnly(2026, 3, 1), vm.From);
+        Assert.Equal(Sklad.Helpers.TrendGranularity.Day, vm.Trend.Granularity);
+        Assert.Equal(20, vm.Trend.Buckets.Count);
+    }
 }
 
 public class MovementsControllerTests : IDisposable

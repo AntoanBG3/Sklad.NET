@@ -1,7 +1,23 @@
-@model Sklad.Services.ValueReport
+@model Sklad.ViewModels.ValueReportViewModel
 
+@using System.Text.Json
 @{
     ViewData["Title"] = L["Stock Value"].Value;
+
+    // Default JsonSerializer encoder escapes < and >, so a brand named
+    // "</script>" cannot terminate the data island early. Never relax it.
+    var chartJson = JsonSerializer.Serialize(new
+    {
+        brandLabels = Model.Value.ByBrand.Select(g => g.Key),
+        brandValues = Model.Value.ByBrand.Select(g => g.Value),
+        seasonLabels = Model.Value.BySeason.Select(g => L[g.Key].Value),
+        seasonValues = Model.Value.BySeason.Select(g => g.Value),
+        trendLabels = Model.Trend.Buckets.Select(b => b.Label),
+        trendIn = Model.Trend.Buckets.Select(b => b.In),
+        trendOut = Model.Trend.Buckets.Select(b => b.Out),
+        inLabel = L["In"].Value,
+        outLabel = L["Out"].Value
+    });
 }
 
 <div class="page">
@@ -26,14 +42,14 @@
         </div>
 
         @{
-            var totalSkus = Model.ByBrand.Sum(g => g.Skus);
-            var totalUnits = Model.ByBrand.Sum(g => g.Units);
+            var totalSkus = Model.Value.ByBrand.Sum(g => g.Skus);
+            var totalUnits = Model.Value.ByBrand.Sum(g => g.Units);
         }
         <div class="statband statband-3">
             <div class="stat">
-                <div class="stat-num num">@Money.Euro(Model.TotalValue, 0)</div>
+                <div class="stat-num num">@Money.Euro(Model.Value.TotalValue, 0)</div>
                 <div class="stat-label">@L["Inventory Value"]</div>
-                <div class="stat-sub">@Money.Lev(Model.TotalValue, 0)</div>
+                <div class="stat-sub">@Money.Lev(Model.Value.TotalValue, 0)</div>
             </div>
             <div class="stat">
                 <div class="stat-num num">@totalSkus</div>
@@ -45,14 +61,68 @@
             </div>
         </div>
 
+        <form method="get" class="block filter-inline">
+            <div asp-validation-summary="ModelOnly" class="form-errors"></div>
+            <div class="form-grid-3">
+                <div class="field">
+                    <label class="field-label" for="from">@L["From"]</label>
+                    <input class="field-input" type="date" id="from" name="from" value="@Model.From.ToString("yyyy-MM-dd")" />
+                </div>
+                <div class="field">
+                    <label class="field-label" for="to">@L["To"]</label>
+                    <input class="field-input" type="date" id="to" name="to" value="@Model.To.ToString("yyyy-MM-dd")" />
+                </div>
+                <div class="field">
+                    <span class="field-label">&nbsp;</span>
+                    <button type="submit" class="btn btn-primary">@L["Apply"]</button>
+                </div>
+            </div>
+        </form>
+
+        <div class="block">
+            <div class="block-head">
+                <h2 class="block-title">@L["Movement Activity"]</h2>
+                <span class="block-title-context">@L["Corrections in period"]: @Model.Trend.Adjustments</span>
+            </div>
+            <p class="page-lede">@L["Units received and shipped over the selected period. Adjustments are corrections to absolute stock and are excluded."]</p>
+            <div class="chart chart-trend">
+                <canvas id="trend-chart" role="img" aria-label="@L["Movement Activity"]"></canvas>
+            </div>
+            <details class="chart-data">
+                <summary>@L["Show the numbers"]</summary>
+                <div class="table-scroll" tabindex="0">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th scope="col">@L["Period"]</th>
+                                <th scope="col" class="col-num">@L["In"]</th>
+                                <th scope="col" class="col-num">@L["Out"]</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var b in Model.Trend.Buckets)
+                            {
+                                <tr>
+                                    <td>@b.Label</td>
+                                    <td class="col-num">@b.In</td>
+                                    <td class="col-num">@b.Out</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </details>
+        </div>
+
         <div class="grid">
             <div class="col-7">
                 <div class="block">
                     <div class="block-head">
                         <h2 class="block-title">@L["By Brand"]</h2>
                     </div>
+                    <div class="chart"><canvas id="brand-chart" role="img" aria-label="@L["Value by Brand"]"></canvas></div>
                     <div class="table-scroll" tabindex="0" role="region" aria-label="@L["By Brand"]">
-                        @if (!Model.ByBrand.Any())
+                        @if (!Model.Value.ByBrand.Any())
                         {
                             <div class="empty">
                                 <strong>@L["Nothing to report yet"]</strong>
@@ -72,7 +142,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach (var g in Model.ByBrand)
+                                @foreach (var g in Model.Value.ByBrand)
                                 {
                                     <tr>
                                         <td class="cell-strong">@g.Key</td>
@@ -80,7 +150,7 @@
                                         <td class="col-num">@g.Units</td>
                                         <td class="col-num"><money value="g.Value" /></td>
                                         <td class="col-num">
-                                            @{ var share = Model.TotalValue > 0 ? g.Value / Model.TotalValue : 0; }
+                                            @{ var share = Model.Value.TotalValue > 0 ? g.Value / Model.Value.TotalValue : 0; }
                                             <span class="cell-stack">@share.ToString("P1")</span>
                                             <span class="share-bar" aria-hidden="true"><span style="width: @(Math.Round(share * 100, 1).ToString(System.Globalization.CultureInfo.InvariantCulture))%"></span></span>
                                         </td>
@@ -97,8 +167,9 @@
                     <div class="block-head">
                         <h2 class="block-title">@L["By Season"]</h2>
                     </div>
+                    <div class="chart"><canvas id="season-chart" role="img" aria-label="@L["Value by Season"]"></canvas></div>
                     <div class="table-scroll" tabindex="0" role="region" aria-label="@L["By Season"]">
-                        @if (!Model.BySeason.Any())
+                        @if (!Model.Value.BySeason.Any())
                         {
                             <div class="empty">
                                 <strong>@L["Nothing to report yet"]</strong>
@@ -117,7 +188,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach (var g in Model.BySeason)
+                                @foreach (var g in Model.Value.BySeason)
                                 {
                                     <tr>
                                         <td><span class="tag">@L[g.Key]</span></td>
@@ -136,3 +207,10 @@
 
     </div>
 </div>
+
+<script type="application/json" id="report-data">@Html.Raw(chartJson)</script>
+
+@section Scripts {
+    <script src="~/lib/chart.js/dist/chart.umd.js"></script>
+    <script src="~/js/report-charts.js" asp-append-version="true"></script>
+}
