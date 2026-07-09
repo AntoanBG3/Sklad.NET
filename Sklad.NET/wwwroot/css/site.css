@@ -1198,6 +1198,22 @@ main { animation: page-enter 180ms ease-out; }
 .signature-label { margin-top: var(--sp-1); font-size: var(--f--1); color: var(--ink-50); }
 
 /* ============================================================
+   Charts
+   ============================================================ */
+.chart { position: relative; height: 15rem; padding: var(--sp-4); }
+.chart-trend { height: 20rem; }
+.chart-data { border-top: 1px solid var(--rule-soft); }
+.chart-data summary {
+    padding: var(--sp-3) var(--sp-4);
+    cursor: pointer;
+    font-size: var(--f-0);
+    color: var(--ink-50);
+}
+
+.filter-inline { padding: var(--sp-3) var(--sp-4); }
+.filter-inline .form-grid-3 { align-items: end; }
+
+/* ============================================================
    Print — stock lists, the low-stock reorder sheet, purchase orders
    ============================================================ */
 @media print {
@@ -1224,4 +1240,9 @@ main { animation: page-enter 180ms ease-out; }
     .doc-lines { page-break-inside: auto; }
     .doc-lines tr { page-break-inside: avoid; }
     .signatures, .doc-totals { page-break-inside: avoid; }
+}
+
+@media print {
+    .chart { height: 12rem; page-break-inside: avoid; }
+    .chart-data { display: none; }
 }
