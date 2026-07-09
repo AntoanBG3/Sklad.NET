@@ -39,10 +39,12 @@ public class FloorController : Controller
     // POST: /Floor/Book
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Book(int tireId, MovementType movementType, int quantity)
+    public async Task<IActionResult> Book(int tireId, MovementType? movementType, int quantity)
     {
         // Adjustment sets stock absolutely and permits a quantity of zero, so a
-        // crafted post would zero a tire. The floor books flows only.
+        // crafted post would zero a tire. The floor books flows only. The type is
+        // nullable because a malformed or missing value otherwise binds to
+        // default(MovementType), which is In, and would silently book one.
         if (movementType is not (MovementType.In or MovementType.Out))
             return BadRequest();
 
@@ -56,7 +58,7 @@ public class FloorController : Controller
         try
         {
             var newQuantity = await _inventory.RegisterMovementAsync(
-                tireId, movementType, quantity, note: null, CurrentUser);
+                tireId, movementType.Value, quantity, note: null, CurrentUser);
             TempData["Flash"] = _l["{0}: {1} in stock.", tire.Sku, newQuantity].Value;
             return RedirectToAction(nameof(Index));
         }
