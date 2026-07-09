@@ -2,6 +2,7 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
 using Sklad.Controllers;
 using Sklad.Data;
@@ -102,5 +103,82 @@ public class FloorControllerTests : IDisposable
         var vm = Assert.IsType<FloorBookViewModel>(result.Model);
 
         Assert.Equal("MI-206", vm.Sku);
+    }
+
+    [Fact]
+    public async Task Book_an_In_raises_stock_and_records_the_user()
+    {
+        var tire = await SeedAsync(NewTire("MI-300", qty: 10));
+        using var context = _db.CreateContext();
+
+        var result = Assert.IsType<RedirectToActionResult>(
+            await CreateController(context, "picker").Book(tire.Id, MovementType.In, 3));
+        Assert.Equal(nameof(FloorController.Index), result.ActionName);
+
+        await using var check = _db.CreateContext();
+        Assert.Equal(13, (await check.Tires.FindAsync(tire.Id))!.Quantity);
+        var movement = Assert.Single(check.StockMovements.Where(m => m.TireId == tire.Id));
+        Assert.Equal(MovementType.In, movement.MovementType);
+        Assert.Equal("picker", movement.UserName);
+    }
+
+    [Fact]
+    public async Task Book_an_Out_beyond_stock_leaves_the_tire_untouched()
+    {
+        var tire = await SeedAsync(NewTire("MI-301", qty: 2));
+        using var context = _db.CreateContext();
+        var controller = CreateController(context);
+
+        var result = Assert.IsType<ViewResult>(await controller.Book(tire.Id, MovementType.Out, 5));
+
+        Assert.Equal(nameof(FloorController.Tire), result.ViewName);
+        Assert.False(controller.ModelState.IsValid);
+
+        await using var check = _db.CreateContext();
+        Assert.Equal(2, (await check.Tires.FindAsync(tire.Id))!.Quantity);
+        Assert.Empty(check.StockMovements.Where(m => m.TireId == tire.Id));
+    }
+
+    // Adjustment sets stock ABSOLUTELY and permits a quantity of zero, so a crafted
+    // post would silently zero a tire. The floor books flows only.
+    [Theory]
+    [InlineData(MovementType.Adjustment, 0)]
+    [InlineData(MovementType.Adjustment, 99)]
+    public async Task Book_refuses_an_adjustment(MovementType type, int quantity)
+    {
+        var tire = await SeedAsync(NewTire("MI-302", qty: 4));
+        using var context = _db.CreateContext();
+
+        var result = await CreateController(context).Book(tire.Id, type, quantity);
+
+        Assert.IsType<BadRequestResult>(result);
+        await using var check = _db.CreateContext();
+        Assert.Equal(4, (await check.Tires.FindAsync(tire.Id))!.Quantity);
+        Assert.Empty(check.StockMovements.Where(m => m.TireId == tire.Id));
+    }
+
+    [Fact]
+    public async Task Book_a_zero_quantity_is_rejected()
+    {
+        var tire = await SeedAsync(NewTire("MI-303", qty: 4));
+        using var context = _db.CreateContext();
+        var controller = CreateController(context);
+
+        Assert.IsType<ViewResult>(await controller.Book(tire.Id, MovementType.Out, 0));
+        Assert.False(controller.ModelState.IsValid);
+
+        await using var check = _db.CreateContext();
+        Assert.Equal(4, (await check.Tires.FindAsync(tire.Id))!.Quantity);
+    }
+
+    [Fact]
+    public async Task Book_for_a_missing_tire_returns_to_the_scan_screen()
+    {
+        using var context = _db.CreateContext();
+
+        var result = Assert.IsType<RedirectToActionResult>(
+            await CreateController(context).Book(9999, MovementType.In, 1));
+
+        Assert.Equal(nameof(FloorController.Index), result.ActionName);
     }
 }

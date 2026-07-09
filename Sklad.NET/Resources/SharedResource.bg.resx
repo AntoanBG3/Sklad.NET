@@ -468,4 +468,16 @@
   <data name="More" xml:space="preserve">
     <value>Повече</value>
   </data>
+  <data name="That tire no longer exists." xml:space="preserve">
+    <value>Тази гума вече не съществува.</value>
+  </data>
+  <data name="{0}: {1} in stock." xml:space="preserve">
+    <value>{0}: {1} в наличност.</value>
+  </data>
+  <data name="Only {0} in stock." xml:space="preserve">
+    <value>Само {0} в наличност.</value>
+  </data>
+  <data name="Enter a quantity of at least 1." xml:space="preserve">
+    <value>Въведете количество поне 1.</value>
+  </data>
 </root>
