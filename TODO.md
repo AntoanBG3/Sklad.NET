@@ -74,3 +74,10 @@ An "Order from supplier" action on a tire's Details page and an "Order" link in 
 
 - Purchase-order PDF/print layout
 - Email notifications on low stock
+- Charted reports and summary indicators
+- Barcode-scanner integration and label printing
+- A move to a more powerful server database if data volume grows
+- A mobile interface for working on the warehouse floor
+
+The existing architecture allows these extensions without substantially
+reworking current code.
