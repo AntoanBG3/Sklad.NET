@@ -1,0 +1,31 @@
+@{
+    var lang = System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName;
+}
+<!DOCTYPE html>
+<html lang="@lang">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] &mdash; Sklad</title>
+    <link rel="icon" type="image/svg+xml" href="~/favicon.svg" asp-append-version="true" />
+    <link rel="preload" href="~/fonts/InterVariable.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body>
+    <header class="floor-bar">
+        <span class="wordmark-sklad">Sklad</span>
+        <a class="floor-exit" asp-controller="Tires" asp-action="Index">@L["Full app"]</a>
+    </header>
+
+    @if (TempData["Flash"] is string flash)
+    {
+        <div class="flash" role="status"><div class="floor-shell">@flash</div></div>
+    }
+
+    <main id="main-content" class="floor-shell">
+        @RenderBody()
+    </main>
+
+    <script src="~/js/floor.js" asp-append-version="true"></script>
+</body>
+</html>

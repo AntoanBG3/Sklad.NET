@@ -1214,6 +1214,42 @@ main { animation: page-enter 180ms ease-out; }
 .filter-inline .form-grid-3 { align-items: end; }
 
 /* ============================================================
+   Floor — one job per screen, thumb-sized targets
+   ============================================================ */
+.floor-shell { max-width: 34rem; margin-inline: auto; padding-inline: var(--sp-3); }
+.floor-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--sp-3);
+    padding: var(--sp-3);
+    border-bottom: 1px solid var(--rule);
+}
+.floor-exit { font-size: var(--f--1); color: var(--ink-50); }
+.floor-title { font-size: var(--f-2); margin-block: var(--sp-5) var(--sp-4); }
+.floor-scan, .floor-book { display: grid; gap: var(--sp-3); }
+/* iOS Safari zooms into any focused input under 16px */
+.floor-input { font-size: 1rem; min-height: 3.25rem; }
+.floor-btn { min-height: 3.25rem; width: 100%; font-size: var(--f-0); }
+.floor-error { color: var(--red); font-weight: 600; margin-bottom: var(--sp-3); }
+.floor-sku { font-size: var(--f-2); font-weight: 700; margin-top: var(--sp-5); }
+.floor-desc { color: var(--ink-50); margin-top: var(--sp-1); }
+.floor-facts {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--sp-3);
+    margin-block: var(--sp-5);
+    padding-block: var(--sp-4);
+    border-block: 1px solid var(--rule-soft);
+}
+.floor-fact-num { font-size: var(--f-3); font-weight: 700; line-height: 1; }
+.floor-fact-label { font-size: var(--f--1); color: var(--ink-50); text-transform: uppercase; letter-spacing: .04em; margin-top: var(--sp-1); }
+.floor-stepper { display: flex; gap: var(--sp-2); }
+.floor-stepper .floor-input { flex: 1; text-align: center; }
+.floor-step { min-height: 3.25rem; min-width: 3.25rem; }
+.floor-back { display: block; text-align: center; padding-block: var(--sp-3); }
+
+/* ============================================================
    Print — stock lists, the low-stock reorder sheet, purchase orders
    ============================================================ */
 @media print {
