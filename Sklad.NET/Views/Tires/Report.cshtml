@@ -1,4 +1,4 @@
-@model Sklad.Services.ValueReport
+@model Sklad.ViewModels.ValueReportViewModel
 
 @{
     ViewData["Title"] = L["Stock Value"].Value;
@@ -26,14 +26,14 @@
         </div>
 
         @{
-            var totalSkus = Model.ByBrand.Sum(g => g.Skus);
-            var totalUnits = Model.ByBrand.Sum(g => g.Units);
+            var totalSkus = Model.Value.ByBrand.Sum(g => g.Skus);
+            var totalUnits = Model.Value.ByBrand.Sum(g => g.Units);
         }
         <div class="statband statband-3">
             <div class="stat">
-                <div class="stat-num num">@Money.Euro(Model.TotalValue, 0)</div>
+                <div class="stat-num num">@Money.Euro(Model.Value.TotalValue, 0)</div>
                 <div class="stat-label">@L["Inventory Value"]</div>
-                <div class="stat-sub">@Money.Lev(Model.TotalValue, 0)</div>
+                <div class="stat-sub">@Money.Lev(Model.Value.TotalValue, 0)</div>
             </div>
             <div class="stat">
                 <div class="stat-num num">@totalSkus</div>
@@ -45,6 +45,24 @@
             </div>
         </div>
 
+        <form method="get" class="block filter-inline">
+            <div asp-validation-summary="ModelOnly" class="form-errors"></div>
+            <div class="form-grid-3">
+                <div class="field">
+                    <label class="field-label" for="from">@L["From"]</label>
+                    <input class="field-input" type="date" id="from" name="from" value="@Model.From.ToString("yyyy-MM-dd")" />
+                </div>
+                <div class="field">
+                    <label class="field-label" for="to">@L["To"]</label>
+                    <input class="field-input" type="date" id="to" name="to" value="@Model.To.ToString("yyyy-MM-dd")" />
+                </div>
+                <div class="field">
+                    <span class="field-label">&nbsp;</span>
+                    <button type="submit" class="btn btn-primary">@L["Apply"]</button>
+                </div>
+            </div>
+        </form>
+
         <div class="grid">
             <div class="col-7">
                 <div class="block">
@@ -52,7 +70,7 @@
                         <h2 class="block-title">@L["By Brand"]</h2>
                     </div>
                     <div class="table-scroll" tabindex="0" role="region" aria-label="@L["By Brand"]">
-                        @if (!Model.ByBrand.Any())
+                        @if (!Model.Value.ByBrand.Any())
                         {
                             <div class="empty">
                                 <strong>@L["Nothing to report yet"]</strong>
@@ -72,7 +90,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach (var g in Model.ByBrand)
+                                @foreach (var g in Model.Value.ByBrand)
                                 {
                                     <tr>
                                         <td class="cell-strong">@g.Key</td>
@@ -80,7 +98,7 @@
                                         <td class="col-num">@g.Units</td>
                                         <td class="col-num"><money value="g.Value" /></td>
                                         <td class="col-num">
-                                            @{ var share = Model.TotalValue > 0 ? g.Value / Model.TotalValue : 0; }
+                                            @{ var share = Model.Value.TotalValue > 0 ? g.Value / Model.Value.TotalValue : 0; }
                                             <span class="cell-stack">@share.ToString("P1")</span>
                                             <span class="share-bar" aria-hidden="true"><span style="width: @(Math.Round(share * 100, 1).ToString(System.Globalization.CultureInfo.InvariantCulture))%"></span></span>
                                         </td>
@@ -98,7 +116,7 @@
                         <h2 class="block-title">@L["By Season"]</h2>
                     </div>
                     <div class="table-scroll" tabindex="0" role="region" aria-label="@L["By Season"]">
-                        @if (!Model.BySeason.Any())
+                        @if (!Model.Value.BySeason.Any())
                         {
                             <div class="empty">
                                 <strong>@L["Nothing to report yet"]</strong>
@@ -117,7 +135,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach (var g in Model.BySeason)
+                                @foreach (var g in Model.Value.BySeason)
                                 {
                                     <tr>
                                         <td><span class="tag">@L[g.Key]</span></td>

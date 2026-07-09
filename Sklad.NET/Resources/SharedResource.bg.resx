@@ -408,4 +408,40 @@
   <data name="Shop details saved." xml:space="preserve"><value>Данните за магазина са запазени.</value></data>
   <data name="Back to order" xml:space="preserve"><value>Обратно към поръчката</value></data>
   <data name="Ordered by" xml:space="preserve"><value>Поръчал</value></data>
+  <data name="The start date cannot be after the end date." xml:space="preserve">
+    <value>Началната дата не може да бъде след крайната.</value>
+  </data>
+  <data name="Choose a date range of ten years or less." xml:space="preserve">
+    <value>Изберете период от десет години или по-малко.</value>
+  </data>
+  <data name="Period" xml:space="preserve">
+    <value>Период</value>
+  </data>
+  <data name="From" xml:space="preserve">
+    <value>От</value>
+  </data>
+  <data name="To" xml:space="preserve">
+    <value>До</value>
+  </data>
+  <data name="Apply" xml:space="preserve">
+    <value>Приложи</value>
+  </data>
+  <data name="Corrections in period" xml:space="preserve">
+    <value>Корекции за периода</value>
+  </data>
+  <data name="Movement Activity" xml:space="preserve">
+    <value>Движение на склада</value>
+  </data>
+  <data name="Units received and shipped over the selected period. Adjustments are corrections to absolute stock and are excluded." xml:space="preserve">
+    <value>Получени и изведени бройки за избрания период. Корекциите задават абсолютна наличност и не се включват.</value>
+  </data>
+  <data name="Value by Brand" xml:space="preserve">
+    <value>Стойност по марка</value>
+  </data>
+  <data name="Value by Season" xml:space="preserve">
+    <value>Стойност по сезон</value>
+  </data>
+  <data name="Show the numbers" xml:space="preserve">
+    <value>Покажи числата</value>
+  </data>
 </root>
