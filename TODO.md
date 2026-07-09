@@ -70,9 +70,32 @@ An "Order from supplier" action on a tire's Details page and an "Order" link in 
 
 ---
 
+## [x] 10. Shop settings and the purchase-order print document (2026-07-09)
+
+`/PurchaseOrders/Print/{id}` renders an order as a document rather than an app
+page: shop letterhead, supplier block, order lines, total units, EUR/BGN total,
+and signature lines for who ordered and who received. It prints through the
+existing `data-print` handler, so staff save a PDF from the browser; no PDF
+library was added, which also sidesteps embedding a Cyrillic TTF.
+
+The letterhead needed a shop identity, and none existed. `ShopSettings` is a
+singleton row (name, address, VAT/EIK, phone, email) behind an Admin-only page
+at `/ShopSettings`. Every field is optional and blanks store as null, so an
+unconfigured install prints a valid order with no letterhead. The service
+returns a blank settings object when the row is absent, because `TestDb` builds
+its schema with `EnsureCreated` and never runs migrations — a seeded row would
+be invisible to every test.
+
+Groundwork in the same round: `LocalizationTests` now fails on any `L["..."]`
+key missing from the Bulgarian resx. It previously only checked that the
+satellite assembly loaded, so an untranslated string shipped silently.
+
+Migration `ShopSettings`; tests 135 → 148.
+
+---
+
 ## [ ] Future ideas
 
-- Purchase-order PDF/print layout
 - Email notifications on low stock
 - Charted reports and summary indicators
 - Barcode-scanner integration and label printing

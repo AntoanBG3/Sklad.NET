@@ -1218,8 +1218,8 @@ main { animation: page-enter 180ms ease-out; }
     /* The document carries its own letterhead; the app's page heading would
        duplicate the PO number above it. */
     .doc { border: 0; padding: 0; }
-    .doc ~ *, .page:has(.doc) .page-head { display: none; }
-    .container-narrow { max-width: none; }
+    .page:has(.doc) .page-head { display: none; }
+    .page:has(.doc) .container-narrow { max-width: none; }
     .signatures { margin-top: 18mm; }
     .doc-lines { page-break-inside: auto; }
     .doc-lines tr { page-break-inside: avoid; }
