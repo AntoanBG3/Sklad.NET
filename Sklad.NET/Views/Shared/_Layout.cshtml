@@ -11,16 +11,11 @@
     var isSettings = ctrl == "ShopSettings";
     var lang = System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName;
     var here = $"{Context.Request.Path}{Context.Request.QueryString}";
+    var authed = User.Identity?.IsAuthenticated == true;
 }
 <html lang="@lang">
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] &mdash; Sklad</title>
-    <link rel="icon" type="image/svg+xml" href="~/favicon.svg" asp-append-version="true" />
-    <link rel="icon" href="~/favicon.ico" sizes="32x32" />
-    <link rel="preload" href="~/fonts/InterVariable.woff2" as="font" type="font/woff2" crossorigin />
-    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <partial name="_Head" />
 </head>
 <body>
     <a class="skip-link" href="#main-content">@L["Skip to content"]</a>
@@ -29,14 +24,14 @@
             <a class="wordmark" asp-controller="Tires" asp-action="Index">
                 <span class="wordmark-sklad">Sklad</span><span class="mark-index">@L["Tire Warehouse"]</span>
             </a>
-            @if (User.Identity?.IsAuthenticated == true)
+            @if (authed)
             {
                 <button type="button" class="nav-toggle" data-nav-toggle aria-expanded="false" aria-controls="topnav">
                     <span class="nav-toggle-icon" aria-hidden="true"></span>@L["Menu"]
                 </button>
             }
-            <nav class="topnav @(User.Identity?.IsAuthenticated == true ? "" : "topnav-simple")" id="topnav" aria-label="@L["Main navigation"]">
-                @if (User.Identity?.IsAuthenticated == true)
+            <nav class="topnav @(authed ? "" : "topnav-simple")" id="topnav" aria-label="@L["Main navigation"]">
+                @if (authed)
                 {
                     <div class="topnav-links">
                         <a class="@(isInventory ? "is-active" : "")" aria-current="@(isInventory ? "page" : null)" asp-controller="Tires" asp-action="Index">@L["Inventory"]</a>
@@ -58,7 +53,7 @@
                         <a class="@(lang == "en" ? "is-active" : "")" aria-current="@(lang == "en" ? "true" : null)" asp-controller="Culture" asp-action="Set"
                            asp-route-culture="en-GB" asp-route-returnUrl="@here">EN</a>
                     </span>
-                    @if (User.Identity?.IsAuthenticated == true)
+                    @if (authed)
                     {
                         <form class="logout" asp-controller="Account" asp-action="Logout" method="post">
                             <span class="whoami">@User.Identity.Name</span>
@@ -70,10 +65,7 @@
         </div>
     </header>
 
-    @if (TempData["Flash"] is string flash)
-    {
-        <div class="flash" role="status"><div class="container">@flash</div></div>
-    }
+    <partial name="_Flash" model=@("container") />
 
     <main id="main-content">
         @RenderBody()
