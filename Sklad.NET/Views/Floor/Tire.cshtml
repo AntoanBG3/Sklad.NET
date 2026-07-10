@@ -24,7 +24,7 @@
     <input type="hidden" name="tireId" value="@Model.TireId" />
 
     <label class="field-label" for="quantity">@L["Quantity"]</label>
-    <div class="floor-stepper" data-stepper data-less="@L["Fewer"]" data-more="@L["More"]">
+    <div class="input-group floor-stepper" data-stepper data-less="@L["Fewer"]" data-more="@L["More"]">
         <input id="quantity" name="quantity" type="number" class="field-input floor-input"
                value="1" min="1" step="1" inputmode="numeric" required />
     </div>

@@ -27,7 +27,9 @@
     --rule:      #000000;
     --rule-soft: rgba(0, 0, 0, .14);
 
-    /* modular type scale, base 1rem × 1.333 */
+    /* modular type scale, base 1rem × 1.333 (--f--2 is the half-step below
+       --f--1 for chrome that must fit seven Bulgarian labels on one row) */
+    --f--2: 0.6875rem;
     --f--1: 0.75rem;
     --f-0:  1rem;
     --f-1:  1.333rem;
@@ -47,6 +49,7 @@
     --sp-8: 4.209rem;
 
     --topbar-h: 4rem;
+    --floor-tap: 3.25rem; /* thumb-sized touch target on the floor screens */
     --maxw: 82.5rem; /* 1320px at the 16px root; grows with the root on large displays */
     --gut: var(--sp-6);
 
@@ -217,10 +220,9 @@ img, svg { display: block; max-width: 100%; }
     flex: 1;
     min-width: 0;
     align-items: stretch;
-    justify-content: space-between;
     gap: var(--sp-3);
 }
-.topnav-links { display: flex; align-items: stretch; }
+.topnav-links { display: flex; }
 /* tabs separated by air, not fences; the red bar is the only indicator,
    and hover previews the active state. Type is a notch smaller than the
    rest of the chrome so seven Bulgarian labels share one row. */
@@ -229,7 +231,7 @@ img, svg { display: block; max-width: 100%; }
     align-items: center;
     padding-inline: var(--sp-2);
     color: var(--black);
-    font-size: 0.6875rem;
+    font-size: var(--f--2);
     font-weight: 600;
     letter-spacing: 0.03em;
     text-transform: uppercase;
@@ -1076,7 +1078,8 @@ button.quiet-danger { border: 0; background: none; padding: 0; cursor: pointer; 
 /* match the .field-input box height (1rem text × 1.45 line-height + 2×sp-2
    padding + 1px borders) so the filter row reads as one control strip */
 .field-buttons .btn,
-.input-group .btn { height: calc(1.45 * var(--f-0) + 2 * var(--sp-2) + 2px); }
+.input-group .btn,
+.filter-inline .btn { height: calc(1.45 * var(--f-0) + 2 * var(--sp-2) + 2px); }
 
 .pager {
     display: flex;
@@ -1153,8 +1156,6 @@ button.quiet-danger { border: 0; background: none; padding: 0; cursor: pointer; 
     }
     .topbar.nav-open .topnav-links { display: block; }
     .topbar.nav-open .topnav-links a {
-        display: flex;
-        align-items: center;
         min-height: 3rem;
         padding-inline: var(--gut);
         border-top: 1px solid var(--rule);
@@ -1304,7 +1305,6 @@ main { animation: page-enter 180ms ease-out; }
 /* the grid bottom-aligns the cells, so the fields must not carry their
    stacked-form bottom margin or the inputs float above the submit button */
 .filter-inline .field { margin-bottom: 0; }
-.filter-inline .btn { min-height: 2.9375rem; }
 
 /* ============================================================
    Floor — one job per screen, thumb-sized targets
@@ -1322,8 +1322,8 @@ main { animation: page-enter 180ms ease-out; }
 .floor-title { font-size: var(--f-2); margin-block: var(--sp-5) var(--sp-4); }
 .floor-scan, .floor-book { display: grid; gap: var(--sp-3); }
 /* iOS Safari zooms into any focused input under 16px */
-.floor-input { font-size: 1rem; min-height: 3.25rem; }
-.floor-btn { min-height: 3.25rem; width: 100%; font-size: var(--f-0); }
+.floor-input { font-size: 1rem; min-height: var(--floor-tap); }
+.floor-btn { min-height: var(--floor-tap); width: 100%; font-size: var(--f-0); }
 .floor-error { color: var(--red); font-weight: 600; margin-bottom: var(--sp-3); }
 .floor-sku { font-size: var(--f-2); font-weight: 700; margin-top: var(--sp-5); }
 .floor-desc { color: var(--ink-50); margin-top: var(--sp-1); }
@@ -1337,10 +1337,9 @@ main { animation: page-enter 180ms ease-out; }
 }
 .floor-fact-num { font-size: var(--f-3); font-weight: 700; line-height: 1; }
 .floor-fact-label { font-size: var(--f--1); color: var(--ink-50); text-transform: uppercase; letter-spacing: .04em; margin-top: var(--sp-1); }
-.floor-stepper { display: flex; gap: var(--sp-2); }
-/* without min-width:0 the input's intrinsic width pushes the + button off a phone */
-.floor-stepper .floor-input { flex: 1; min-width: 0; text-align: center; }
-.floor-step { flex: none; min-height: 3.25rem; min-width: 3.25rem; }
+.floor-stepper { gap: var(--sp-2); } /* flex and min-width:0 come from .input-group */
+.floor-stepper .floor-input { text-align: center; }
+.floor-step { flex: none; min-height: var(--floor-tap); min-width: var(--floor-tap); }
 .floor-back { display: block; text-align: center; padding-block: var(--sp-3); }
 
 /* ============================================================
