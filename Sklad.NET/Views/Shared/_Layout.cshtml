@@ -25,41 +25,49 @@
 <body>
     <a class="skip-link" href="#main-content">@L["Skip to content"]</a>
     <header class="topbar">
-        <div class="container topbar-brand">
+        <div class="container topbar-row">
             <a class="wordmark" asp-controller="Tires" asp-action="Index">
                 <span class="wordmark-sklad">Sklad</span><span class="mark-index">@L["Tire Warehouse"]</span>
             </a>
-        </div>
-        <nav class="topnav" aria-label="@L["Main navigation"]">
-            <div class="container topnav-inner">
+            @if (User.Identity?.IsAuthenticated == true)
+            {
+                <button type="button" class="nav-toggle" data-nav-toggle aria-expanded="false" aria-controls="topnav">
+                    <span class="nav-toggle-icon" aria-hidden="true"></span>@L["Menu"]
+                </button>
+            }
+            <nav class="topnav @(User.Identity?.IsAuthenticated == true ? "" : "topnav-simple")" id="topnav" aria-label="@L["Main navigation"]">
                 @if (User.Identity?.IsAuthenticated == true)
                 {
-                    <a class="@(isInventory ? "is-active" : "")" aria-current="@(isInventory ? "page" : null)" asp-controller="Tires" asp-action="Index">@L["Inventory"]</a>
-                    <a class="@(isLowStock ? "is-active" : "")" aria-current="@(isLowStock ? "page" : null)" asp-controller="Tires" asp-action="LowStock">@L["Low Stock"]</a>
-                    <a class="@(isMovements ? "is-active" : "")" aria-current="@(isMovements ? "page" : null)" asp-controller="Movements" asp-action="Index">@L["Movements"]</a>
-                    <a class="@(isPurchasing ? "is-active" : "")" aria-current="@(isPurchasing ? "page" : null)" asp-controller="PurchaseOrders" asp-action="Index">@L["Purchasing"]</a>
-                    <a class="@(isReport ? "is-active" : "")" aria-current="@(isReport ? "page" : null)" asp-controller="Tires" asp-action="Report">@L["Stock Value"]</a>
-                    @if (User.IsInRole(nameof(Sklad.Models.UserRole.Admin)))
+                    <div class="topnav-links">
+                        <a class="@(isInventory ? "is-active" : "")" aria-current="@(isInventory ? "page" : null)" asp-controller="Tires" asp-action="Index">@L["Inventory"]</a>
+                        <a class="@(isLowStock ? "is-active" : "")" aria-current="@(isLowStock ? "page" : null)" asp-controller="Tires" asp-action="LowStock">@L["Low Stock"]</a>
+                        <a class="@(isMovements ? "is-active" : "")" aria-current="@(isMovements ? "page" : null)" asp-controller="Movements" asp-action="Index">@L["Movements"]</a>
+                        <a class="@(isPurchasing ? "is-active" : "")" aria-current="@(isPurchasing ? "page" : null)" asp-controller="PurchaseOrders" asp-action="Index">@L["Purchasing"]</a>
+                        <a class="@(isReport ? "is-active" : "")" aria-current="@(isReport ? "page" : null)" asp-controller="Tires" asp-action="Report">@L["Stock Value"]</a>
+                        @if (User.IsInRole(nameof(Sklad.Models.UserRole.Admin)))
+                        {
+                            <a class="@(isUsers ? "is-active" : "")" aria-current="@(isUsers ? "page" : null)" asp-controller="Users" asp-action="Index">@L["Users"]</a>
+                            <a class="@(isSettings ? "is-active" : "")" aria-current="@(isSettings ? "page" : null)" asp-controller="ShopSettings" asp-action="Index">@L["Settings"]</a>
+                        }
+                    </div>
+                }
+                <div class="topnav-account">
+                    <span class="lang" role="group" aria-label="@L["Language"]">
+                        <a class="@(lang == "bg" ? "is-active" : "")" aria-current="@(lang == "bg" ? "true" : null)" asp-controller="Culture" asp-action="Set"
+                           asp-route-culture="bg-BG" asp-route-returnUrl="@here">BG</a>
+                        <a class="@(lang == "en" ? "is-active" : "")" aria-current="@(lang == "en" ? "true" : null)" asp-controller="Culture" asp-action="Set"
+                           asp-route-culture="en-GB" asp-route-returnUrl="@here">EN</a>
+                    </span>
+                    @if (User.Identity?.IsAuthenticated == true)
                     {
-                        <a class="@(isUsers ? "is-active" : "")" aria-current="@(isUsers ? "page" : null)" asp-controller="Users" asp-action="Index">@L["Users"]</a>
-                        <a class="@(isSettings ? "is-active" : "")" aria-current="@(isSettings ? "page" : null)" asp-controller="ShopSettings" asp-action="Index">@L["Settings"]</a>
+                        <form class="logout" asp-controller="Account" asp-action="Logout" method="post">
+                            <span class="whoami">@User.Identity.Name</span>
+                            <button type="submit" class="navlink">@L["Sign out"]</button>
+                        </form>
                     }
-                }
-                <span class="lang" role="group" aria-label="@L["Language"]">
-                    <a class="@(lang == "bg" ? "is-active" : "")" aria-current="@(lang == "bg" ? "true" : null)" asp-controller="Culture" asp-action="Set"
-                       asp-route-culture="bg-BG" asp-route-returnUrl="@here">BG</a>
-                    <a class="@(lang == "en" ? "is-active" : "")" aria-current="@(lang == "en" ? "true" : null)" asp-controller="Culture" asp-action="Set"
-                       asp-route-culture="en-GB" asp-route-returnUrl="@here">EN</a>
-                </span>
-                @if (User.Identity?.IsAuthenticated == true)
-                {
-                    <form class="logout" asp-controller="Account" asp-action="Logout" method="post">
-                        <span class="whoami">@User.Identity.Name</span>
-                        <button type="submit" class="navlink">@L["Sign out"]</button>
-                    </form>
-                }
-            </div>
-        </nav>
+                </div>
+            </nav>
+        </div>
     </header>
 
     @if (TempData["Flash"] is string flash)

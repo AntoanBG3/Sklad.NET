@@ -212,6 +212,7 @@
   <data name="Barcode" xml:space="preserve"><value>Баркод</value></data>
   <data name="Scan SKU or barcode" xml:space="preserve"><value>Сканирай SKU или баркод</value></data>
   <data name="Mobile scan" xml:space="preserve"><value>Мобилно сканиране</value></data>
+  <data name="Menu" xml:space="preserve"><value>Меню</value></data>
   <data name="No tire matches code {0}." xml:space="preserve"><value>Няма гума с код {0}.</value></data>
 
   <!-- Movements journal -->

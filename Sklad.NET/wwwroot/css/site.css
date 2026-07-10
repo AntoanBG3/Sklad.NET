@@ -170,14 +170,15 @@ img, svg { display: block; max-width: 100%; }
     }
 }
 
-/* masthead: the wordmark gets its own row, the tabs a full-width deck
-   under it. One layout at every width — the Bulgarian tab row plus the
-   signed-in name is wider than the capped container, so any side-by-side
-   arrangement overhangs the page grid somewhere; the deck never does. */
-.topbar-brand {
+/* One row at every width: wordmark, inline links, account cluster. Under
+   the collapse breakpoint the links and account move into a drawer behind
+   the Menu button — the Bulgarian tab row plus the signed-in name cannot
+   fit a narrower bar, and a drawer beats wrapping it into extra rows. */
+.topbar-row {
     height: var(--topbar-h);
     display: flex;
-    align-items: center;
+    align-items: stretch;
+    gap: var(--sp-4);
 }
 
 .wordmark {
@@ -211,38 +212,36 @@ img, svg { display: block; max-width: 100%; }
     white-space: nowrap;
 }
 
-.topnav { border-top: 1px solid var(--rule); }
-.topnav-inner {
+.topnav {
     display: flex;
-    flex-wrap: wrap;
+    flex: 1;
+    min-width: 0;
     align-items: stretch;
+    justify-content: space-between;
+    gap: var(--sp-3);
 }
+.topnav-links { display: flex; align-items: stretch; }
 /* tabs separated by air, not fences; the red bar is the only indicator,
-   and hover previews the active state. Every row item carries a top rule
-   pulled up 1px: it overlaps the nav border on the first row (no doubling)
-   and draws the divider when the deck wraps. */
-.topnav a {
+   and hover previews the active state. Type is a notch smaller than the
+   rest of the chrome so seven Bulgarian labels share one row. */
+.topnav-links a {
     display: flex;
     align-items: center;
-    min-height: 2.75rem;
-    margin-top: -1px;
-    border-top: 1px solid var(--rule);
-    padding-inline: var(--sp-3);
+    padding-inline: var(--sp-2);
     color: var(--black);
-    font-size: var(--f--1);
+    font-size: 0.6875rem;
     font-weight: 600;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.03em;
     text-transform: uppercase;
-    /* labels never break mid-word; a row that runs out of room wraps */
     white-space: nowrap;
     position: relative;
 }
-.topnav a:hover { text-decoration: none; }
-.topnav a::after {
+.topnav-links a:hover { text-decoration: none; }
+.topnav-links a::after {
     content: "";
     position: absolute;
-    left: var(--sp-3);
-    right: var(--sp-3);
+    left: var(--sp-2);
+    right: var(--sp-2);
     bottom: -1px;
     height: 3px;
     background: var(--red);
@@ -250,26 +249,52 @@ img, svg { display: block; max-width: 100%; }
     transform-origin: center;
     transition: transform 160ms ease;
 }
-.topnav a:hover::after,
-.topnav a:focus-visible::after,
-.topnav a.is-active::after { transform: scaleX(1); }
+.topnav-links a:hover::after,
+.topnav-links a:focus-visible::after,
+.topnav-links a.is-active::after { transform: scaleX(1); }
 
-/* the account cluster keeps to the right edge of the deck */
+.topnav-account {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-3);
+    margin-left: auto;
+}
+
+/* the Menu button collapses the nav into a drawer on narrow windows */
+.nav-toggle {
+    display: none;
+    align-items: center;
+    gap: var(--sp-2);
+    align-self: center;
+    margin-left: auto;
+    padding: 0.45rem var(--sp-2);
+    border: 1px solid var(--black);
+    background: var(--white);
+    color: var(--black);
+    font: inherit;
+    font-size: var(--f--1);
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    cursor: pointer;
+}
+.nav-toggle-icon {
+    display: block;
+    width: 1rem;
+    height: 2px;
+    background: currentColor;
+    box-shadow: 0 -0.3rem 0 currentColor, 0 0.3rem 0 currentColor;
+}
+.topbar.nav-open .nav-toggle { background: var(--black); color: var(--white); }
+
 .lang {
     display: flex;
     align-items: center;
     gap: var(--sp-1);
-    min-height: 2.75rem;
-    margin-left: auto;
-    margin-top: -1px;
-    border-top: 1px solid var(--rule);
-    padding-inline: var(--sp-3);
-    border-left: 1px solid var(--rule);
     font-size: var(--f--1);
     font-weight: 700;
     letter-spacing: 0.06em;
 }
-.lang:first-child { border-left: 0; }
 .lang a {
     display: inline-flex;
     align-items: center;
@@ -1054,9 +1079,7 @@ button.quiet-danger { border: 0; background: none; padding: 0; cursor: pointer; 
     display: flex;
     align-items: center;
     gap: var(--sp-2);
-    min-height: 2.75rem;
-    margin: -1px 0 0;
-    border-top: 1px solid var(--rule);
+    margin: 0;
     padding-left: var(--sp-3);
     border-left: 1px solid var(--rule-soft);
 }
@@ -1090,6 +1113,48 @@ button.quiet-danger { border: 0; background: none; padding: 0; cursor: pointer; 
 /* ============================================================
    Responsive
    ============================================================ */
+/* the collapse point: seven Bulgarian tabs + wordmark + account cluster
+   need roughly 1250px; below that the nav lives in a drawer */
+@media (max-width: 1339px) {
+    .nav-toggle { display: inline-flex; }
+    .topnav { display: none; }
+    /* the anonymous bar holds only the language chips — no drawer needed */
+    .topnav.topnav-simple { display: flex; flex: 0 0 auto; margin-left: auto; }
+    .topbar.nav-open .topnav {
+        display: block;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: var(--white);
+        border-bottom: 3px solid var(--black);
+        box-shadow: 0 24px 48px rgba(17, 17, 17, 0.18);
+        max-height: calc(100vh - var(--topbar-h));
+        overflow-y: auto;
+    }
+    .topbar.nav-open .topnav-links { display: block; }
+    .topbar.nav-open .topnav-links a {
+        display: flex;
+        align-items: center;
+        min-height: 3rem;
+        padding-inline: var(--gut);
+        border-top: 1px solid var(--rule);
+        font-size: var(--f--1);
+        letter-spacing: 0.04em;
+    }
+    .topbar.nav-open .topnav-links a::after { display: none; }
+    .topbar.nav-open .topnav-links a.is-active {
+        font-weight: 700;
+        box-shadow: inset 4px 0 0 var(--red);
+    }
+    .topbar.nav-open .topnav-account {
+        justify-content: space-between;
+        margin-left: 0;
+        padding: var(--sp-3) var(--gut);
+        border-top: 1px solid var(--black);
+    }
+}
+
 @media (max-width: 900px) {
     .statband { grid-template-columns: repeat(2, 1fr); }
     .stat:nth-child(3) { border-left: 0; padding-left: 0; }
@@ -1107,17 +1172,6 @@ button.quiet-danger { border: 0; background: none; padding: 0; cursor: pointer; 
     .col-5, .col-7, .col-8 { grid-column: span 12; }
     .form-grid-2, .form-grid-3 { grid-template-columns: 1fr; }
     .wordmark .mark-index { display: none; }
-    /* phone deck: tabs grow to fill each row edge to edge and the fences
-       return as touch-target boundaries — no ragged right end */
-    .topnav a {
-        flex: 1 0 auto;
-        justify-content: center;
-        border-left: 1px solid var(--rule);
-        padding-inline: var(--sp-3);
-        font-size: 0.6875rem;
-    }
-    .topnav a:first-child { border-left: 0; }
-    .lang { padding-inline: var(--sp-3); }
 }
 
 @media (max-width: 480px) {
