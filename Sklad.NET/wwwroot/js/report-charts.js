@@ -19,10 +19,29 @@
     var inFill = black;
     var outFill = 'rgba(0, 0, 0, .32)';
 
-    // window.print() fires immediately from the Print button and would otherwise
-    // capture a canvas mid-tween; this also honours prefers-reduced-motion,
-    // which CSS cannot enforce on a canvas.
-    Chart.defaults.animation = false;
+    // A canvas ignores the page's prefers-reduced-motion CSS, so the check
+    // happens here; bars grow from the axis with a slight left-to-right stagger.
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        Chart.defaults.animation = false;
+    } else {
+        Chart.defaults.animation = {
+            duration: 500,
+            easing: 'easeOutQuart',
+            delay: function (ctx) {
+                return ctx.type === 'data' && ctx.mode === 'default' ? ctx.dataIndex * 18 : 0;
+            }
+        };
+    }
+    // window.print() fires immediately from the Print button and would capture
+    // a canvas mid-tween; beforeprint runs synchronously first, so jumping every
+    // chart to its final frame here keeps the printout complete.
+    var charts = [];
+    window.addEventListener('beforeprint', function () {
+        charts.forEach(function (c) {
+            c.stop();
+            c.update('none');
+        });
+    });
     // Chart.js formats axis ticks with its own locale, which defaults to en-US and
     // would print "25,000" beside the page's own "140 750".
     Chart.defaults.locale = document.documentElement.lang || undefined;
@@ -33,7 +52,7 @@
     function horizontalBar(id, labels, values) {
         var el = document.getElementById(id);
         if (!el || !labels.length) return;
-        new Chart(el, {
+        charts.push(new Chart(el, {
             type: 'bar',
             data: {
                 labels: labels,
@@ -46,7 +65,7 @@
                 plugins: { legend: { display: false } },
                 scales: { x: { beginAtZero: true, grid: { color: ruleSoft } }, y: { grid: { display: false } } }
             }
-        });
+        }));
     }
 
     horizontalBar('brand-chart', data.brandLabels, data.brandValues);
@@ -54,7 +73,7 @@
 
     var trendEl = document.getElementById('trend-chart');
     if (trendEl) {
-        new Chart(trendEl, {
+        charts.push(new Chart(trendEl, {
             type: 'bar',
             data: {
                 labels: data.trendLabels,
@@ -72,6 +91,6 @@
                     y: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: ruleSoft } }
                 }
             }
-        });
+        }));
     }
 })();

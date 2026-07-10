@@ -278,14 +278,33 @@ img, svg { display: block; max-width: 100%; }
     text-transform: uppercase;
     cursor: pointer;
 }
+/* three bars: the span is the middle one, the outer two morph into an X
+   when the drawer is open */
 .nav-toggle-icon {
+    position: relative;
     display: block;
     width: 1rem;
     height: 2px;
     background: currentColor;
-    box-shadow: 0 -0.3rem 0 currentColor, 0 0.3rem 0 currentColor;
+    transition: background 120ms ease;
 }
+.nav-toggle-icon::before,
+.nav-toggle-icon::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 1rem;
+    height: 2px;
+    background: currentColor;
+    transition: transform 160ms ease;
+}
+.nav-toggle-icon::before { transform: translateY(-0.3rem); }
+.nav-toggle-icon::after { transform: translateY(0.3rem); }
 .topbar.nav-open .nav-toggle { background: var(--black); color: var(--white); }
+.topbar.nav-open .nav-toggle-icon { background: transparent; }
+.topbar.nav-open .nav-toggle-icon::before { transform: rotate(45deg); }
+.topbar.nav-open .nav-toggle-icon::after { transform: rotate(-45deg); }
 
 .lang {
     display: flex;
@@ -1212,6 +1231,9 @@ button.quiet-danger { border: 0; background: none; padding: 0; cursor: pointer; 
 }
 
 main { animation: page-enter 180ms ease-out; }
+/* entrance only: closing switches display and cannot animate, which keeps
+   dismissal instant — the panel must never feel slower to get rid of */
+.topbar.nav-open .topnav { animation: drop-in 200ms ease-out; }
 .flash { animation: drop-in 240ms ease-out; }
 .notice { animation: drop-in 240ms ease-out; }
 .share-bar span { transform-origin: left; animation: bar-grow 500ms ease-out; }
@@ -1279,6 +1301,10 @@ main { animation: page-enter 180ms ease-out; }
 
 .filter-inline { padding: var(--sp-3) var(--sp-4); }
 .filter-inline .form-grid-3 { align-items: end; }
+/* the grid bottom-aligns the cells, so the fields must not carry their
+   stacked-form bottom margin or the inputs float above the submit button */
+.filter-inline .field { margin-bottom: 0; }
+.filter-inline .btn { min-height: 2.9375rem; }
 
 /* ============================================================
    Floor — one job per screen, thumb-sized targets
