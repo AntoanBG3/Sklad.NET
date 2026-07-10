@@ -1373,6 +1373,12 @@ main { animation: page-enter 180ms ease-out; }
 }
 
 @media print {
-    .chart { height: 12rem; page-break-inside: avoid; }
+    /* Chart.js sizes each canvas with inline pixel styles for the screen
+       layout and never re-lays-out for the print pass, so a fixed-height
+       container just lets the oversized bitmap bleed over the next block.
+       Scale the bitmap down instead: max-width caps it at the print column,
+       height:auto keeps the aspect ratio, and the container follows suit. */
+    .chart { height: auto; page-break-inside: avoid; }
+    .chart canvas { max-width: 100%; height: auto !important; }
     .chart-data, .filter-inline { display: none; }
 }
