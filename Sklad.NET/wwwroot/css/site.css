@@ -1087,10 +1087,12 @@ button.quiet-danger { border: 0; background: none; padding: 0; cursor: pointer; 
         flex: 1 0 100%;
         flex-wrap: wrap;
         margin-inline: calc(-1 * var(--gut));
+        border-top: 1px solid var(--rule);
     }
-    /* the fences earn their keep as touch-target edges; the top rule lives
-       on the items, not the nav, so wrapped rows get a divider between them */
-    .topnav a, .topnav .lang, .topnav .logout { border-top: 1px solid var(--rule); }
+    /* the fences earn their keep as touch-target edges; items also carry a
+       top rule pulled up 1px — it overlaps the nav's own border on the first
+       row (no doubling) and draws the divider between wrapped rows */
+    .topnav a, .topnav .lang, .topnav .logout { border-top: 1px solid var(--rule); margin-top: -1px; }
     .topnav a { white-space: nowrap; min-height: 2.75rem; border-left: 1px solid var(--rule); }
     .topnav a:first-child { border-left: 0; }
     .topnav a::after { bottom: 0; }
