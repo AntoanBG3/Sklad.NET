@@ -21,15 +21,18 @@
 
     // A canvas ignores the page's prefers-reduced-motion CSS, so the check
     // happens here; bars grow from the axis with a slight left-to-right stagger.
+    // Mutate Chart.defaults.animation, never replace it with an object: the
+    // default object declares type/fn/from/to keys that per-property resolution
+    // falls back on, and a replacement without them leaves hover colour
+    // animations with no interpolator — the shared animator then throws on
+    // every tick, freezing tooltips at opacity 0 and corrupting redraws.
+    // (Assigning false is safe; it disables animation cleanly.)
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
         Chart.defaults.animation = false;
     } else {
-        Chart.defaults.animation = {
-            duration: 500,
-            easing: 'easeOutQuart',
-            delay: function (ctx) {
-                return ctx.type === 'data' && ctx.mode === 'default' ? ctx.dataIndex * 18 : 0;
-            }
+        Chart.defaults.animation.duration = 500;
+        Chart.defaults.animation.delay = function (ctx) {
+            return ctx.type === 'data' && ctx.mode === 'default' ? ctx.dataIndex * 18 : 0;
         };
     }
     // window.print() fires immediately from the Print button and would capture
