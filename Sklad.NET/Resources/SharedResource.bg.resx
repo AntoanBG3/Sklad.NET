@@ -211,6 +211,8 @@
   <!-- Barcode and scanning -->
   <data name="Barcode" xml:space="preserve"><value>Баркод</value></data>
   <data name="Scan SKU or barcode" xml:space="preserve"><value>Сканирай SKU или баркод</value></data>
+  <data name="Mobile scan" xml:space="preserve"><value>Мобилно сканиране</value></data>
+  <data name="Menu" xml:space="preserve"><value>Меню</value></data>
   <data name="No tire matches code {0}." xml:space="preserve"><value>Няма гума с код {0}.</value></data>
 
   <!-- Movements journal -->
@@ -443,5 +445,38 @@
   </data>
   <data name="Show the numbers" xml:space="preserve">
     <value>Покажи числата</value>
+  </data>
+  <data name="Scan a tire" xml:space="preserve">
+    <value>Сканирай гума</value>
+  </data>
+  <data name="Find" xml:space="preserve">
+    <value>Намери</value>
+  </data>
+  <data name="Full app" xml:space="preserve">
+    <value>Пълно приложение</value>
+  </data>
+  <data name="In stock" xml:space="preserve">
+    <value>В наличност</value>
+  </data>
+  <data name="Scan another" xml:space="preserve">
+    <value>Сканирай друга</value>
+  </data>
+  <data name="Fewer" xml:space="preserve">
+    <value>По-малко</value>
+  </data>
+  <data name="More" xml:space="preserve">
+    <value>Повече</value>
+  </data>
+  <data name="That tire no longer exists." xml:space="preserve">
+    <value>Тази гума вече не съществува.</value>
+  </data>
+  <data name="{0}: {1} in stock." xml:space="preserve">
+    <value>{0}: {1} в наличност.</value>
+  </data>
+  <data name="Only {0} in stock." xml:space="preserve">
+    <value>Само {0} в наличност.</value>
+  </data>
+  <data name="Enter a quantity of at least 1." xml:space="preserve">
+    <value>Въведете количество поне 1.</value>
   </data>
 </root>

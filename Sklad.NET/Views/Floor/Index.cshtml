@@ -1,0 +1,19 @@
+@model Sklad.ViewModels.FloorScanViewModel
+
+@{
+    ViewData["Title"] = L["Scan"].Value;
+}
+
+<h1 class="floor-title">@L["Scan a tire"]</h1>
+
+@if (Model.NotFound)
+{
+    <p class="floor-error" role="alert">@L["No tire matches code {0}.", Model.Code]</p>
+}
+
+<form method="get" asp-action="Tire" class="floor-scan">
+    <label class="field-label" for="code">@L["Scan SKU or barcode"]</label>
+    <input id="code" name="code" class="field-input floor-input" value="@Model.Code"
+           autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search" autofocus />
+    <button type="submit" class="btn btn-primary floor-btn">@L["Find"]</button>
+</form>

@@ -120,12 +120,50 @@ No migration; tests 148 → 171.
 
 ---
 
+## [x] 12. A mobile interface for the warehouse floor (2026-07-09)
+
+`/Floor` is a scan-and-book flow for a picker standing at the rack with a
+phone: one screen to scan or type a SKU or barcode, a second screen showing
+the tire, its location, and its current stock, with a quantity stepper and
+large In / Out buttons. It runs under its own slim `_FloorLayout`, selected
+by `Views/Floor/_ViewStart.cshtml`, with no topbar, filters, or footer to get
+in the way of a thumb.
+
+The app was already responsive down to 480px with touch targets sized for a
+coarse pointer, so this round was not about breakpoints. The cost being paid
+was taps: booking a single movement through the desktop screens meant five
+page loads (search, open the tire, open the movement form, fill it in,
+confirm), and the floor screen collapses that to two. Booking itself reuses
+`RegisterMovementAsync` unchanged, so no new stock logic exists anywhere in
+the feature; the ledger, the stock guard, the concurrency retry, and the
+user attribution are all the same code the desktop movement form already
+calls.
+
+`FloorController.Book` accepts a movement type from the form post, and
+`Adjustment` sets stock absolutely rather than moving it, with a permitted
+quantity of zero for write-offs. Leaving `Adjustment` off the view's buttons
+would not have stopped a crafted POST from reaching it, so the controller
+checks the movement type against an allow-list of `In` and `Out` before
+calling the service at all.
+
+Driving the running app then found what the tests could not, because they
+call the action directly and never exercise model binding. The type bound
+non-nullable, so a missing, unparseable or out-of-range value failed binding
+and fell back to `default(MovementType)`, which is `In`: posting
+`movementType=bogus` silently booked a movement. Binding a nullable enum
+makes the absence representable, and the allow-list then rejects it.
+`TiresController.RegisterMovement` was never affected, because it checks
+`ModelState.IsValid`.
+
+No migration; tests 171 → 184.
+
+---
+
 ## [ ] Future ideas
 
 - Email notifications on low stock
 - Barcode-scanner integration and label printing
 - A move to a more powerful server database if data volume grows
-- A mobile interface for working on the warehouse floor
 
 The existing architecture allows these extensions without substantially
 reworking current code.

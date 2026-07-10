@@ -27,7 +27,9 @@
     --rule:      #000000;
     --rule-soft: rgba(0, 0, 0, .14);
 
-    /* modular type scale, base 1rem × 1.333 */
+    /* modular type scale, base 1rem × 1.333 (--f--2 is the half-step below
+       --f--1 for chrome that must fit seven Bulgarian labels on one row) */
+    --f--2: 0.6875rem;
     --f--1: 0.75rem;
     --f-0:  1rem;
     --f-1:  1.333rem;
@@ -47,6 +49,7 @@
     --sp-8: 4.209rem;
 
     --topbar-h: 4rem;
+    --floor-tap: 3.25rem; /* thumb-sized touch target on the floor screens */
     --maxw: 82.5rem; /* 1320px at the 16px root; grows with the root on large displays */
     --gut: var(--sp-6);
 
@@ -170,11 +173,15 @@ img, svg { display: block; max-width: 100%; }
     }
 }
 
-.topbar-inner {
+/* One row at every width: wordmark, inline links, account cluster. Under
+   the collapse breakpoint the links and account move into a drawer behind
+   the Menu button — the Bulgarian tab row plus the signed-in name cannot
+   fit a narrower bar, and a drawer beats wrapping it into extra rows. */
+.topbar-row {
     height: var(--topbar-h);
     display: flex;
     align-items: stretch;
-    justify-content: space-between;
+    gap: var(--sp-4);
 }
 
 .wordmark {
@@ -210,30 +217,33 @@ img, svg { display: block; max-width: 100%; }
 
 .topnav {
     display: flex;
+    flex: 1;
+    min-width: 0;
     align-items: stretch;
+    gap: var(--sp-3);
 }
+.topnav-links { display: flex; }
 /* tabs separated by air, not fences; the red bar is the only indicator,
-   and hover previews the active state */
-.topnav a {
+   and hover previews the active state. Type is a notch smaller than the
+   rest of the chrome so seven Bulgarian labels share one row. */
+.topnav-links a {
     display: flex;
     align-items: center;
-    padding-inline: var(--sp-3);
+    padding-inline: var(--sp-2);
     color: var(--black);
-    font-size: var(--f--1);
+    font-size: var(--f--2);
     font-weight: 600;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.03em;
     text-transform: uppercase;
-    /* labels never break mid-word; when the row is too tight the nav
-       drops to its own row instead (see the responsive block) */
     white-space: nowrap;
     position: relative;
 }
-.topnav a:hover { text-decoration: none; }
-.topnav a::after {
+.topnav-links a:hover { text-decoration: none; }
+.topnav-links a::after {
     content: "";
     position: absolute;
-    left: var(--sp-3);
-    right: var(--sp-3);
+    left: var(--sp-2);
+    right: var(--sp-2);
     bottom: -1px;
     height: 3px;
     background: var(--red);
@@ -241,21 +251,71 @@ img, svg { display: block; max-width: 100%; }
     transform-origin: center;
     transition: transform 160ms ease;
 }
-.topnav a:hover::after,
-.topnav a:focus-visible::after,
-.topnav a.is-active::after { transform: scaleX(1); }
+.topnav-links a:hover::after,
+.topnav-links a:focus-visible::after,
+.topnav-links a.is-active::after { transform: scaleX(1); }
+
+.topnav-account {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-3);
+    margin-left: auto;
+}
+
+/* the Menu button collapses the nav into a drawer on narrow windows */
+.nav-toggle {
+    display: none;
+    align-items: center;
+    gap: var(--sp-2);
+    align-self: center;
+    margin-left: auto;
+    padding: 0.45rem var(--sp-2);
+    border: 1px solid var(--black);
+    background: var(--white);
+    color: var(--black);
+    font: inherit;
+    font-size: var(--f--1);
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    cursor: pointer;
+}
+/* three bars: the span is the middle one, the outer two morph into an X
+   when the drawer is open */
+.nav-toggle-icon {
+    position: relative;
+    display: block;
+    width: 1rem;
+    height: 2px;
+    background: currentColor;
+    transition: background 120ms ease;
+}
+.nav-toggle-icon::before,
+.nav-toggle-icon::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 1rem;
+    height: 2px;
+    background: currentColor;
+    transition: transform 160ms ease;
+}
+.nav-toggle-icon::before { transform: translateY(-0.3rem); }
+.nav-toggle-icon::after { transform: translateY(0.3rem); }
+.topbar.nav-open .nav-toggle { background: var(--black); color: var(--white); }
+.topbar.nav-open .nav-toggle-icon { background: transparent; }
+.topbar.nav-open .nav-toggle-icon::before { transform: rotate(45deg); }
+.topbar.nav-open .nav-toggle-icon::after { transform: rotate(-45deg); }
 
 .lang {
     display: flex;
     align-items: center;
     gap: var(--sp-1);
-    padding-inline: var(--sp-3);
-    border-left: 1px solid var(--rule);
     font-size: var(--f--1);
     font-weight: 700;
     letter-spacing: 0.06em;
 }
-.lang:first-child { border-left: 0; }
 .lang a {
     display: inline-flex;
     align-items: center;
@@ -524,7 +584,10 @@ a.stat:hover .stat-label { color: var(--black); }
 /* ============================================================
    Data table — clean rows, hairline rules, no boxed cells
    ============================================================ */
-.table-scroll { overflow-x: auto; }
+/* position: relative keeps absolutely-positioned descendants (the
+   visually-hidden header labels) inside the clip — without it they
+   escape to the viewport and widen the page at phone widths */
+.table-scroll { overflow-x: auto; position: relative; }
 
 .data-table {
     width: 100%;
@@ -546,7 +609,7 @@ a.stat:hover .stat-label { color: var(--black); }
     color: var(--ink-50);
     padding: var(--sp-2);
     border-bottom: 1px solid var(--rule);
-    white-space: nowrap;
+    overflow-wrap: anywhere;
 }
 /* sortable headers stay chrome-coloured; the active sort mark alone is red,
    keeping red reserved for alerts instead of painting six headers with it */
@@ -1015,7 +1078,8 @@ button.quiet-danger { border: 0; background: none; padding: 0; cursor: pointer; 
 /* match the .field-input box height (1rem text × 1.45 line-height + 2×sp-2
    padding + 1px borders) so the filter row reads as one control strip */
 .field-buttons .btn,
-.input-group .btn { height: calc(1.45 * var(--f-0) + 2 * var(--sp-2) + 2px); }
+.input-group .btn,
+.filter-inline .btn { height: calc(1.45 * var(--f-0) + 2 * var(--sp-2) + 2px); }
 
 .pager {
     display: flex;
@@ -1042,10 +1106,15 @@ button.quiet-danger { border: 0; background: none; padding: 0; cursor: pointer; 
     border-left: 1px solid var(--rule-soft);
 }
 
+/* a long account name must not push the sign-out button out of the bar */
 .whoami {
     font-size: var(--f--1);
     font-weight: 700;
     letter-spacing: 0.06em;
+    max-width: 14ch;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 /* sign-out as quiet text: the language chip stays the bar's only filled element */
@@ -1066,24 +1135,44 @@ button.quiet-danger { border: 0; background: none; padding: 0; cursor: pointer; 
 /* ============================================================
    Responsive
    ============================================================ */
-/* topbar: below this width the tab row overflows (Bulgarian labels set
-   the bar), so the nav drops to its own full-bleed, horizontally
-   scrollable row under the wordmark */
-@media (max-width: 1360px) {
-    .topbar-inner { height: auto; flex-wrap: wrap; }
-    .wordmark { height: var(--topbar-h); }
-    .topnav {
-        flex: 1 0 100%;
-        margin-inline: calc(-1 * var(--gut));
-        border-top: 1px solid var(--rule);
-        overflow-x: auto;
-        scrollbar-width: thin;
+/* the collapse point: seven Bulgarian tabs + wordmark + account cluster
+   need roughly 1250px; below that the nav lives in a drawer */
+@media (max-width: 1339px) {
+    .nav-toggle { display: inline-flex; }
+    .topnav { display: none; }
+    /* the anonymous bar holds only the language chips — no drawer needed */
+    .topnav.topnav-simple { display: flex; flex: 0 0 auto; margin-left: auto; }
+    .topbar.nav-open .topnav {
+        display: block;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: var(--white);
+        border-bottom: 3px solid var(--black);
+        box-shadow: 0 24px 48px rgba(17, 17, 17, 0.18);
+        max-height: calc(100vh - var(--topbar-h));
+        overflow-y: auto;
     }
-    /* in the scrolling row the fences earn their keep as touch-target edges */
-    .topnav a { white-space: nowrap; min-height: 2.75rem; border-left: 1px solid var(--rule); }
-    .topnav a:first-child { border-left: 0; }
-    .topnav a::after { bottom: 0; }
-    .lang, .logout { min-height: 2.75rem; }
+    .topbar.nav-open .topnav-links { display: block; }
+    .topbar.nav-open .topnav-links a {
+        min-height: 3rem;
+        padding-inline: var(--gut);
+        border-top: 1px solid var(--rule);
+        font-size: var(--f--1);
+        letter-spacing: 0.04em;
+    }
+    .topbar.nav-open .topnav-links a::after { display: none; }
+    .topbar.nav-open .topnav-links a.is-active {
+        font-weight: 700;
+        box-shadow: inset 4px 0 0 var(--red);
+    }
+    .topbar.nav-open .topnav-account {
+        justify-content: space-between;
+        margin-left: 0;
+        padding: var(--sp-3) var(--gut);
+        border-top: 1px solid var(--black);
+    }
 }
 
 @media (max-width: 900px) {
@@ -1103,8 +1192,6 @@ button.quiet-danger { border: 0; background: none; padding: 0; cursor: pointer; 
     .col-5, .col-7, .col-8 { grid-column: span 12; }
     .form-grid-2, .form-grid-3 { grid-template-columns: 1fr; }
     .wordmark .mark-index { display: none; }
-    .topnav a { padding-inline: var(--sp-3); font-size: 0.6875rem; }
-    .lang { padding-inline: var(--sp-3); }
 }
 
 @media (max-width: 480px) {
@@ -1145,6 +1232,9 @@ button.quiet-danger { border: 0; background: none; padding: 0; cursor: pointer; 
 }
 
 main { animation: page-enter 180ms ease-out; }
+/* entrance only: closing switches display and cannot animate, which keeps
+   dismissal instant — the panel must never feel slower to get rid of */
+.topbar.nav-open .topnav { animation: drop-in 200ms ease-out; }
 .flash { animation: drop-in 240ms ease-out; }
 .notice { animation: drop-in 240ms ease-out; }
 .share-bar span { transform-origin: left; animation: bar-grow 500ms ease-out; }
@@ -1212,6 +1302,45 @@ main { animation: page-enter 180ms ease-out; }
 
 .filter-inline { padding: var(--sp-3) var(--sp-4); }
 .filter-inline .form-grid-3 { align-items: end; }
+/* the grid bottom-aligns the cells, so the fields must not carry their
+   stacked-form bottom margin or the inputs float above the submit button */
+.filter-inline .field { margin-bottom: 0; }
+
+/* ============================================================
+   Floor — one job per screen, thumb-sized targets
+   ============================================================ */
+.floor-shell { max-width: 34rem; margin-inline: auto; padding-inline: var(--sp-3); }
+.floor-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--sp-3);
+    padding: var(--sp-3);
+    border-bottom: 1px solid var(--rule);
+}
+.floor-exit { font-size: var(--f--1); color: var(--ink-50); }
+.floor-title { font-size: var(--f-2); margin-block: var(--sp-5) var(--sp-4); }
+.floor-scan, .floor-book { display: grid; gap: var(--sp-3); }
+/* iOS Safari zooms into any focused input under 16px */
+.floor-input { font-size: 1rem; min-height: var(--floor-tap); }
+.floor-btn { min-height: var(--floor-tap); width: 100%; font-size: var(--f-0); }
+.floor-error { color: var(--red); font-weight: 600; margin-bottom: var(--sp-3); }
+.floor-sku { font-size: var(--f-2); font-weight: 700; margin-top: var(--sp-5); }
+.floor-desc { color: var(--ink-50); margin-top: var(--sp-1); }
+.floor-facts {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--sp-3);
+    margin-block: var(--sp-5);
+    padding-block: var(--sp-4);
+    border-block: 1px solid var(--rule-soft);
+}
+.floor-fact-num { font-size: var(--f-3); font-weight: 700; line-height: 1; }
+.floor-fact-label { font-size: var(--f--1); color: var(--ink-50); text-transform: uppercase; letter-spacing: .04em; margin-top: var(--sp-1); }
+.floor-stepper { gap: var(--sp-2); } /* flex and min-width:0 come from .input-group */
+.floor-stepper .floor-input { text-align: center; }
+.floor-step { flex: none; min-height: var(--floor-tap); min-width: var(--floor-tap); }
+.floor-back { display: block; text-align: center; padding-block: var(--sp-3); }
 
 /* ============================================================
    Print — stock lists, the low-stock reorder sheet, purchase orders
@@ -1243,6 +1372,12 @@ main { animation: page-enter 180ms ease-out; }
 }
 
 @media print {
-    .chart { height: 12rem; page-break-inside: avoid; }
+    /* Chart.js sizes each canvas with inline pixel styles for the screen
+       layout and never re-lays-out for the print pass, so a fixed-height
+       container just lets the oversized bitmap bleed over the next block.
+       Scale the bitmap down instead: max-width caps it at the print column,
+       height:auto keeps the aspect ratio, and the container follows suit. */
+    .chart { height: auto; page-break-inside: avoid; }
+    .chart canvas { max-width: 100%; height: auto !important; }
     .chart-data, .filter-inline { display: none; }
 }

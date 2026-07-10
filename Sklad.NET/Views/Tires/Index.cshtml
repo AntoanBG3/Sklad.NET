@@ -54,6 +54,7 @@
                            autocomplete="off" autofocus />
                     <button type="submit" class="btn btn-secondary btn-sm">@L["Scan"]</button>
                 </form>
+                <a asp-controller="Floor" asp-action="Index" class="btn btn-secondary btn-sm">@L["Mobile scan"]</a>
                 <a asp-action="Export" asp-all-route-data="@Route(f.Sort, 1)"
                    class="btn btn-secondary btn-sm">@L["Export CSV"]</a>
                 <a asp-action="ExportExcel" asp-all-route-data="@Route(f.Sort, 1)"

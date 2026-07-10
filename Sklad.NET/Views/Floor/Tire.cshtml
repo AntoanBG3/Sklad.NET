@@ -1,0 +1,36 @@
+@model Sklad.ViewModels.FloorBookViewModel
+
+@{
+    ViewData["Title"] = Model.Sku;
+}
+
+<div class="floor-sku">@Model.Sku</div>
+<div class="floor-desc">@Model.Description &middot; @Model.Size</div>
+
+<div class="floor-facts">
+    <div class="floor-fact">
+        <div class="floor-fact-num num">@Model.Quantity</div>
+        <div class="floor-fact-label">@L["In stock"]</div>
+    </div>
+    <div class="floor-fact">
+        <div class="floor-fact-num num">@(string.IsNullOrWhiteSpace(Model.Location) ? "—" : Model.Location)</div>
+        <div class="floor-fact-label">@L["Location"]</div>
+    </div>
+</div>
+
+<div asp-validation-summary="ModelOnly" class="form-errors"></div>
+
+<form method="post" asp-action="Book" class="floor-book">
+    <input type="hidden" name="tireId" value="@Model.TireId" />
+
+    <label class="field-label" for="quantity">@L["Quantity"]</label>
+    <div class="input-group floor-stepper" data-stepper data-less="@L["Fewer"]" data-more="@L["More"]">
+        <input id="quantity" name="quantity" type="number" class="field-input floor-input"
+               value="1" min="1" step="1" inputmode="numeric" required />
+    </div>
+
+    <button type="submit" name="movementType" value="In" class="btn btn-primary floor-btn">@L["In"]</button>
+    <button type="submit" name="movementType" value="Out" class="btn btn-secondary floor-btn">@L["Out"]</button>
+
+    <a asp-action="Index" class="floor-exit floor-back">@L["Scan another"]</a>
+</form>

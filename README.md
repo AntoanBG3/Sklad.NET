@@ -16,6 +16,7 @@ An ASP.NET Core 10 MVC application for running a tire shop's stock. It uses EF C
 - Multi-user accounts with Admin and User roles. Passwords are hashed, sign-in is rate limited per IP, and changing a password or role invalidates that user's session immediately. User management, backups, and deletions are restricted to admins.
 - Bulgarian by default with an English option throughout. Prices are stored in EUR and shown with BGN at the fixed 1.95583 rate.
 - Print-friendly styles, styled error and 404 pages, and unsaved-changes and double-submit guards on forms.
+- A `/Floor` scan-and-book screen for picking stock straight off the rack on a phone: scan or type a SKU or barcode, then book an In or Out movement in two taps instead of the five page loads the desktop flow needs. It runs under its own slim layout and reuses the same movement ledger as the rest of the app, so no stock rule is duplicated.
 
 ## Prerequisites
 
@@ -39,7 +40,7 @@ Accounts live in the database. On first start with an empty `Users` table, an ad
 dotnet test Sklad.Tests/Sklad.Tests.csproj
 ```
 
-The xUnit suite has 171 tests. They cover the inventory service (movement rules, concurrency, search, filtering, paging, CSV escaping, localized headers, and the movement trend's date bucketing in shop time), the purchasing service (order lifecycle, receive-to-ledger, and guards), the user service (hashing, credential validation, last-admin and self-delete guards, and session invalidation), the Excel workbook contents, controller error paths, flexible decimal binding, Bulgarian resource coverage (every localized key is asserted present in the resx), the money helpers and tag helper, and the backup endpoint. CI builds with warnings as errors and runs the suite on every push and pull request (`.github/workflows/ci.yml`).
+The xUnit suite has 184 tests. They cover the inventory service (movement rules, concurrency, search, filtering, paging, CSV escaping, localized headers, and the movement trend's date bucketing in shop time), the purchasing service (order lifecycle, receive-to-ledger, and guards), the user service (hashing, credential validation, last-admin and self-delete guards, and session invalidation), the Excel workbook contents, controller error paths, flexible decimal binding, Bulgarian resource coverage (every localized key is asserted present in the resx), the money helpers and tag helper, and the backup endpoint. CI builds with warnings as errors and runs the suite on every push and pull request (`.github/workflows/ci.yml`).
 
 ## Database
 

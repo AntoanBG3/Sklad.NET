@@ -60,6 +60,26 @@
             btn.addEventListener("click", function () { window.print(); });
         });
 
+        // Collapsed nav drawer. Escape and an outside click both close it,
+        // so the open panel can never trap the page.
+        var navToggle = document.querySelector("[data-nav-toggle]");
+        if (navToggle) {
+            var topbar = navToggle.closest(".topbar");
+            var setNavOpen = function (open) {
+                topbar.classList.toggle("nav-open", open);
+                navToggle.setAttribute("aria-expanded", open ? "true" : "false");
+            };
+            navToggle.addEventListener("click", function () {
+                setNavOpen(!topbar.classList.contains("nav-open"));
+            });
+            document.addEventListener("keydown", function (e) {
+                if (e.key === "Escape") setNavOpen(false);
+            });
+            document.addEventListener("click", function (e) {
+                if (!topbar.contains(e.target)) setNavOpen(false);
+            });
+        }
+
         // Stat numbers count up briefly on load. The markup keeps the final
         // localized string, so anything this can't parse back exactly (a
         // decimal part, digits outside the run) is left untouched rather

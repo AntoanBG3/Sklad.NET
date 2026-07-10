@@ -1,0 +1,23 @@
+@{
+    var lang = System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName;
+}
+<!DOCTYPE html>
+<html lang="@lang">
+<head>
+    <partial name="_Head" />
+</head>
+<body>
+    <header class="floor-bar">
+        <span class="wordmark-sklad">Sklad</span>
+        <a class="floor-exit" asp-controller="Tires" asp-action="Index">@L["Full app"]</a>
+    </header>
+
+    <partial name="_Flash" model=@("container floor-shell") />
+
+    <main id="main-content" class="floor-shell">
+        @RenderBody()
+    </main>
+
+    <script src="~/js/floor.js" asp-append-version="true"></script>
+</body>
+</html>
