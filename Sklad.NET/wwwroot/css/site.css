@@ -607,7 +607,7 @@ a.stat:hover .stat-label { color: var(--black); }
     color: var(--ink-50);
     padding: var(--sp-2);
     border-bottom: 1px solid var(--rule);
-    white-space: nowrap;
+    overflow-wrap: anywhere;
 }
 /* sortable headers stay chrome-coloured; the active sort mark alone is red,
    keeping red reserved for alerts instead of painting six headers with it */
