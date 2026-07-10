@@ -524,7 +524,10 @@ a.stat:hover .stat-label { color: var(--black); }
 /* ============================================================
    Data table — clean rows, hairline rules, no boxed cells
    ============================================================ */
-.table-scroll { overflow-x: auto; }
+/* position: relative keeps absolutely-positioned descendants (the
+   visually-hidden header labels) inside the clip — without it they
+   escape to the viewport and widen the page at phone widths */
+.table-scroll { overflow-x: auto; position: relative; }
 
 .data-table {
     width: 100%;
@@ -1042,10 +1045,15 @@ button.quiet-danger { border: 0; background: none; padding: 0; cursor: pointer; 
     border-left: 1px solid var(--rule-soft);
 }
 
+/* a long account name must not push the sign-out button out of the bar */
 .whoami {
     font-size: var(--f--1);
     font-weight: 700;
     letter-spacing: 0.06em;
+    max-width: 14ch;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 /* sign-out as quiet text: the language chip stays the bar's only filled element */
@@ -1066,20 +1074,23 @@ button.quiet-danger { border: 0; background: none; padding: 0; cursor: pointer; 
 /* ============================================================
    Responsive
    ============================================================ */
-/* topbar: below this width the tab row overflows (Bulgarian labels set
-   the bar), so the nav drops to its own full-bleed, horizontally
-   scrollable row under the wordmark */
-@media (max-width: 1360px) {
+/* topbar: below this width the tab row overflows (Bulgarian labels plus
+   the signed-in name set the bar; the row clears the viewport only past
+   ~1633px client width because the capped container centres and the spill
+   grows with the margin), so the nav drops to its own full-bleed row under
+   the wordmark and wraps when even that row is too tight — every tab stays
+   visible instead of scrolling out of reach */
+@media (max-width: 1680px) {
     .topbar-inner { height: auto; flex-wrap: wrap; }
     .wordmark { height: var(--topbar-h); }
     .topnav {
         flex: 1 0 100%;
+        flex-wrap: wrap;
         margin-inline: calc(-1 * var(--gut));
-        border-top: 1px solid var(--rule);
-        overflow-x: auto;
-        scrollbar-width: thin;
     }
-    /* in the scrolling row the fences earn their keep as touch-target edges */
+    /* the fences earn their keep as touch-target edges; the top rule lives
+       on the items, not the nav, so wrapped rows get a divider between them */
+    .topnav a, .topnav .lang, .topnav .logout { border-top: 1px solid var(--rule); }
     .topnav a { white-space: nowrap; min-height: 2.75rem; border-left: 1px solid var(--rule); }
     .topnav a:first-child { border-left: 0; }
     .topnav a::after { bottom: 0; }
