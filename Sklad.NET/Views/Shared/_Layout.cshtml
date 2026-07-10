@@ -25,11 +25,13 @@
 <body>
     <a class="skip-link" href="#main-content">@L["Skip to content"]</a>
     <header class="topbar">
-        <div class="container topbar-inner">
+        <div class="container topbar-brand">
             <a class="wordmark" asp-controller="Tires" asp-action="Index">
                 <span class="wordmark-sklad">Sklad</span><span class="mark-index">@L["Tire Warehouse"]</span>
             </a>
-            <nav class="topnav" aria-label="@L["Main navigation"]">
+        </div>
+        <nav class="topnav" aria-label="@L["Main navigation"]">
+            <div class="container topnav-inner">
                 @if (User.Identity?.IsAuthenticated == true)
                 {
                     <a class="@(isInventory ? "is-active" : "")" aria-current="@(isInventory ? "page" : null)" asp-controller="Tires" asp-action="Index">@L["Inventory"]</a>
@@ -56,8 +58,8 @@
                         <button type="submit" class="navlink">@L["Sign out"]</button>
                     </form>
                 }
-            </nav>
-        </div>
+            </div>
+        </nav>
     </header>
 
     @if (TempData["Flash"] is string flash)
