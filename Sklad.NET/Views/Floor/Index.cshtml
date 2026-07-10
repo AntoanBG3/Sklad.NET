@@ -8,7 +8,7 @@
 
 @if (Model.NotFound)
 {
-    <p class="floor-error" role="alert">@L["No tire matches that code."]</p>
+    <p class="floor-error" role="alert">@L["No tire matches code {0}.", Model.Code]</p>
 }
 
 <form method="get" asp-action="Tire" class="floor-scan">
