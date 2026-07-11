@@ -1,98 +1,102 @@
-# Sklad.NET: Tire Warehouse Management System
+# Sklad.NET: Система за управление на склад за гуми
 
-An ASP.NET Core 10 MVC application for running a tire shop's stock. It uses EF Core with SQLite, a bilingual Bulgarian and English interface, and shows every price in EUR with BGN alongside.
+ASP.NET Core 10 MVC приложение за управление на наличностите в магазин за гуми. Използва EF Core със SQLite, двуезичен интерфейс на български и английски и показва всяка цена в евро с левова равностойност.
 
-## Features
+## Възможности
 
-- Tire inventory with create, edit, delete, search, sortable columns, and pagination. Filter dropdowns for brand, width, profile, and diameter list only values that are actually in stock, and there are separate filters for season, type, location, and low stock.
-- A stock movement ledger with In, Out, and Adjustment entries. Every movement is recorded with the user who made it, and stock counts change only through movements. Concurrent edits are caught by optimistic concurrency instead of silently overwriting each other.
-- Barcode lookup: the scan box on the inventory page jumps straight to a tire by SKU or barcode, and it handles Cyrillic and mixed case.
-- A low-stock report that shows how many units each tire is short.
-- A global movements journal filtered by type, by tire, and by date range, with dates read in shop time (Europe/Sofia).
-- A stock value report grouped by brand and season, showing each group's share of total value, with charts of value by brand and by season and a movement chart of units received against units shipped over a date range you choose. Adjustments are counted separately rather than drawn as movement, because an adjustment sets an absolute stock level instead of moving units.
-- CSV export and Excel export for both the inventory and the movements journal. The CSV respects the active filter, guards against formula injection, and starts with a `sep=,` line and a UTF-8 BOM so Excel opens it correctly under any locale. The Excel file (ClosedXML) has formatted headers, typed price and date cells, and separate EUR and BGN columns.
-- Supplier records and purchase orders that move through a Draft, Ordered, Received, or Cancelled lifecycle. Receiving an order books the stock through the same movement ledger and records the purchase order number in the audit trail.
-- One-click database backup download using a consistent `VACUUM INTO` snapshot, with no downtime.
-- Multi-user accounts with Admin and User roles. Passwords are hashed, sign-in is rate limited per IP, and changing a password or role invalidates that user's session immediately. User management, backups, and deletions are restricted to admins.
-- Bulgarian by default with an English option throughout. Prices are stored in EUR and shown with BGN at the fixed 1.95583 rate.
-- Print-friendly styles, styled error and 404 pages, and unsaved-changes and double-submit guards on forms.
-- A `/Floor` scan-and-book screen for picking stock straight off the rack on a phone: scan or type a SKU or barcode, then book an In or Out movement in two taps instead of the five page loads the desktop flow needs. It runs under its own slim layout and reuses the same movement ledger as the rest of the app, so no stock rule is duplicated.
+- Инвентар на гуми със създаване, редактиране, изтриване, търсене, сортируеми колони и странициране. Падащите филтри за марка, широчина, профил и диаметър показват само стойности, които реално са на склад, а отделни филтри има за сезон, тип, местоположение и ниска наличност.
+- Дневник на складовите движения със записи от тип "Приход", "Разход" и "Корекция". Всяко движение се записва с потребителя, който го е извършил, а наличностите се променят само чрез движения. Едновременни редакции се засичат чрез оптимистична конкурентност, вместо мълчаливо да се презаписват една друга.
+- Търсене по баркод: полето за сканиране на страницата с инвентара отвежда директно към гума по SKU или баркод и работи с кирилица и смесен регистър на буквите.
+- Справка за ниска наличност, показваща с колко бройки всяка гума е под минимума.
+- Общ журнал на движенията с филтри по тип, по гума и по период от дати, като датите се тълкуват в местно за магазина време (Europe/Sofia).
+- Справка за стойността на склада, групирана по марка и сезон, с дела на всяка група от общата стойност, с диаграми на стойността по марка и по сезон и с диаграма на движенията, съпоставяща приетите срещу изписаните бройки за избран от потребителя период. Корекциите се броят отделно и не се рисуват като движение, защото корекцията задава абсолютно ниво на наличност, а не премества бройки.
+- Експорт към CSV и Excel както за инвентара, така и за журнала на движенията. CSV файлът спазва активния филтър, защитен е срещу инжектиране на формули и започва с ред `sep=,` и UTF-8 BOM, така че Excel да го отваря коректно при всякакви регионални настройки. Excel файлът (ClosedXML) има форматирани заглавни редове, типизирани клетки за цени и дати и отделни колони за EUR и BGN.
+- Картотека на доставчици и поръчки за доставка, преминаващи през жизнен цикъл "Чернова", "Поръчана", "Получена" или "Отказана". Получаването на поръчка заприхождава стоката през същия дневник на движенията и записва номера на поръчката в одитната следа.
+- Печатен документ на поръчка за доставка: фирмена бланка, блок с данните на доставчика, редове на поръчката, общ брой бройки, обща стойност в EUR и BGN и редове за подписи. Печата се направо от браузъра, откъдето може да се запази и като PDF.
+- Бързо презареждане: от страницата на гума или от справката за ниска наличност се отваря формата за нова поръчка с предварително избрана гума, а когато тя е под минимума, количеството е предварително попълнено с недостига.
+- Настройки на магазина (само за администратори): данни за фирмената бланка (име, адрес, ДДС номер или ЕИК, телефон, имейл) и общи предпочитания за целия магазин: минимална наличност по подразбиране за нови гуми, брой редове на страница, език по подразбиране за посетители без записана езикова бисквитка и период по подразбиране за справките. Всяко поле е незадължително, а празна стойност означава вграденото поведение по подразбиране.
+- Изтегляне на резервно копие на базата данни с едно натискане, чрез консистентен снапшот с `VACUUM INTO`, без прекъсване на работата.
+- Многопотребителски акаунти с роли "Администратор" и "Потребител". Паролите се съхраняват хеширани, входът е ограничен по брой опити на IP адрес, а смяната на парола или роля незабавно прекратява сесиите на съответния потребител. Управлението на потребители, резервните копия и изтриванията са достъпни само за администратори.
+- Български по подразбиране с възможност за английски навсякъде. Цените се съхраняват в евро и се показват с левова равностойност по фиксирания курс 1.95583.
+- Стилове за печат, оформени страници за грешки и 404, както и защита срещу двойно изпращане на форми и предупреждение при незаписани промени.
+- Екран `/Floor` за сканиране и осчетоводяване направо от стелажа с телефон: сканира се или се въвежда SKU или баркод, след което приход или разход се записва с две докосвания вместо петте зареждания на страници, които изисква настолният поток. Работи под собствен олекотен изглед и използва същия дневник на движенията като останалата част от приложението, така че нито едно складово правило не се дублира.
 
-## Prerequisites
+## Изисквания
 
 - .NET 10 SDK
-- The `dotnet ef` global tool for migrations (`dotnet tool install --global dotnet-ef`)
+- Глобалният инструмент `dotnet ef` за миграции (`dotnet tool install --global dotnet-ef`)
 
-## Quick start
+## Бърз старт
 
 ```bash
 cd Sklad.NET
 dotnet run
 ```
 
-The app applies migrations automatically and, in Development, seeds 15 sample tires with opening-stock movements on first start. Open `http://localhost:5246` and sign in with the development credentials from `appsettings.Development.json`: username `admin`, password `sklad-dev`.
+Приложението прилага миграциите автоматично и в средата Development при първо стартиране зарежда 15 примерни гуми с начални складови движения. Отворете `http://localhost:5246` и влезте с данните за разработка от `appsettings.Development.json`: потребител `admin`, парола `sklad-dev`.
 
-Accounts live in the database. On first start with an empty `Users` table, an administrator account is created from the `Auth:Username` and `Auth:Password` configuration (environment variables `Auth__Username` and `Auth__Password`, or user secrets). After that, manage accounts from the **Users** page, which is admin only. Sign-in is impossible until the first admin exists, and sample data is not seeded outside Development. If the app is served over plain HTTP on a trusted LAN, set `Auth__AllowInsecureHttp=true`; otherwise the auth cookie is marked secure-only and sign-in will not stick without HTTPS.
+Акаунтите се съхраняват в базата данни. При първо стартиране с празна таблица `Users` се създава администраторски акаунт от конфигурацията `Auth:Username` и `Auth:Password` (променливи на средата `Auth__Username` и `Auth__Password` или user secrets). След това акаунтите се управляват от страницата **Потребители**, достъпна само за администратори. Входът е невъзможен, докато не съществува първият администратор, а примерни данни не се зареждат извън Development. Ако приложението се обслужва по обикновен HTTP в доверена локална мрежа, задайте `Auth__AllowInsecureHttp=true`; в противен случай бисквитката за вход се маркира само за защитени връзки и влизането няма да се задържи без HTTPS.
 
-## Tests
+## Тестове
 
 ```bash
 dotnet test Sklad.Tests/Sklad.Tests.csproj
 ```
 
-The xUnit suite has 184 tests. They cover the inventory service (movement rules, concurrency, search, filtering, paging, CSV escaping, localized headers, and the movement trend's date bucketing in shop time), the purchasing service (order lifecycle, receive-to-ledger, and guards), the user service (hashing, credential validation, last-admin and self-delete guards, and session invalidation), the Excel workbook contents, controller error paths, flexible decimal binding, Bulgarian resource coverage (every localized key is asserted present in the resx), the money helpers and tag helper, and the backup endpoint. CI builds with warnings as errors and runs the suite on every push and pull request (`.github/workflows/ci.yml`).
+Наборът от xUnit тестове съдържа 193 теста. Те покриват складовата услуга (правила за движения, конкурентност, търсене, филтриране, странициране, екраниране в CSV, локализирани заглавни редове и разпределянето по дати на диаграмата на движенията в местно за магазина време), услугата за доставки (жизнен цикъл на поръчките, заприхождаване през дневника и защитите), потребителската услуга (хеширане, проверка на данните за вход, защити срещу изтриване на последния администратор и на собствения акаунт, прекратяване на сесии), съдържанието на Excel файловете, пътищата за грешки в контролерите, гъвкавото обвързване на десетични числа, покритието на българските ресурси (за всеки локализиран низ се проверява наличие на запис в .resx файла), настройките на магазина и предпочитанията, помощните класове за валути и таг хелпъра, както и крайната точка за резервно копие. CI компилира с предупреждения като грешки и изпълнява целия набор при всеки push и pull request (`.github/workflows/ci.yml`).
 
-## Database
+## База данни
 
-The development database is **SQLite** (`sklad.db` in the project folder, created on first run, WAL journal mode). `Tire.Version` is a concurrency token, so concurrent edits or simultaneous stock movements are detected rather than losing an update. A consistent backup can be downloaded from the stock value report page at any time.
+Базата данни за разработка е **SQLite** (`sklad.db` в папката на проекта, създава се при първо стартиране, журнален режим WAL). `Tire.Version` е токен за конкурентност, така че едновременни редакции или едновременни складови движения се засичат, вместо да се губи някоя от промените. Консистентно резервно копие може да се изтегли по всяко време от страницата със справката за стойността на склада.
 
-### Switch to SQL Server LocalDB
+### Преминаване към SQL Server LocalDB
 
-1. Install SQL Server Express with LocalDB (or Visual Studio, which includes it).
-2. Add the provider package: `dotnet add package Microsoft.EntityFrameworkCore.SqlServer`.
-3. In `appsettings.json` replace the connection string:
+1. Инсталирайте SQL Server Express с LocalDB (или Visual Studio, който го включва).
+2. Добавете пакета на доставчика: `dotnet add package Microsoft.EntityFrameworkCore.SqlServer`.
+3. В `appsettings.json` заменете низа за връзка:
    ```json
    "DefaultConnection": "Server=(localdb)\\mssqllocaldb;Database=SkladDb;Trusted_Connection=True;MultipleActiveResultSets=true"
    ```
-4. In `Program.cs` replace `UseSqlite` with `UseSqlServer` and remove the SQLite-specific pieces (`SqliteFunctionsInterceptor` and the WAL `PRAGMA`).
-5. Remove `Microsoft.EntityFrameworkCore.Sqlite` and `SQLitePCLRaw.lib.e_sqlite3` from the `.csproj`.
-6. Remove the `CURRENT_TIMESTAMP` default for `StockMovement.Date` in `SkladDbContext.OnModelCreating` (SQL Server syntax differs, and the service sets the date explicitly anyway).
-7. Drop the existing migrations and recreate them:
+4. В `Program.cs` заменете `UseSqlite` с `UseSqlServer` и премахнете частите, специфични за SQLite (`SqliteFunctionsInterceptor` и `PRAGMA` командата за WAL).
+5. Премахнете `Microsoft.EntityFrameworkCore.Sqlite` и `SQLitePCLRaw.lib.e_sqlite3` от `.csproj` файла.
+6. Премахнете подразбиращата се стойност `CURRENT_TIMESTAMP` за `StockMovement.Date` в `SkladDbContext.OnModelCreating` (синтаксисът при SQL Server е различен, а услугата и без това задава датата изрично).
+7. Изтрийте съществуващите миграции и ги създайте наново:
    ```bash
    dotnet ef migrations remove
    dotnet ef migrations add InitialCreate
    dotnet ef database update
    ```
 
-Note: the case-insensitive and Cyrillic-insensitive search relies on a custom SQLite function (`unilower`). On SQL Server, replace those queries with an appropriate collation.
+Забележка: търсенето без чувствителност към регистъра, включително за кирилица, разчита на потребителска SQLite функция (`unilower`). При SQL Server заменете тези заявки с подходяща колация.
 
-## Project structure
+## Структура на проекта
 
 ```
-Sklad.NET/               main web app
-  Controllers/           Tires (CRUD, low stock, report, export, scan),
-                         Movements (journal + Excel export), Suppliers,
-                         PurchaseOrders (lifecycle), Users (admin),
-                         Maintenance (backup), Account (sign-in), Culture, Home
-  Data/                  SkladDbContext, DbInitializer (dev seed)
-  Helpers/               Money (EUR/BGN), Enums (localization keys),
-                         Dates (shop-time display), Redirects (safe returnUrl)
-  Migrations/            EF Core migrations (SQLite)
-  ModelBinding/          flexible decimal binder (dot or comma)
+Sklad.NET/               основното уеб приложение
+  Controllers/           Tires (CRUD, ниска наличност, справка, експорт, сканиране),
+                         Movements (журнал + Excel експорт), Suppliers,
+                         PurchaseOrders (жизнен цикъл, печат), Users (администратори),
+                         Maintenance (резервно копие), ShopSettings (бланка и
+                         предпочитания), Account (вход), Culture, Home, Floor
+  Data/                  SkladDbContext, DbInitializer (данни за разработка)
+  Helpers/               Money (EUR/BGN), Enums (ключове за локализация),
+                         Dates (показване в местно време), Redirects (безопасен returnUrl)
+  Migrations/            EF Core миграции (SQLite)
+  ModelBinding/          гъвкаво обвързване на десетични числа (точка или запетая)
   Models/                Tire, StockMovement, Supplier, PurchaseOrder(+Item),
-                         AppUser, enums
-  Resources/             SharedResource + Bulgarian translations (.resx)
+                         AppUser, ShopSettings, изброими типове
+  Resources/             SharedResource + български преводи (.resx)
   Services/              InventoryService, PurchasingService, UserService,
-                         ExcelExportService, typed exceptions
-  TagHelpers/            <money> dual-currency cell
-  ViewModels/            filter, index, create/edit, movement, order, supplier,
-                         user, login view models
-  Views/                 Razor views (custom design system in wwwroot/css/site.css)
-  wwwroot/js/            site.js page behaviors, locale-aware validation rules,
-                         report-charts.js (Chart.js, self-hosted in wwwroot/lib)
-Sklad.Tests/             xUnit test suite
+                         ShopSettingsService, ExcelExportService, типизирани изключения
+  TagHelpers/            <money> клетка с двете валути
+  ViewModels/            модели за филтри, списъци, създаване/редакция, движения,
+                         поръчки, доставчици, потребители, настройки, вход
+  Views/                 Razor изгледи (собствена дизайн система в wwwroot/css/site.css)
+  wwwroot/js/            site.js поведения на страниците, валидация според локала,
+                         report-charts.js (Chart.js, локално копие в wwwroot/lib)
+Sklad.Tests/             набор от xUnit тестове
 ```
 
-## License
+## Лиценз
 
-MIT. See [LICENSE](LICENSE).
+MIT. Вижте [LICENSE](LICENSE).
