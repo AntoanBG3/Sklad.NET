@@ -65,7 +65,7 @@
                     @if (authed)
                     {
                         <form class="logout" asp-controller="Account" asp-action="Logout" method="post">
-                            <span class="whoami">@User.Identity.Name</span>
+                            <span class="whoami">@User.Identity?.Name</span>
                             <button type="submit" class="navlink">@L["Sign out"]</button>
                         </form>
                     }
