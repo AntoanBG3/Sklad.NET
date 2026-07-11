@@ -1200,9 +1200,18 @@ button.quiet-danger { border: 0; background: none; padding: 0; cursor: pointer; 
         letter-spacing: 0.04em;
     }
     .topbar.nav-open .topnav-links a::after { display: none; }
-    .topbar.nav-open .topnav-links a.is-active {
-        font-weight: 700;
-        box-shadow: inset 4px 0 0 var(--red);
+    .topbar.nav-open .topnav-links a.is-active { font-weight: 700; }
+    /* a painted pseudo-element, not an inset box-shadow: Firefox's WebRender
+       can mis-render a shadow for a frame while the panel's entrance
+       animation runs, flashing the red bar as a box around the whole row */
+    .topbar.nav-open .topnav-links a.is-active::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 4px;
+        background: var(--red);
     }
     .topbar.nav-open .topnav-account {
         justify-content: space-between;
