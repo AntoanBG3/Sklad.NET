@@ -1255,6 +1255,11 @@ button.quiet-danger { border: 0; background: none; padding: 0; cursor: pointer; 
 @keyframes drop-in {
     from { opacity: 0; transform: translateY(-4px); }
 }
+/* no opacity: the drawer overlays the page, and a fading panel lets the
+   content beneath bleed through mid-tween — ghosted lines and text */
+@keyframes drawer-drop {
+    from { transform: translateY(-6px); }
+}
 @keyframes fade-in {
     from { opacity: 0; }
 }
@@ -1271,7 +1276,7 @@ button.quiet-danger { border: 0; background: none; padding: 0; cursor: pointer; 
 main { animation: page-enter 180ms ease-out; }
 /* entrance only: closing switches display and cannot animate, which keeps
    dismissal instant — the panel must never feel slower to get rid of */
-.topbar.nav-open .topnav { animation: drop-in 200ms ease-out; }
+.topbar.nav-open .topnav { animation: drawer-drop 200ms ease-out; }
 .topbar.nav-open::before { animation: fade-in 200ms ease-out; }
 .flash { animation: drop-in 240ms ease-out; }
 .notice { animation: drop-in 240ms ease-out; }
