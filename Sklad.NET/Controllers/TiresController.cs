@@ -12,12 +12,18 @@ public class TiresController : Controller
 {
     private readonly IInventoryService _inventory;
     private readonly IExcelExportService _excel;
+    private readonly IShopSettingsService _settings;
     private readonly IStringLocalizer<SharedResource> _l;
 
-    public TiresController(IInventoryService inventory, IExcelExportService excel, IStringLocalizer<SharedResource> l)
+    public TiresController(
+        IInventoryService inventory,
+        IExcelExportService excel,
+        IShopSettingsService settings,
+        IStringLocalizer<SharedResource> l)
     {
         _inventory = inventory;
         _excel = excel;
+        _settings = settings;
         _l = l;
     }
 
@@ -26,9 +32,10 @@ public class TiresController : Controller
     // GET: /Tires
     public async Task<IActionResult> Index(TireFilterViewModel filter)
     {
+        var shop = await _settings.GetAsync();
         var vm = new IndexViewModel
         {
-            Results = await _inventory.SearchAsync(filter),
+            Results = await _inventory.SearchAsync(filter, shop.PageSize ?? InventoryService.DefaultPageSize),
             Filter = filter,
             Stats = await _inventory.GetStatsAsync(),
             Options = await _inventory.GetFilterOptionsAsync()
@@ -63,7 +70,8 @@ public class TiresController : Controller
     }
 
     // GET: /Tires/Create
-    public IActionResult Create() => View(new CreateTireViewModel());
+    public async Task<IActionResult> Create() =>
+        View(new CreateTireViewModel { MinStock = (await _settings.GetAsync()).DefaultMinStock });
 
     // POST: /Tires/Create
     [HttpPost]
@@ -179,8 +187,9 @@ public class TiresController : Controller
     public async Task<IActionResult> Report(DateOnly? from = null, DateOnly? to = null)
     {
         var today = DateOnly.FromDateTime(Dates.Shop(DateTime.UtcNow));
-        // Endpoints are inclusive, so -11 yields exactly 12 monthly buckets.
-        var defaultFrom = today.AddMonths(-11);
+        // Endpoints are inclusive, so months − 1 yields exactly that many monthly buckets.
+        var months = (await _settings.GetAsync()).ReportRangeMonths ?? 12;
+        var defaultFrom = today.AddMonths(-(months - 1));
 
         var start = from ?? defaultFrom;
         var end = to ?? today;

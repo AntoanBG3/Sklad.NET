@@ -1,7 +1,7 @@
 @model Sklad.ViewModels.ShopSettingsViewModel
 
 @{
-    ViewData["Title"] = L["Shop Details"].Value;
+    ViewData["Title"] = L["Settings"].Value;
 }
 
 <div class="page">
@@ -11,7 +11,7 @@
             <div>
                 <div class="eyebrow">@L["Settings"]</div>
                 <h1 class="page-title">@L["Shop Details"]</h1>
-                <p class="page-lede">@L["These details appear on the letterhead of printed purchase orders."]</p>
+                <p class="page-lede">@L["Letterhead details for printed purchase orders, and shop-wide preferences."]</p>
             </div>
         </div>
 
@@ -54,8 +54,41 @@
                 </div>
             </div>
 
+            <div class="form-section">
+                <div class="form-section-title">@L["Preferences"]</div>
+                <div class="form-grid-2">
+                    <div class="field">
+                        <label asp-for="DefaultCulture" class="field-label">@L["Default Language"]</label>
+                        <select asp-for="DefaultCulture" class="field-select">
+                            <option value="">@L["Bulgarian"]</option>
+                            <option value="en-GB">@L["English"]</option>
+                        </select>
+                        <div class="field-hint">@L["Shown to visitors who have not picked a language."]</div>
+                        <span asp-validation-for="DefaultCulture" class="field-error"></span>
+                    </div>
+                    <div class="field">
+                        <label asp-for="PageSize" class="field-label">@L["Items per Page"] <span class="optional">@L["(optional)"]</span></label>
+                        <input asp-for="PageSize" class="field-input" placeholder="50" />
+                        <div class="field-hint">@L["Rows per table page, 10 to 200. Blank keeps 50."]</div>
+                        <span asp-validation-for="PageSize" class="field-error"></span>
+                    </div>
+                    <div class="field">
+                        <label asp-for="DefaultMinStock" class="field-label">@L["Default Min Stock"] <span class="optional">@L["(optional)"]</span></label>
+                        <input asp-for="DefaultMinStock" class="field-input" />
+                        <div class="field-hint">@L["Pre-fills Min Stock when adding a tire."]</div>
+                        <span asp-validation-for="DefaultMinStock" class="field-error"></span>
+                    </div>
+                    <div class="field">
+                        <label asp-for="ReportRangeMonths" class="field-label">@L["Report Range (Months)"] <span class="optional">@L["(optional)"]</span></label>
+                        <input asp-for="ReportRangeMonths" class="field-input" placeholder="12" />
+                        <div class="field-hint">@L["Default period of the Stock Value trend. Blank keeps 12 months."]</div>
+                        <span asp-validation-for="ReportRangeMonths" class="field-error"></span>
+                    </div>
+                </div>
+            </div>
+
             <div class="form-actions">
-                <button type="submit" class="btn btn-primary">@L["Save Shop Details"]</button>
+                <button type="submit" class="btn btn-primary">@L["Save Settings"]</button>
                 <a asp-controller="Tires" asp-action="Index" class="btn btn-secondary">@L["Cancel"]</a>
             </div>
 

@@ -9,11 +9,13 @@ public class ShopSettingsService : IShopSettingsService
 {
     private readonly SkladDbContext _db;
     private readonly ILogger<ShopSettingsService> _logger;
+    private readonly DefaultCultureCache _cultureCache;
 
-    public ShopSettingsService(SkladDbContext db, ILogger<ShopSettingsService> logger)
+    public ShopSettingsService(SkladDbContext db, ILogger<ShopSettingsService> logger, DefaultCultureCache cultureCache)
     {
         _db = db;
         _logger = logger;
+        _cultureCache = cultureCache;
     }
 
     // No migration seeds the row, so an unconfigured install must read as blank
@@ -37,9 +39,14 @@ public class ShopSettingsService : IShopSettingsService
             existing.VatNumber = settings.VatNumber;
             existing.Phone = settings.Phone;
             existing.Email = settings.Email;
+            existing.DefaultMinStock = settings.DefaultMinStock;
+            existing.PageSize = settings.PageSize;
+            existing.DefaultCulture = settings.DefaultCulture;
+            existing.ReportRangeMonths = settings.ReportRangeMonths;
         }
 
         await _db.SaveChangesAsync();
+        _cultureCache.Set(settings.DefaultCulture);
         _logger.LogInformation("Shop settings saved.");
     }
 }

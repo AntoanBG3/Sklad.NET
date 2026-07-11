@@ -402,12 +402,24 @@
   <data name="Rack A-3" xml:space="preserve"><value>Рафт А-3</value></data>
   <data name="Settings" xml:space="preserve"><value>Настройки</value></data>
   <data name="Shop Details" xml:space="preserve"><value>Данни за магазина</value></data>
-  <data name="These details appear on the letterhead of printed purchase orders." xml:space="preserve"><value>Тези данни се отпечатват в заглавната част на поръчките за доставка.</value></data>
+  <data name="Letterhead details for printed purchase orders, and shop-wide preferences." xml:space="preserve"><value>Данни за заглавната част на печатните поръчки и общи предпочитания за магазина.</value></data>
   <data name="Shop Name" xml:space="preserve"><value>Име на магазина</value></data>
   <data name="Address" xml:space="preserve"><value>Адрес</value></data>
   <data name="VAT / EIK" xml:space="preserve"><value>ДДС № / ЕИК</value></data>
-  <data name="Save Shop Details" xml:space="preserve"><value>Запази данните</value></data>
-  <data name="Shop details saved." xml:space="preserve"><value>Данните за магазина са запазени.</value></data>
+  <data name="Save Settings" xml:space="preserve"><value>Запази настройките</value></data>
+  <data name="Settings saved." xml:space="preserve"><value>Настройките са запазени.</value></data>
+  <data name="Preferences" xml:space="preserve"><value>Предпочитания</value></data>
+  <data name="Default Language" xml:space="preserve"><value>Език по подразбиране</value></data>
+  <data name="Bulgarian" xml:space="preserve"><value>Български</value></data>
+  <data name="English" xml:space="preserve"><value>Английски</value></data>
+  <data name="Shown to visitors who have not picked a language." xml:space="preserve"><value>Показва се на посетители, които не са избрали език.</value></data>
+  <data name="Items per Page" xml:space="preserve"><value>Редове на страница</value></data>
+  <data name="Rows per table page, 10 to 200. Blank keeps 50." xml:space="preserve"><value>Редове на страница в таблиците, от 10 до 200. Празно оставя 50.</value></data>
+  <data name="Default Min Stock" xml:space="preserve"><value>Мин. наличност по подразбиране</value></data>
+  <data name="Pre-fills Min Stock when adding a tire." xml:space="preserve"><value>Попълва предварително „Мин. наличност“ при добавяне на гума.</value></data>
+  <data name="Report Range (Months)" xml:space="preserve"><value>Период на отчета (месеци)</value></data>
+  <data name="Default period of the Stock Value trend. Blank keeps 12 months." xml:space="preserve"><value>Период по подразбиране на тренда в „Стойност на склада“. Празно оставя 12 месеца.</value></data>
+  <data name="Choose a supported language." xml:space="preserve"><value>Изберете поддържан език.</value></data>
   <data name="Back to order" xml:space="preserve"><value>Обратно към поръчката</value></data>
   <data name="Ordered by" xml:space="preserve"><value>Поръчал</value></data>
   <data name="The start date cannot be after the end date." xml:space="preserve">

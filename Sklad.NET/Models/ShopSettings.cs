@@ -26,4 +26,22 @@ public class ShopSettings
     [EmailAddress]
     [StringLength(200)]
     public string? Email { get; set; }
+
+    // Shop-wide preferences; null means "use the built-in default" so an
+    // unconfigured install behaves exactly as before the columns existed.
+    [Range(0, int.MaxValue)]
+    [Display(Name = "Default Min Stock")]
+    public int? DefaultMinStock { get; set; }
+
+    [Range(10, 200)]
+    [Display(Name = "Items per Page")]
+    public int? PageSize { get; set; }
+
+    [StringLength(10)]
+    [Display(Name = "Default Language")]
+    public string? DefaultCulture { get; set; }
+
+    [Range(1, 120)]
+    [Display(Name = "Report Range (Months)")]
+    public int? ReportRangeMonths { get; set; }
 }

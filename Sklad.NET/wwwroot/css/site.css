@@ -223,6 +223,10 @@ img, svg { display: block; max-width: 100%; }
     gap: var(--sp-3);
 }
 .topnav-links { display: flex; }
+/* the groups exist for the drawer's ledger sections; the wide bar flattens
+   them away so the tab row renders exactly as an ungrouped one */
+.nav-group { display: contents; }
+.nav-group-label { display: none; }
 /* tabs separated by air, not fences; the red bar is the only indicator,
    and hover previews the active state. Type is a notch smaller than the
    rest of the chrome so seven Bulgarian labels share one row. */
@@ -1142,6 +1146,24 @@ button.quiet-danger { border: 0; background: none; padding: 0; cursor: pointer; 
     .topnav { display: none; }
     /* the anonymous bar holds only the language chips — no drawer needed */
     .topnav.topnav-simple { display: flex; flex: 0 0 auto; margin-left: auto; }
+    /* the open drawer must own the screen: a scrim dims the page below the
+       bar, and the html-level lock stops it scrolling underneath. Clicks on
+       the scrim target .topbar itself (it is a pseudo-element), which the
+       outside-click handler in site.js treats as "close". Anchored absolute,
+       not fixed: the bar's backdrop-filter makes it the containing block for
+       fixed descendants, which would collapse a viewport-inset scrim to
+       nothing. The sticky bar sits at the viewport top while the drawer is
+       open (scroll is locked), so top:100% + 100vh covers the rest. */
+    html.nav-locked { overflow: hidden; }
+    .topbar.nav-open::before {
+        content: "";
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        height: 100vh;
+        background: rgba(17, 17, 17, 0.4);
+    }
     .topbar.nav-open .topnav {
         display: block;
         position: absolute;
@@ -1155,10 +1177,25 @@ button.quiet-danger { border: 0; background: none; padding: 0; cursor: pointer; 
         overflow-y: auto;
     }
     .topbar.nav-open .topnav-links { display: block; }
+    /* ledger sections: a rule and an eyebrow open each group, so the rows
+       inside sit fence-free on whitespace alone */
+    .topbar.nav-open .nav-group {
+        display: block;
+        padding-block: var(--sp-2) var(--sp-2);
+        border-top: 1px solid var(--rule);
+    }
+    .topbar.nav-open .nav-group-label {
+        display: block;
+        padding: var(--sp-2) var(--gut) var(--sp-1);
+        font-size: var(--f--2);
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--ink-50);
+    }
     .topbar.nav-open .topnav-links a {
         min-height: 3rem;
         padding-inline: var(--gut);
-        border-top: 1px solid var(--rule);
         font-size: var(--f--1);
         letter-spacing: 0.04em;
     }
@@ -1235,6 +1272,7 @@ main { animation: page-enter 180ms ease-out; }
 /* entrance only: closing switches display and cannot animate, which keeps
    dismissal instant — the panel must never feel slower to get rid of */
 .topbar.nav-open .topnav { animation: drop-in 200ms ease-out; }
+.topbar.nav-open::before { animation: fade-in 200ms ease-out; }
 .flash { animation: drop-in 240ms ease-out; }
 .notice { animation: drop-in 240ms ease-out; }
 .share-bar span { transform-origin: left; animation: bar-grow 500ms ease-out; }

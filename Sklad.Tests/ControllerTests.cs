@@ -25,8 +25,9 @@ public class TiresControllerTests : IDisposable
     {
         var service = new InventoryService(context, NullLogger<InventoryService>.Instance, new FakeLocalizer<SharedResource>());
         var excel = new ExcelExportService(new FakeLocalizer<SharedResource>());
+        var settings = new ShopSettingsService(context, NullLogger<ShopSettingsService>.Instance, new DefaultCultureCache());
         var httpContext = new DefaultHttpContext();
-        var controller = new TiresController(service, excel, new FakeLocalizer<SharedResource>())
+        var controller = new TiresController(service, excel, settings, new FakeLocalizer<SharedResource>())
         {
             ControllerContext = new ControllerContext { HttpContext = httpContext },
             TempData = new TempDataDictionary(httpContext, new NullTempDataProvider())
@@ -92,6 +93,69 @@ public class TiresControllerTests : IDisposable
         Assert.Equal(nameof(TiresController.Details), redirect.ActionName);
         Assert.NotNull(redirect.RouteValues!["id"]);
         Assert.Contains("NEW-1", (string)controller.TempData["Flash"]!);
+    }
+
+    [Fact]
+    public async Task Create_get_prefills_min_stock_from_the_shop_default()
+    {
+        await using (var seed = _db.CreateContext())
+        {
+            seed.ShopSettings.Add(new ShopSettings { Id = ShopSettings.SingletonId, DefaultMinStock = 4 });
+            await seed.SaveChangesAsync();
+        }
+
+        await using var context = _db.CreateContext();
+        var result = Assert.IsType<ViewResult>(await CreateController(context).Create());
+        var vm = Assert.IsType<CreateTireViewModel>(result.Model);
+
+        Assert.Equal(4, vm.MinStock);
+    }
+
+    [Fact]
+    public async Task Create_get_leaves_min_stock_blank_without_a_shop_default()
+    {
+        await using var context = _db.CreateContext();
+        var result = Assert.IsType<ViewResult>(await CreateController(context).Create());
+        var vm = Assert.IsType<CreateTireViewModel>(result.Model);
+
+        Assert.Null(vm.MinStock);
+    }
+
+    [Fact]
+    public async Task Index_pages_by_the_configured_page_size()
+    {
+        await using (var seed = _db.CreateContext())
+        {
+            seed.ShopSettings.Add(new ShopSettings { Id = ShopSettings.SingletonId, PageSize = 10 });
+            for (var i = 0; i < 12; i++) seed.Tires.Add(NewTire($"PAGE-{i}"));
+            await seed.SaveChangesAsync();
+        }
+
+        await using var context = _db.CreateContext();
+        var result = Assert.IsType<ViewResult>(await CreateController(context).Index(new TireFilterViewModel()));
+        var vm = Assert.IsType<IndexViewModel>(result.Model);
+
+        Assert.Equal(10, vm.Results.PageSize);
+        Assert.Equal(10, vm.Results.Items.Count);
+        Assert.Equal(2, vm.Results.TotalPages);
+    }
+
+    [Fact]
+    public async Task Report_defaults_to_the_configured_month_range()
+    {
+        await using (var seed = _db.CreateContext())
+        {
+            seed.ShopSettings.Add(new ShopSettings { Id = ShopSettings.SingletonId, ReportRangeMonths = 3 });
+            await seed.SaveChangesAsync();
+        }
+
+        await using var context = _db.CreateContext();
+        var result = Assert.IsType<ViewResult>(await CreateController(context).Report());
+        var vm = Assert.IsType<ValueReportViewModel>(result.Model);
+
+        var today = DateOnly.FromDateTime(Sklad.Helpers.Dates.Shop(DateTime.UtcNow));
+        Assert.Equal(today.AddMonths(-2), vm.From);
+        Assert.Equal(today, vm.To);
     }
 
     [Fact]

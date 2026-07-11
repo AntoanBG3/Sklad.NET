@@ -25,7 +25,7 @@ public class PurchaseOrdersControllerTests : IDisposable
         var httpContext = new DefaultHttpContext();
         if (userName is not null)
             httpContext.User = new ClaimsPrincipal(new ClaimsIdentity([new Claim(ClaimTypes.Name, userName)], "test"));
-        var settings = new ShopSettingsService(context, NullLogger<ShopSettingsService>.Instance);
+        var settings = new ShopSettingsService(context, NullLogger<ShopSettingsService>.Instance, new DefaultCultureCache());
         return new PurchaseOrdersController(purchasing, inventory, settings, new FakeLocalizer<SharedResource>())
         {
             ControllerContext = new ControllerContext { HttpContext = httpContext },

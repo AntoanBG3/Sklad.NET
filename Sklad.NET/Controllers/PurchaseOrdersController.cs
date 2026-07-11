@@ -33,7 +33,8 @@ public class PurchaseOrdersController : Controller
         ViewBag.Status = status;
         ViewBag.SupplierId = supplierId;
         ViewBag.Supplier = supplierId.HasValue ? await _purchasing.GetSupplierAsync(supplierId.Value) : null;
-        var orders = await _purchasing.GetOrdersAsync(status, supplierId, page);
+        var pageSize = (await _settings.GetAsync()).PageSize ?? InventoryService.DefaultPageSize;
+        var orders = await _purchasing.GetOrdersAsync(status, supplierId, page, pageSize);
         return View(orders);
     }
 
