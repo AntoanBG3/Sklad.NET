@@ -98,11 +98,13 @@ builder.Services.Configure<RequestLocalizationOptions>(options =>
     options.DefaultRequestCulture = new RequestCulture("bg-BG");
     options.SupportedCultures = supportedCultures;
     options.SupportedUICultures = supportedCultures;
-    // No AcceptLanguage provider: new visitors always start in Bulgarian until they choose otherwise.
+    // No AcceptLanguage provider: new visitors start in the shop's configured
+    // default language (Bulgarian out of the box) until they choose otherwise.
     options.RequestCultureProviders = new IRequestCultureProvider[]
     {
         new QueryStringRequestCultureProvider(),
-        new CookieRequestCultureProvider()
+        new CookieRequestCultureProvider(),
+        new ShopDefaultCultureProvider()
     };
 });
 
@@ -115,6 +117,7 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IPurchasingService, PurchasingService>();
 builder.Services.AddScoped<IExcelExportService, ExcelExportService>();
 builder.Services.AddScoped<IShopSettingsService, ShopSettingsService>();
+builder.Services.AddSingleton<DefaultCultureCache>();
 
 var app = builder.Build();
 

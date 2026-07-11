@@ -1,7 +1,10 @@
+using System.Globalization;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 using Sklad.Controllers;
 using Sklad.Data;
 using Sklad.Models;
@@ -18,9 +21,13 @@ public class ShopSettingsControllerTests : IDisposable
 
     private static ShopSettingsController CreateController(SkladDbContext context)
     {
-        var settings = new ShopSettingsService(context, NullLogger<ShopSettingsService>.Instance);
+        var settings = new ShopSettingsService(context, NullLogger<ShopSettingsService>.Instance, new DefaultCultureCache());
+        var localization = Options.Create(new RequestLocalizationOptions
+        {
+            SupportedUICultures = new List<CultureInfo> { new("bg-BG"), new("en-GB") }
+        });
         var httpContext = new DefaultHttpContext();
-        return new ShopSettingsController(settings, new FakeLocalizer<SharedResource>())
+        return new ShopSettingsController(settings, localization, new FakeLocalizer<SharedResource>())
         {
             ControllerContext = new ControllerContext { HttpContext = httpContext },
             TempData = new TempDataDictionary(httpContext, new NullTempDataProvider()),
@@ -82,6 +89,42 @@ public class ShopSettingsControllerTests : IDisposable
         var result = Assert.IsType<ViewResult>(await controller.Index(vm));
 
         Assert.Same(vm, result.Model);
+        Assert.Empty(context.ShopSettings);
+    }
+
+    [Fact]
+    public async Task Post_saves_the_preference_fields()
+    {
+        await using var context = _db.CreateContext();
+        var controller = CreateController(context);
+
+        var vm = new ShopSettingsViewModel
+        {
+            DefaultMinStock = 4,
+            PageSize = 25,
+            DefaultCulture = "en-GB",
+            ReportRangeMonths = 6
+        };
+        Assert.IsType<RedirectToActionResult>(await controller.Index(vm));
+
+        var saved = context.ShopSettings.Single();
+        Assert.Equal(4, saved.DefaultMinStock);
+        Assert.Equal(25, saved.PageSize);
+        Assert.Equal("en-GB", saved.DefaultCulture);
+        Assert.Equal(6, saved.ReportRangeMonths);
+    }
+
+    [Fact]
+    public async Task Post_rejects_a_default_culture_outside_the_supported_set()
+    {
+        await using var context = _db.CreateContext();
+        var controller = CreateController(context);
+
+        var vm = new ShopSettingsViewModel { DefaultCulture = "fr-FR" };
+        var result = Assert.IsType<ViewResult>(await controller.Index(vm));
+
+        Assert.Same(vm, result.Model);
+        Assert.False(controller.ModelState.IsValid);
         Assert.Empty(context.ShopSettings);
     }
 
