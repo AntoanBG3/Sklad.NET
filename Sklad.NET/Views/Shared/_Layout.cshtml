@@ -34,15 +34,24 @@
                 @if (authed)
                 {
                     <div class="topnav-links">
-                        <a class="@(isInventory ? "is-active" : "")" aria-current="@(isInventory ? "page" : null)" asp-controller="Tires" asp-action="Index">@L["Inventory"]</a>
-                        <a class="@(isLowStock ? "is-active" : "")" aria-current="@(isLowStock ? "page" : null)" asp-controller="Tires" asp-action="LowStock">@L["Low Stock"]</a>
-                        <a class="@(isMovements ? "is-active" : "")" aria-current="@(isMovements ? "page" : null)" asp-controller="Movements" asp-action="Index">@L["Movements"]</a>
-                        <a class="@(isPurchasing ? "is-active" : "")" aria-current="@(isPurchasing ? "page" : null)" asp-controller="PurchaseOrders" asp-action="Index">@L["Purchasing"]</a>
-                        <a class="@(isReport ? "is-active" : "")" aria-current="@(isReport ? "page" : null)" asp-controller="Tires" asp-action="Report">@L["Stock Value"]</a>
+                        <div class="nav-group">
+                            <span class="nav-group-label" aria-hidden="true">@L["Warehouse"]</span>
+                            <a class="@(isInventory ? "is-active" : "")" aria-current="@(isInventory ? "page" : null)" asp-controller="Tires" asp-action="Index">@L["Inventory"]</a>
+                            <a class="@(isLowStock ? "is-active" : "")" aria-current="@(isLowStock ? "page" : null)" asp-controller="Tires" asp-action="LowStock">@L["Low Stock"]</a>
+                            <a class="@(isMovements ? "is-active" : "")" aria-current="@(isMovements ? "page" : null)" asp-controller="Movements" asp-action="Index">@L["Movements"]</a>
+                            <a class="@(isReport ? "is-active" : "")" aria-current="@(isReport ? "page" : null)" asp-controller="Tires" asp-action="Report">@L["Stock Value"]</a>
+                        </div>
+                        <div class="nav-group">
+                            <span class="nav-group-label" aria-hidden="true">@L["Purchasing"]</span>
+                            <a class="@(isPurchasing ? "is-active" : "")" aria-current="@(isPurchasing ? "page" : null)" asp-controller="PurchaseOrders" asp-action="Index">@L["Purchasing"]</a>
+                        </div>
                         @if (User.IsInRole(nameof(Sklad.Models.UserRole.Admin)))
                         {
-                            <a class="@(isUsers ? "is-active" : "")" aria-current="@(isUsers ? "page" : null)" asp-controller="Users" asp-action="Index">@L["Users"]</a>
-                            <a class="@(isSettings ? "is-active" : "")" aria-current="@(isSettings ? "page" : null)" asp-controller="ShopSettings" asp-action="Index">@L["Settings"]</a>
+                            <div class="nav-group">
+                                <span class="nav-group-label" aria-hidden="true">@L["Administration"]</span>
+                                <a class="@(isUsers ? "is-active" : "")" aria-current="@(isUsers ? "page" : null)" asp-controller="Users" asp-action="Index">@L["Users"]</a>
+                                <a class="@(isSettings ? "is-active" : "")" aria-current="@(isSettings ? "page" : null)" asp-controller="ShopSettings" asp-action="Index">@L["Settings"]</a>
+                            </div>
                         }
                     </div>
                 }

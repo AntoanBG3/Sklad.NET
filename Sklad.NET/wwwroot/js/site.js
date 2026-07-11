@@ -61,12 +61,15 @@
         });
 
         // Collapsed nav drawer. Escape and an outside click both close it,
-        // so the open panel can never trap the page.
+        // so the open panel can never trap the page. The scrim is the
+        // topbar's ::before, so a tap on it targets the topbar element
+        // itself — that counts as outside too.
         var navToggle = document.querySelector("[data-nav-toggle]");
         if (navToggle) {
             var topbar = navToggle.closest(".topbar");
             var setNavOpen = function (open) {
                 topbar.classList.toggle("nav-open", open);
+                document.documentElement.classList.toggle("nav-locked", open);
                 navToggle.setAttribute("aria-expanded", open ? "true" : "false");
             };
             navToggle.addEventListener("click", function () {
@@ -76,7 +79,7 @@
                 if (e.key === "Escape") setNavOpen(false);
             });
             document.addEventListener("click", function (e) {
-                if (!topbar.contains(e.target)) setNavOpen(false);
+                if (!topbar.contains(e.target) || e.target === topbar) setNavOpen(false);
             });
         }
 
