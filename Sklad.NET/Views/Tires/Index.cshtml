@@ -261,7 +261,7 @@
                             @foreach (var t in Model.Results.Items)
                             {
                                 <tr class="@(t.IsLowStock ? "is-low" : "")" data-href="@Url.Action("Details", new { id = t.Id, returnUrl = here })">
-                                    <td class="mono"><a class="row-link" asp-action="Details" asp-route-id="@t.Id" asp-route-returnUrl="@here">@t.Sku</a></td>
+                                    <td class="mono cell-code"><a class="row-link" asp-action="Details" asp-route-id="@t.Id" asp-route-returnUrl="@here">@t.Sku</a></td>
                                     <td>
                                         <a class="row-link" asp-action="Details" asp-route-id="@t.Id" asp-route-returnUrl="@here">
                                             <span class="cell-stack cell-strong">@t.Brand</span>

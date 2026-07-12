@@ -103,7 +103,7 @@
                                 @foreach (var i in Model.Items)
                                 {
                                     <tr>
-                                        <td class="mono"><a class="row-link" asp-controller="Tires" asp-action="Details" asp-route-id="@i.TireId">@i.Tire.Sku</a></td>
+                                        <td class="mono cell-code"><a class="row-link" asp-controller="Tires" asp-action="Details" asp-route-id="@i.TireId">@i.Tire.Sku</a></td>
                                         <td>
                                             <span class="cell-stack cell-strong">@i.Tire.Brand @i.Tire.Model</span>
                                             <span class="cell-sub mono">@i.Tire.Size</span>

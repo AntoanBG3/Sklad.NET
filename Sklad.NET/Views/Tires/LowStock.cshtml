@@ -72,7 +72,7 @@
                             {
                                 int deficit = t.MinStock - t.Quantity;
                                 <tr class="is-low" data-href="@Url.Action("Details", new { id = t.Id, returnUrl = "/Tires/LowStock" })">
-                                    <td class="mono"><a class="row-link" asp-action="Details" asp-route-id="@t.Id" asp-route-returnUrl="/Tires/LowStock">@t.Sku</a></td>
+                                    <td class="mono cell-code"><a class="row-link" asp-action="Details" asp-route-id="@t.Id" asp-route-returnUrl="/Tires/LowStock">@t.Sku</a></td>
                                     <td>
                                         <a class="row-link" asp-action="Details" asp-route-id="@t.Id" asp-route-returnUrl="/Tires/LowStock">
                                             <span class="cell-stack cell-strong">@t.Brand</span>

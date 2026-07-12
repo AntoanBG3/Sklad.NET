@@ -636,6 +636,10 @@ a.stat:hover .stat-label { color: var(--black); }
 .data-table .cell-strong { font-weight: 600; }
 .data-table .cell-muted { color: var(--ink-50); }
 .data-table td.mono { white-space: nowrap; }
+/* SKUs are user-entered (up to 50 chars) inside fixed-layout columns that
+   cannot grow — without a wrap escape hatch a long code paints over the
+   neighbouring cell. Breaks land on the hyphens SKUs already carry. */
+.data-table td.cell-code { white-space: normal; }
 
 /* two-line stacked cell (e.g. brand over model, € over лв.) */
 .cell-stack { display: block; }
@@ -652,8 +656,8 @@ a.stat:hover .stat-label { color: var(--black); }
 .deficit { color: var(--red); font-weight: 600; }
 
 /* column widths — fixed layout, proportional */
-.data-table col.w-sku   { width: 12%; }
-.data-table col.w-tire  { width: 21%; }
+.data-table col.w-sku   { width: 15%; }
+.data-table col.w-tire  { width: 18%; }
 .data-table col.w-size  { width: 10%; }
 .data-table col.w-class { width: 12%; }
 .data-table col.w-price { width: 15%; }
