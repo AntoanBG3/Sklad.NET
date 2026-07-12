@@ -383,46 +383,30 @@ result associated with Fable, not independently verified authorship.
   multi-instance deployment should move to a server database.
 - Low-stock email notifications and barcode label printing remain future ideas.
 
-## Recommended GitHub handoff
+## GitHub handoff
 
-A draft pull request is the best way to send this work for review. It preserves a
-complete diff, runs CI, allows inline comments, and keeps the original repository
-unchanged until the owner merges it.
+This refactor is published for review through a draft pull request with these
+endpoints:
 
-The current checkout is on `master` with uncommitted changes. The GitHub CLI on
-this machine is signed in as `warbladebg`, which has read but not push permission
-on `AntoanBG3/Sklad.NET`; no fork currently exists. Use the fork workflow below.
+- target: `AntoanBG3/Sklad.NET`, branch `master`;
+- source: `warbladebg/Sklad.NET`, branch
+  `codex/inventory-integrity-refactor`.
 
-### 1. Create a branch and commit locally
+The branch includes this report and the updated `README.md` alongside the code,
+migration, and tests. A pull request preserves the complete diff, runs the
+repository's CI, supports inline comments, and leaves the original repository
+unchanged until its owner chooses to merge it.
 
-```powershell
-git switch -c codex/inventory-integrity-refactor
-git add -A
-git status --short
-git commit -m "refactor: harden inventory workflows and add camera scanning"
-```
-
-### 2. Create a GitHub fork and push the branch
+To review the branch locally with GitHub CLI, replace `<PR number>` with the
+number shown in the pull-request URL:
 
 ```powershell
-gh repo fork AntoanBG3/Sklad.NET --remote --remote-name fork
-git push -u fork codex/inventory-integrity-refactor
+gh pr checkout <PR number> --repo AntoanBG3/Sklad.NET
 ```
 
-### 3. Open a draft pull request
+Then follow **How to run the application** and **How to verify the refactor** in
+this document.
 
-```powershell
-gh pr create `
-  --repo AntoanBG3/Sklad.NET `
-  --base master `
-  --head warbladebg:codex/inventory-integrity-refactor `
-  --draft `
-  --title "Refactor inventory integrity and add camera scanning" `
-  --body-file REFACTOR_REPORT.md
-```
-
-Send the resulting pull-request URL to the reviewer. They can read this report in
-the PR, inspect every changed line, run the application, and leave inline feedback.
-
-Do not send `bin/`, `obj/`, `sklad.db`, Data Protection keys, or production
-configuration. They are already ignored by the repository and must remain local.
+The published branch intentionally excludes `bin/`, `obj/`, `sklad.db`, Data
+Protection keys, and production configuration. Those files remain local and are
+ignored by the repository.
