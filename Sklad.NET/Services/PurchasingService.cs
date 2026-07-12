@@ -102,8 +102,7 @@ public class PurchasingService : IPurchasingService
         q = q.OrderByDescending(o => o.CreatedAt).ThenByDescending(o => o.Id);
 
         var total = await q.CountAsync();
-        var totalPages = Math.Max(1, (int)Math.Ceiling(total / (double)pageSize));
-        page = Math.Clamp(page, 1, totalPages);
+        page = Pagination.ClampPage(page, total, pageSize);
         var items = await q.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
 
         return new PagedResult<PurchaseOrder>
@@ -145,12 +144,13 @@ public class PurchasingService : IPurchasingService
         return order;
     }
 
-    public async Task UpdateDraftAsync(int id, int supplierId, string? note, IReadOnlyList<PurchaseOrderLine> lines)
+    public async Task UpdateDraftAsync(int id, int expectedVersion, int supplierId, string? note, IReadOnlyList<PurchaseOrderLine> lines)
     {
         await ValidateLinesAsync(lines);
 
         var order = await _db.PurchaseOrders.Include(o => o.Items).FirstOrDefaultAsync(o => o.Id == id)
             ?? throw new PurchaseOrderNotFoundException();
+        EnsureExpectedVersion(order, expectedVersion);
         if (order.Status != PurchaseOrderStatus.Draft)
             throw new InvalidOrderStateException(order.Status);
         if (!await _db.Suppliers.AnyAsync(s => s.Id == supplierId))
@@ -163,25 +163,26 @@ public class PurchasingService : IPurchasingService
         foreach (var line in lines)
             order.Items.Add(new PurchaseOrderItem { TireId = line.TireId, Quantity = line.Quantity, UnitCost = line.UnitCost });
 
-        await _db.SaveChangesAsync();
+        await SaveOrderMutationAsync(order);
     }
 
-    public async Task MarkOrderedAsync(int id)
+    public async Task MarkOrderedAsync(int id, int expectedVersion)
     {
         var order = await _db.PurchaseOrders.FindAsync(id)
             ?? throw new PurchaseOrderNotFoundException();
+        EnsureExpectedVersion(order, expectedVersion);
         if (order.Status != PurchaseOrderStatus.Draft)
             throw new InvalidOrderStateException(order.Status);
 
         order.Status = PurchaseOrderStatus.Ordered;
         order.OrderedAt = DateTime.UtcNow;
-        await _db.SaveChangesAsync();
+        await SaveOrderMutationAsync(order);
         _logger.LogInformation("Purchase order {Number} marked as ordered", order.Number);
     }
 
     // Receiving from Draft is allowed on purpose: a small shop often skips the
     // "ordered" step when goods arrive with the invoice.
-    public async Task ReceiveAsync(int id, string? userName = null)
+    public async Task ReceiveAsync(int id, int expectedVersion, string? userName = null)
     {
         for (var attempt = 1; ; attempt++)
         {
@@ -190,16 +191,18 @@ public class PurchasingService : IPurchasingService
                 .Include(o => o.Items)
                 .FirstOrDefaultAsync(o => o.Id == id)
                 ?? throw new PurchaseOrderNotFoundException();
+            EnsureExpectedVersion(order, expectedVersion);
             if (!order.IsOpen)
                 throw new InvalidOrderStateException(order.Status);
 
             var tireIds = order.Items.Select(i => i.TireId).ToList();
             var tires = await _db.Tires.Where(t => tireIds.Contains(t.Id)).ToDictionaryAsync(t => t.Id);
+            EnsureStockAdditionsFit(order.Items, tires);
             var now = DateTime.UtcNow;
             foreach (var item in order.Items)
             {
                 var tire = tires[item.TireId];
-                tire.Quantity += item.Quantity;
+                tire.Quantity = StockQuantity.Add(tire.Quantity, item.Quantity);
                 tire.Version++;
                 _db.StockMovements.Add(new StockMovement
                 {
@@ -214,6 +217,7 @@ public class PurchasingService : IPurchasingService
             order.Status = PurchaseOrderStatus.Received;
             order.ReceivedAt = now;
             order.ReceivedBy = userName;
+            order.Version++;
 
             try
             {
@@ -221,6 +225,10 @@ public class PurchasingService : IPurchasingService
                 _logger.LogInformation("Purchase order {Number} received ({Units} units) by {User}",
                     order.Number, order.TotalUnits, userName ?? "unknown");
                 return;
+            }
+            catch (DbUpdateConcurrencyException ex) when (HasOrderConflict(ex))
+            {
+                throw new StalePurchaseOrderException();
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -234,16 +242,55 @@ public class PurchasingService : IPurchasingService
         }
     }
 
-    public async Task CancelAsync(int id)
+    public async Task CancelAsync(int id, int expectedVersion)
     {
         var order = await _db.PurchaseOrders.FindAsync(id)
             ?? throw new PurchaseOrderNotFoundException();
+        EnsureExpectedVersion(order, expectedVersion);
         if (!order.IsOpen)
             throw new InvalidOrderStateException(order.Status);
 
         order.Status = PurchaseOrderStatus.Cancelled;
-        await _db.SaveChangesAsync();
+        await SaveOrderMutationAsync(order);
         _logger.LogInformation("Purchase order {Number} cancelled", order.Number);
+    }
+
+    private static void EnsureExpectedVersion(PurchaseOrder order, int expectedVersion)
+    {
+        if (order.Version != expectedVersion)
+            throw new StalePurchaseOrderException();
+    }
+
+    private async Task SaveOrderMutationAsync(PurchaseOrder order)
+    {
+        order.Version++;
+        try
+        {
+            await _db.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            throw new StalePurchaseOrderException();
+        }
+    }
+
+    private static bool HasOrderConflict(DbUpdateConcurrencyException ex)
+        => ex.Entries.Any(entry => entry.Entity is PurchaseOrder);
+
+    // Validate the whole receipt before mutating any tracked tire. Besides
+    // keeping SaveChanges atomic, this leaves the DbContext clean when a caller
+    // catches the typed exception and continues using the same scope. Grouping
+    // also covers duplicate lines for the same tire.
+    private static void EnsureStockAdditionsFit(
+        IEnumerable<PurchaseOrderItem> items,
+        IReadOnlyDictionary<int, Tire> tires)
+    {
+        foreach (var group in items.GroupBy(item => item.TireId))
+        {
+            var addedQuantity = group.Sum(item => (long)item.Quantity);
+            var currentQuantity = tires[group.Key].Quantity;
+            _ = StockQuantity.Add(currentQuantity, addedQuantity);
+        }
     }
 
     private async Task ValidateLinesAsync(IReadOnlyList<PurchaseOrderLine> lines)

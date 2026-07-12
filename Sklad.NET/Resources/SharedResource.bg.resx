@@ -191,6 +191,9 @@
   <data name="The {0} field is required." xml:space="preserve"><value>Полето {0} е задължително.</value></data>
   <data name="The field {0} must be between {1} and {2}." xml:space="preserve"><value>Полето {0} трябва да е между {1} и {2}.</value></data>
   <data name="The field {0} must be a string with a maximum length of {1}." xml:space="preserve"><value>Полето {0} трябва да е текст с максимална дължина {1}.</value></data>
+  <data name="The field {0} must be a string with a minimum length of {2} and a maximum length of {1}." xml:space="preserve"><value>Полето {0} трябва да е текст с дължина между {2} и {1} знака.</value></data>
+  <data name="The field {0} must be a string or array type with a minimum length of '{1}'." xml:space="preserve"><value>Полето {0} трябва да е с минимална дължина {1} знака.</value></data>
+  <data name="The {0} field is not a valid e-mail address." xml:space="preserve"><value>Полето {0} трябва да съдържа валиден имейл адрес.</value></data>
   <data name="Quantity must be 0 or greater." xml:space="preserve"><value>Количеството трябва да е 0 или повече.</value></data>
 
   <!-- Errors surfaced from the inventory service -->
@@ -304,6 +307,7 @@
   <data name="Phone" xml:space="preserve"><value>Телефон</value></data>
   <data name="Email" xml:space="preserve"><value>Имейл</value></data>
   <data name="Notes" xml:space="preserve"><value>Бележки</value></data>
+  <data name="Name" xml:space="preserve"><value>Име</value></data>
   <data name="Open orders" xml:space="preserve"><value>Отворени поръчки</value></data>
   <data name="Total orders" xml:space="preserve"><value>Общо поръчки</value></data>
   <data name="Orders" xml:space="preserve"><value>Поръчки</value></data>
@@ -364,6 +368,8 @@
   <data name="A purchase order needs at least one line." xml:space="preserve"><value>Поръчката за доставка се нуждае от поне един ред.</value></data>
   <data name="Order lines need a quantity of at least 1 and a non-negative cost." xml:space="preserve"><value>Редовете изискват количество поне 1 и неотрицателна цена.</value></data>
   <data name="The stock changed while receiving. Try again." xml:space="preserve"><value>Наличността се промени по време на получаването. Опитайте отново.</value></data>
+  <data name="The purchase order was modified by someone else. Reload the page and try again." xml:space="preserve"><value>Поръчката беше променена от друг потребител. Презаредете страницата и опитайте отново.</value></data>
+  <data name="The resulting stock quantity is too large." xml:space="preserve"><value>Полученото количество в наличност е твърде голямо.</value></data>
   <data name="This tire appears on purchase orders and cannot be deleted." xml:space="preserve"><value>Тази гума фигурира в поръчки за доставка и не може да бъде изтрита.</value></data>
   <data name="Draft" xml:space="preserve"><value>Чернова</value></data>
   <data name="Ordered" xml:space="preserve"><value>Поръчана</value></data>
@@ -490,5 +496,29 @@
   </data>
   <data name="Enter a quantity of at least 1." xml:space="preserve">
     <value>Въведете количество поне 1.</value>
+  </data>
+  <data name="Scan with camera" xml:space="preserve">
+    <value>Сканирай с камера</value>
+  </data>
+  <data name="Stop camera" xml:space="preserve">
+    <value>Спри камерата</value>
+  </data>
+  <data name="Live camera preview" xml:space="preserve">
+    <value>Картина на живо от камерата</value>
+  </data>
+  <data name="Starting camera…" xml:space="preserve">
+    <value>Камерата се стартира…</value>
+  </data>
+  <data name="Point the camera at a barcode." xml:space="preserve">
+    <value>Насочете камерата към баркод.</value>
+  </data>
+  <data name="Barcode found. Looking up tire…" xml:space="preserve">
+    <value>Баркодът е намерен. Търсене на гумата…</value>
+  </data>
+  <data name="Camera access is unavailable. Enter the code instead." xml:space="preserve">
+    <value>Камерата не е достъпна. Въведете кода ръчно.</value>
+  </data>
+  <data name="Camera stopped." xml:space="preserve">
+    <value>Камерата е спряна.</value>
   </data>
 </root>

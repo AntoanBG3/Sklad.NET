@@ -68,6 +68,7 @@
    Reset
    ============================================================ */
 *, *::before, *::after { box-sizing: border-box; }
+[hidden] { display: none !important; }
 
 html { -webkit-text-size-adjust: 100%; }
 
@@ -1397,6 +1398,23 @@ main { animation: page-enter 180ms ease-out; }
 .floor-stepper .floor-input { text-align: center; }
 .floor-step { flex: none; min-height: var(--floor-tap); min-width: var(--floor-tap); }
 .floor-back { display: block; text-align: center; padding-block: var(--sp-3); }
+.floor-camera { display: grid; gap: var(--sp-3); }
+.floor-camera-viewport {
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: 4 / 3;
+    background: var(--black);
+    border: 1px solid var(--black);
+}
+.floor-camera-video { display: block; width: 100%; height: 100%; object-fit: cover; }
+.floor-camera-guide {
+    position: absolute;
+    inset: 28% 10%;
+    border: 3px solid var(--white);
+    box-shadow: 0 0 0 999px rgba(0, 0, 0, .32);
+}
+.floor-camera-status { min-height: 1.5em; margin: 0; color: var(--ink-50); }
+.floor-camera-status.is-error { color: var(--red); font-weight: 600; }
 
 /* ============================================================
    Print — stock lists, the low-stock reorder sheet, purchase orders

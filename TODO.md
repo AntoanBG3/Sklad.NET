@@ -159,10 +159,39 @@ No migration; tests 171 → 184.
 
 ---
 
+## [x] 13. Integrity, service boundaries, and camera scanning (2026-07-12)
+
+Purchase orders now carry their own optimistic-concurrency token. Editing lines,
+marking an order, receiving it, and cancelling it all require the version shown
+to the operator, so a stale screen cannot receive obsolete lines or overwrite a
+concurrent state change. Direct movements and receipts share checked stock
+arithmetic and reject an `Int32` overflow atomically.
+
+SQLite's ASCII-only `NOCASE` collation was replaced on identifiers with a
+.NET-backed `UNICODE_NOCASE`, covering Cyrillic SKU/barcode lookups, usernames,
+and supplier uniqueness. The migration has an upgrade test that starts from the
+previous schema with related data, applies the migration, and checks both data
+preservation and the new uniqueness behavior.
+
+`InventoryService` no longer owns report generation or CSV formatting. Reports
+and CSV are separate services; filter/sort translation, pagination, and stock
+arithmetic each have one shared implementation. The duplicate POST submit guard
+in the desktop and floor scripts was similarly consolidated.
+
+The `/Floor` scan screen progressively exposes camera barcode scanning through
+the browser's native `BarcodeDetector`. Unsupported or denied-camera browsers
+retain the existing manual/physical-scanner flow. The same round fixed the floor
+concurrency 500, fully localized default validation messages and display names,
+and the missing floor heading/skip link. Tests 193 → 223.
+
+Migration `InventoryIntegrity`; 223 tests.
+
+---
+
 ## [ ] Future ideas
 
 - Email notifications on low stock
-- Barcode-scanner integration and label printing
+- Barcode label printing
 - A move to a more powerful server database if data volume grows
 
 The existing architecture allows these extensions without substantially

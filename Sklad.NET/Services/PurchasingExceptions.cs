@@ -46,3 +46,9 @@ public sealed class InvalidOrderStateException : PurchasingException
         : base($"The order is {status} and does not allow this action.")
         => Status = status;
 }
+
+public sealed class StalePurchaseOrderException : PurchasingException
+{
+    public StalePurchaseOrderException()
+        : base("The purchase order was modified by someone else.") { }
+}

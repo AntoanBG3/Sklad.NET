@@ -18,12 +18,14 @@
                 {
                     <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-secondary btn-sm">@L["Edit"]</a>
                     <form asp-action="MarkOrdered" asp-route-id="@Model.Id" method="post">
+                        <input type="hidden" name="expectedVersion" value="@Model.Version" />
                         <button type="submit" class="btn btn-secondary btn-sm">@L["Mark as Ordered"]</button>
                     </form>
                 }
                 @if (Model.IsOpen)
                 {
                     <form asp-action="Receive" asp-route-id="@Model.Id" method="post">
+                        <input type="hidden" name="expectedVersion" value="@Model.Version" />
                         <button type="submit" class="btn btn-primary btn-sm">@L["Receive Stock"]</button>
                     </form>
                 }
@@ -124,6 +126,7 @@
         {
             <div class="page-tail">
                 <form asp-action="Cancel" asp-route-id="@Model.Id" method="post">
+                    <input type="hidden" name="expectedVersion" value="@Model.Version" />
                     <button type="submit" class="quiet-danger">@L["Cancel Order"]</button>
                 </form>
             </div>

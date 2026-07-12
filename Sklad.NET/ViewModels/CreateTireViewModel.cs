@@ -14,29 +14,36 @@ public class CreateTireViewModel
     public string Sku { get; set; } = string.Empty;
 
     [StringLength(100)]
+    [Display(Name = "Barcode")]
     public string? Barcode { get; set; }
 
     [Required]
     [StringLength(100)]
+    [Display(Name = "Brand")]
     public string Brand { get; set; } = string.Empty;
 
     [Required]
     [StringLength(100)]
+    [Display(Name = "Model")]
     public string Model { get; set; } = string.Empty;
 
     [Required]
     [Range(100, 400)]
+    [Display(Name = "Width")]
     public int? Width { get; set; }
 
     [Required]
     [Range(20, 90)]
+    [Display(Name = "Profile")]
     public int? Profile { get; set; }
 
     [Required]
     [Range(10, 26)]
+    [Display(Name = "Diameter")]
     public int? Diameter { get; set; }
 
     [Required]
+    [Display(Name = "Season")]
     public Season Season { get; set; }
 
     [Required]
@@ -50,6 +57,7 @@ public class CreateTireViewModel
 
     [Required]
     [Range(0, int.MaxValue)]
+    [Display(Name = "Quantity")]
     public int? Quantity { get; set; }
 
     [Required]
@@ -58,6 +66,7 @@ public class CreateTireViewModel
     public int? MinStock { get; set; }
 
     [StringLength(200)]
+    [Display(Name = "Location")]
     public string? Location { get; set; }
 
     public Tire ToTire() => new()

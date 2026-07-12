@@ -125,6 +125,7 @@ public class PurchaseOrdersController : Controller
     public async Task<IActionResult> Edit(int id, PurchaseOrderFormViewModel vm)
     {
         if (id != vm.Id) return NotFound();
+        if (vm.Version is null) return BadRequest();
         PruneBlankItems(vm);
         if (!ModelState.IsValid)
         {
@@ -133,7 +134,7 @@ public class PurchaseOrdersController : Controller
         }
         try
         {
-            await _purchasing.UpdateDraftAsync(id, vm.SupplierId!.Value, Clean(vm.Note), vm.ToLines());
+            await _purchasing.UpdateDraftAsync(id, vm.Version.Value, vm.SupplierId!.Value, Clean(vm.Note), vm.ToLines());
             TempData["Flash"] = _l["Purchase order saved."].Value;
             return RedirectToAction(nameof(Details), new { id });
         }
@@ -144,6 +145,11 @@ public class PurchaseOrdersController : Controller
         catch (InvalidOrderStateException)
         {
             TempData["Flash"] = _l["Only draft orders can be edited."].Value;
+            return RedirectToAction(nameof(Details), new { id });
+        }
+        catch (StalePurchaseOrderException)
+        {
+            TempData["Flash"] = _l["The purchase order was modified by someone else. Reload the page and try again."].Value;
             return RedirectToAction(nameof(Details), new { id });
         }
         catch (PurchasingException ex)
@@ -161,11 +167,12 @@ public class PurchaseOrdersController : Controller
     // POST: /PurchaseOrders/MarkOrdered/5
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> MarkOrdered(int id)
+    public async Task<IActionResult> MarkOrdered(int id, int? expectedVersion)
     {
+        if (expectedVersion is null) return BadRequest();
         try
         {
-            await _purchasing.MarkOrderedAsync(id);
+            await _purchasing.MarkOrderedAsync(id, expectedVersion.Value);
             TempData["Flash"] = _l["Purchase order marked as ordered."].Value;
         }
         catch (PurchaseOrderNotFoundException)
@@ -176,17 +183,22 @@ public class PurchaseOrdersController : Controller
         {
             TempData["Flash"] = _l["The order status no longer allows this action."].Value;
         }
+        catch (StalePurchaseOrderException)
+        {
+            TempData["Flash"] = _l["The purchase order was modified by someone else. Reload the page and try again."].Value;
+        }
         return RedirectToAction(nameof(Details), new { id });
     }
 
     // POST: /PurchaseOrders/Receive/5
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Receive(int id)
+    public async Task<IActionResult> Receive(int id, int? expectedVersion)
     {
+        if (expectedVersion is null) return BadRequest();
         try
         {
-            await _purchasing.ReceiveAsync(id, CurrentUser);
+            await _purchasing.ReceiveAsync(id, expectedVersion.Value, CurrentUser);
             TempData["Flash"] = _l["Purchase order received — stock updated."].Value;
         }
         catch (PurchaseOrderNotFoundException)
@@ -201,17 +213,26 @@ public class PurchaseOrdersController : Controller
         {
             TempData["Flash"] = _l["The stock changed while receiving. Try again."].Value;
         }
+        catch (StalePurchaseOrderException)
+        {
+            TempData["Flash"] = _l["The purchase order was modified by someone else. Reload the page and try again."].Value;
+        }
+        catch (StockQuantityOverflowException)
+        {
+            TempData["Flash"] = _l["The resulting stock quantity is too large."].Value;
+        }
         return RedirectToAction(nameof(Details), new { id });
     }
 
     // POST: /PurchaseOrders/Cancel/5
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Cancel(int id)
+    public async Task<IActionResult> Cancel(int id, int? expectedVersion)
     {
+        if (expectedVersion is null) return BadRequest();
         try
         {
-            await _purchasing.CancelAsync(id);
+            await _purchasing.CancelAsync(id, expectedVersion.Value);
             TempData["Flash"] = _l["Purchase order cancelled."].Value;
         }
         catch (PurchaseOrderNotFoundException)
@@ -221,6 +242,10 @@ public class PurchaseOrdersController : Controller
         catch (InvalidOrderStateException)
         {
             TempData["Flash"] = _l["The order status no longer allows this action."].Value;
+        }
+        catch (StalePurchaseOrderException)
+        {
+            TempData["Flash"] = _l["The purchase order was modified by someone else. Reload the page and try again."].Value;
         }
         return RedirectToAction(nameof(Details), new { id });
     }

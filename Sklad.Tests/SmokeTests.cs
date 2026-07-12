@@ -41,4 +41,15 @@ public class SmokeTests
         Assert.True(new FileInfo(bundle).Length > 100_000, "chart.umd.js looks truncated.");
         Assert.Contains("Chart", File.ReadAllText(bundle)[..2000], StringComparison.Ordinal);
     }
+
+    [Fact]
+    public void Floor_flow_keeps_its_accessible_page_structure()
+    {
+        var views = Path.Combine(TestPaths.App(), "Views");
+        var tire = File.ReadAllText(Path.Combine(views, "Floor", "Tire.cshtml"));
+        var layout = File.ReadAllText(Path.Combine(views, "Shared", "_FloorLayout.cshtml"));
+
+        Assert.Contains("<h1 class=\"floor-sku\">", tire, StringComparison.Ordinal);
+        Assert.Contains("class=\"skip-link\" href=\"#main-content\"", layout, StringComparison.Ordinal);
+    }
 }

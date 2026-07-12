@@ -44,6 +44,17 @@ public class PurchasingServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task Duplicate_cyrillic_supplier_name_is_rejected_case_insensitively()
+    {
+        await using var context = _db.CreateContext();
+        var service = CreateService(context);
+        await service.CreateSupplierAsync(new Supplier { Name = "Гуми Трейд" });
+
+        await Assert.ThrowsAsync<DuplicateSupplierNameException>(
+            () => service.CreateSupplierAsync(new Supplier { Name = "гУМИ тРЕЙД" }));
+    }
+
+    [Fact]
     public async Task Supplier_with_orders_cannot_be_deleted()
     {
         var (supplierId, tireId) = await SeedAsync();
@@ -106,16 +117,18 @@ public class PurchasingServiceTests : IDisposable
     {
         var (supplierId, tireId) = await SeedAsync();
         int orderId;
+        int orderVersion;
         await using (var setup = _db.CreateContext())
         {
             var service = CreateService(setup);
             var created = await service.CreateOrderAsync(supplierId, null, [new PurchaseOrderLine(tireId, 4, 90m)], "boss");
-            await service.MarkOrderedAsync(created.Id);
+            await service.MarkOrderedAsync(created.Id, created.Version);
             orderId = created.Id;
+            orderVersion = created.Version;
         }
 
         await using var context = _db.CreateContext();
-        await CreateService(context).ReceiveAsync(orderId, "maria");
+        await CreateService(context).ReceiveAsync(orderId, orderVersion, "maria");
 
         await using var check = _db.CreateContext();
         var tire = await check.Tires.FindAsync(tireId);
@@ -134,15 +147,41 @@ public class PurchasingServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task Receiving_stock_that_would_overflow_is_rejected_atomically()
+    {
+        var (supplierId, tireId) = await SeedAsync();
+        int orderId;
+        await using (var setup = _db.CreateContext())
+        {
+            var order = await CreateService(setup).CreateOrderAsync(
+                supplierId, null, [new PurchaseOrderLine(tireId, int.MaxValue, 1m)]);
+            orderId = order.Id;
+        }
+
+        await using (var context = _db.CreateContext())
+        {
+            var ex = await Assert.ThrowsAsync<StockQuantityOverflowException>(
+                () => CreateService(context).ReceiveAsync(orderId, expectedVersion: 0));
+            Assert.Equal(5, ex.CurrentQuantity);
+            Assert.Equal((long)int.MaxValue, ex.AddedQuantity);
+        }
+
+        await using var check = _db.CreateContext();
+        Assert.Equal(5, (await check.Tires.FindAsync(tireId))!.Quantity);
+        Assert.Equal(PurchaseOrderStatus.Draft, (await check.PurchaseOrders.FindAsync(orderId))!.Status);
+        Assert.Empty(check.StockMovements);
+    }
+
+    [Fact]
     public async Task Receiving_twice_is_rejected()
     {
         var (supplierId, tireId) = await SeedAsync();
         await using var context = _db.CreateContext();
         var service = CreateService(context);
         var order = await service.CreateOrderAsync(supplierId, null, [new PurchaseOrderLine(tireId, 4, 90m)]);
-        await service.ReceiveAsync(order.Id);
+        await service.ReceiveAsync(order.Id, order.Version);
 
-        await Assert.ThrowsAsync<InvalidOrderStateException>(() => service.ReceiveAsync(order.Id));
+        await Assert.ThrowsAsync<InvalidOrderStateException>(() => service.ReceiveAsync(order.Id, order.Version));
 
         await using var check = _db.CreateContext();
         Assert.Equal(9, (await check.Tires.FindAsync(tireId))!.Quantity);
@@ -162,7 +201,43 @@ public class PurchasingServiceTests : IDisposable
         // BumpVersionsOnSave forces a version conflict on every SaveChanges, so
         // receive exhausts its retries and must surface the typed exception.
         await using var context = _db.CreateContext(new BumpVersionsOnSave(_db.Connection));
-        await Assert.ThrowsAsync<StaleTireException>(() => CreateService(context).ReceiveAsync(orderId));
+        await Assert.ThrowsAsync<StaleTireException>(() => CreateService(context).ReceiveAsync(orderId, expectedVersion: 0));
+    }
+
+    [Fact]
+    public async Task Receiving_a_stale_order_does_not_apply_obsolete_lines()
+    {
+        var (supplierId, tireId) = await SeedAsync();
+        int orderId;
+        await using (var setup = _db.CreateContext())
+        {
+            var order = await CreateService(setup).CreateOrderAsync(
+                supplierId, null, [new PurchaseOrderLine(tireId, 4, 90m)]);
+            orderId = order.Id;
+        }
+
+        await using var staleContext = _db.CreateContext();
+        var staleService = CreateService(staleContext);
+        var staleOrder = await staleService.GetOrderAsync(orderId);
+        Assert.Equal(0, staleOrder!.Version);
+
+        await using (var editorContext = _db.CreateContext())
+        {
+            await CreateService(editorContext).UpdateDraftAsync(
+                orderId, expectedVersion: 0, supplierId, "changed",
+                [new PurchaseOrderLine(tireId, 2, 80m)]);
+        }
+
+        await Assert.ThrowsAsync<StalePurchaseOrderException>(
+            () => staleService.ReceiveAsync(orderId, expectedVersion: staleOrder.Version));
+
+        await using var check = _db.CreateContext();
+        Assert.Equal(5, (await check.Tires.FindAsync(tireId))!.Quantity);
+        Assert.Empty(check.StockMovements);
+        var saved = await check.PurchaseOrders.Include(o => o.Items).SingleAsync(o => o.Id == orderId);
+        Assert.Equal(PurchaseOrderStatus.Draft, saved.Status);
+        Assert.Equal(1, saved.Version);
+        Assert.Equal(2, Assert.Single(saved.Items).Quantity);
     }
 
     [Fact]
@@ -173,14 +248,14 @@ public class PurchasingServiceTests : IDisposable
         var service = CreateService(context);
         var order = await service.CreateOrderAsync(supplierId, null, [new PurchaseOrderLine(tireId, 4, 90m)]);
 
-        await service.UpdateDraftAsync(order.Id, supplierId, "updated", [new PurchaseOrderLine(tireId, 2, 80m)]);
+        await service.UpdateDraftAsync(order.Id, order.Version, supplierId, "updated", [new PurchaseOrderLine(tireId, 2, 80m)]);
         var updated = await service.GetOrderAsync(order.Id);
         Assert.Equal("updated", updated!.Note);
         Assert.Equal(2, Assert.Single(updated.Items).Quantity);
 
-        await service.MarkOrderedAsync(order.Id);
+        await service.MarkOrderedAsync(order.Id, order.Version);
         await Assert.ThrowsAsync<InvalidOrderStateException>(
-            () => service.UpdateDraftAsync(order.Id, supplierId, null, [new PurchaseOrderLine(tireId, 1, 80m)]));
+            () => service.UpdateDraftAsync(order.Id, order.Version, supplierId, null, [new PurchaseOrderLine(tireId, 1, 80m)]));
     }
 
     [Fact]
@@ -190,9 +265,9 @@ public class PurchasingServiceTests : IDisposable
         await using var context = _db.CreateContext();
         var service = CreateService(context);
         var order = await service.CreateOrderAsync(supplierId, null, [new PurchaseOrderLine(tireId, 4, 90m)]);
-        await service.CancelAsync(order.Id);
+        await service.CancelAsync(order.Id, order.Version);
 
-        await Assert.ThrowsAsync<InvalidOrderStateException>(() => service.ReceiveAsync(order.Id));
+        await Assert.ThrowsAsync<InvalidOrderStateException>(() => service.ReceiveAsync(order.Id, order.Version));
 
         await using var check = _db.CreateContext();
         Assert.Equal(5, (await check.Tires.FindAsync(tireId))!.Quantity);
@@ -208,7 +283,7 @@ public class PurchasingServiceTests : IDisposable
         }
 
         await using var context = _db.CreateContext();
-        var inventory = new InventoryService(context, NullLogger<InventoryService>.Instance, new FakeLocalizer<SharedResource>());
+        var inventory = new InventoryService(context, NullLogger<InventoryService>.Instance);
         await Assert.ThrowsAsync<TireOnOrderException>(() => inventory.DeleteTireAsync(tireId));
     }
 
@@ -220,7 +295,7 @@ public class PurchasingServiceTests : IDisposable
         var service = CreateService(context);
         var draft = await service.CreateOrderAsync(supplierId, null, [new PurchaseOrderLine(tireId, 1, 90m)]);
         var received = await service.CreateOrderAsync(supplierId, null, [new PurchaseOrderLine(tireId, 2, 90m)]);
-        await service.ReceiveAsync(received.Id);
+        await service.ReceiveAsync(received.Id, received.Version);
 
         var drafts = await service.GetOrdersAsync(PurchaseOrderStatus.Draft, supplierId);
         Assert.Equal(draft.Id, Assert.Single(drafts.Items).Id);

@@ -7,6 +7,7 @@
     <partial name="_Head" />
 </head>
 <body>
+    <a class="skip-link" href="#main-content">@L["Skip to content"]</a>
     <header class="floor-bar">
         <span class="wordmark-sklad">Sklad</span>
         <a class="floor-exit" asp-controller="Tires" asp-action="Index">@L["Full app"]</a>
@@ -18,6 +19,7 @@
         @RenderBody()
     </main>
 
+    <script src="~/js/form-guards.js" asp-append-version="true"></script>
     <script src="~/js/floor.js" asp-append-version="true"></script>
 </body>
 </html>

@@ -32,8 +32,8 @@ public class SkladDbContext : DbContext
 
             // Operators and scanners shouldn't have to match SKU/barcode case,
             // and the unique index must not allow ABC-1 alongside abc-1.
-            entity.Property(t => t.Sku).UseCollation("NOCASE");
-            entity.Property(t => t.Barcode).UseCollation("NOCASE");
+            entity.Property(t => t.Sku).UseCollation(SqliteFunctionsInterceptor.UnicodeNoCaseCollation);
+            entity.Property(t => t.Barcode).UseCollation(SqliteFunctionsInterceptor.UnicodeNoCaseCollation);
 
             entity.Property(t => t.UnitPrice).HasPrecision(18, 2);
 
@@ -53,13 +53,13 @@ public class SkladDbContext : DbContext
         modelBuilder.Entity<AppUser>(entity =>
         {
             entity.HasIndex(u => u.Username).IsUnique();
-            entity.Property(u => u.Username).UseCollation("NOCASE");
+            entity.Property(u => u.Username).UseCollation(SqliteFunctionsInterceptor.UnicodeNoCaseCollation);
         });
 
         modelBuilder.Entity<Supplier>(entity =>
         {
             entity.HasIndex(s => s.Name).IsUnique();
-            entity.Property(s => s.Name).UseCollation("NOCASE");
+            entity.Property(s => s.Name).UseCollation(SqliteFunctionsInterceptor.UnicodeNoCaseCollation);
 
             entity.HasMany(s => s.PurchaseOrders)
                   .WithOne(o => o.Supplier)
@@ -69,6 +69,8 @@ public class SkladDbContext : DbContext
 
         modelBuilder.Entity<PurchaseOrder>(entity =>
         {
+            entity.Property(o => o.Version).IsConcurrencyToken();
+
             entity.HasMany(o => o.Items)
                   .WithOne(i => i.PurchaseOrder)
                   .HasForeignKey(i => i.PurchaseOrderId)

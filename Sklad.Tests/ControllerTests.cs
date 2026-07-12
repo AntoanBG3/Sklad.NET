@@ -23,11 +23,14 @@ public class TiresControllerTests : IDisposable
 
     private TiresController CreateController(SkladDbContext context)
     {
-        var service = new InventoryService(context, NullLogger<InventoryService>.Instance, new FakeLocalizer<SharedResource>());
+        var localizer = new FakeLocalizer<SharedResource>();
+        var service = new InventoryService(context, NullLogger<InventoryService>.Instance);
+        var reports = new InventoryReportService(context);
+        var csv = new InventoryCsvExportService(localizer);
         var excel = new ExcelExportService(new FakeLocalizer<SharedResource>());
         var settings = new ShopSettingsService(context, NullLogger<ShopSettingsService>.Instance, new DefaultCultureCache());
         var httpContext = new DefaultHttpContext();
-        var controller = new TiresController(service, excel, settings, new FakeLocalizer<SharedResource>())
+        var controller = new TiresController(service, reports, csv, excel, settings, localizer)
         {
             ControllerContext = new ControllerContext { HttpContext = httpContext },
             TempData = new TempDataDictionary(httpContext, new NullTempDataProvider())
@@ -303,7 +306,7 @@ public class TiresControllerTests : IDisposable
             seed.Tires.Add(tire);
             await seed.SaveChangesAsync();
             tireId = tire.Id;
-            var service = new InventoryService(seed, NullLogger<InventoryService>.Instance, new FakeLocalizer<SharedResource>());
+            var service = new InventoryService(seed, NullLogger<InventoryService>.Instance);
             await service.RegisterMovementAsync(tireId, MovementType.In, 1, null);
         }
 
@@ -339,6 +342,33 @@ public class TiresControllerTests : IDisposable
 
         Assert.IsType<ViewResult>(result);
         Assert.False(controller.ModelState.IsValid);
+    }
+
+    [Fact]
+    public async Task RegisterMovement_overflow_shows_error_and_preserves_stock()
+    {
+        int tireId;
+        await using (var seed = _db.CreateContext())
+        {
+            var tire = NewTire("OVERFLOW-9", qty: 1);
+            seed.Tires.Add(tire);
+            await seed.SaveChangesAsync();
+            tireId = tire.Id;
+        }
+
+        await using var context = _db.CreateContext();
+        var controller = CreateController(context);
+
+        var result = await controller.RegisterMovement(new RegisterMovementViewModel
+        {
+            TireId = tireId, MovementType = MovementType.In, Quantity = int.MaxValue
+        });
+
+        Assert.IsType<ViewResult>(result);
+        Assert.False(controller.ModelState.IsValid);
+        await using var check = _db.CreateContext();
+        Assert.Equal(1, (await check.Tires.FindAsync(tireId))!.Quantity);
+        Assert.Empty(check.StockMovements);
     }
 
     [Fact]
@@ -548,7 +578,7 @@ public class MovementsControllerTests : IDisposable
         }
 
         await using var context = _db.CreateContext();
-        var service = new InventoryService(context, NullLogger<InventoryService>.Instance, new FakeLocalizer<SharedResource>());
+        var service = new InventoryService(context, NullLogger<InventoryService>.Instance);
         var controller = new MovementsController(service, new ExcelExportService(new FakeLocalizer<SharedResource>()));
 
         var result = await controller.Index(null, null, new DateOnly(2026, 7, 1), new DateOnly(2026, 7, 1));

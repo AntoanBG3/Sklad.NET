@@ -50,3 +50,16 @@ public sealed class StaleTireException : InventoryException
 {
     public StaleTireException() : base("The tire was modified by someone else.") { }
 }
+
+public sealed class StockQuantityOverflowException : InventoryException
+{
+    public int CurrentQuantity { get; }
+    public long AddedQuantity { get; }
+
+    public StockQuantityOverflowException(int currentQuantity, long addedQuantity)
+        : base("The resulting stock quantity exceeds the supported limit.")
+    {
+        CurrentQuantity = currentQuantity;
+        AddedQuantity = addedQuantity;
+    }
+}

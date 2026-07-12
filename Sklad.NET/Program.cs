@@ -9,10 +9,13 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Mvc.Authorization;
+using Microsoft.AspNetCore.Mvc.DataAnnotations;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Sklad.Data;
+using Sklad.Localization;
 using Sklad.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -34,6 +37,12 @@ builder.Services.AddControllersWithViews(options =>
     .AddViewLocalization()
     .AddDataAnnotationsLocalization(options =>
         options.DataAnnotationLocalizerProvider = (_, factory) => factory.Create(typeof(Sklad.SharedResource)));
+
+// The stock adapters only localize explicitly supplied ErrorMessage values.
+// Supply resource keys for the framework defaults so Bulgarian validation is
+// fully Bulgarian rather than, for example, "The Потребителско име field...".
+builder.Services.Replace(ServiceDescriptor.Singleton<IValidationAttributeAdapterProvider,
+    LocalizedValidationAttributeAdapterProvider>());
 
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
@@ -113,8 +122,10 @@ builder.Services.AddDbContext<SkladDbContext>(options =>
         .AddInterceptors(new SqliteFunctionsInterceptor()));
 
 builder.Services.AddScoped<IInventoryService, InventoryService>();
+builder.Services.AddScoped<IInventoryReportService, InventoryReportService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IPurchasingService, PurchasingService>();
+builder.Services.AddScoped<IInventoryCsvExportService, InventoryCsvExportService>();
 builder.Services.AddScoped<IExcelExportService, ExcelExportService>();
 builder.Services.AddScoped<IShopSettingsService, ShopSettingsService>();
 builder.Services.AddSingleton<DefaultCultureCache>();

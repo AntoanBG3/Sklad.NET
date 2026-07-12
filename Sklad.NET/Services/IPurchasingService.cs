@@ -24,11 +24,11 @@ public interface IPurchasingService
 
     Task<PurchaseOrder> CreateOrderAsync(int supplierId, string? note, IReadOnlyList<PurchaseOrderLine> lines, string? userName = null);
 
-    Task UpdateDraftAsync(int id, int supplierId, string? note, IReadOnlyList<PurchaseOrderLine> lines);
+    Task UpdateDraftAsync(int id, int expectedVersion, int supplierId, string? note, IReadOnlyList<PurchaseOrderLine> lines);
 
-    Task MarkOrderedAsync(int id);
+    Task MarkOrderedAsync(int id, int expectedVersion);
 
-    Task ReceiveAsync(int id, string? userName = null);
+    Task ReceiveAsync(int id, int expectedVersion, string? userName = null);
 
-    Task CancelAsync(int id);
+    Task CancelAsync(int id, int expectedVersion);
 }
