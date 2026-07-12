@@ -28,7 +28,7 @@ public class InventoryService : IInventoryService
 
     public async Task<PagedResult<Tire>> SearchAsync(TireFilterViewModel filter, int pageSize = DefaultPageSize)
     {
-        var q = _db.Tires.AsQueryable();
+        var q = _db.Tires.AsNoTracking();
         // unilower on both sides: SQLite's own case folding is ASCII-only, which
         // would leave Cyrillic text search case-sensitive.
         if (!string.IsNullOrWhiteSpace(filter.Sku))
@@ -92,16 +92,18 @@ public class InventoryService : IInventoryService
     };
 
     public async Task<IEnumerable<Tire>> GetLowStockAsync()
-        => await _db.Tires
+        => await _db.Tires.AsNoTracking()
             .Where(t => t.Quantity <= t.MinStock)
             .OrderBy(t => t.Brand).ThenBy(t => t.Model)
             .ToListAsync();
 
     public const int RecentMovementLimit = 20;
 
+    // Read-only queries stay untracked: every write path (UpdateTireAsync,
+    // RegisterMovementAsync, DeleteTireAsync) loads its own tracked entity.
     public Task<Tire?> GetTireAsync(int id, bool includeMovements = false)
     {
-        var q = _db.Tires.AsQueryable();
+        var q = _db.Tires.AsNoTracking();
         if (includeMovements)
             q = q.Include(t => t.StockMovements
                 .OrderByDescending(m => m.Date).ThenByDescending(m => m.Id)
@@ -113,7 +115,7 @@ public class InventoryService : IInventoryService
         => _db.StockMovements.CountAsync(m => m.TireId == tireId);
 
     public Task<Tire?> FindByCodeAsync(string code)
-        => _db.Tires.FirstOrDefaultAsync(t => t.Sku == code || t.Barcode == code);
+        => _db.Tires.AsNoTracking().FirstOrDefaultAsync(t => t.Sku == code || t.Barcode == code);
 
     public async Task CreateTireAsync(Tire tire, string? userName = null)
     {
@@ -207,14 +209,20 @@ public class InventoryService : IInventoryService
 
     public async Task<WarehouseStats> GetStatsAsync()
     {
-        var totalSkus = await _db.Tires.CountAsync();
-        if (totalSkus == 0)
-            return new WarehouseStats(0, 0, 0, 0m);
-
-        var totalUnits = await _db.Tires.SumAsync(t => t.Quantity);
-        var lowStock = await _db.Tires.CountAsync(t => t.Quantity <= t.MinStock);
-        var totalValue = await _db.Tires.SumAsync(t => (decimal)t.Quantity * t.UnitPrice);
-        return new WarehouseStats(totalSkus, totalUnits, lowStock, totalValue);
+        // One aggregate scan instead of four; runs on every inventory page view.
+        var stats = await _db.Tires
+            .GroupBy(_ => 1)
+            .Select(g => new
+            {
+                Skus = g.Count(),
+                Units = g.Sum(t => t.Quantity),
+                Low = g.Sum(t => t.Quantity <= t.MinStock ? 1 : 0),
+                Value = g.Sum(t => (decimal)t.Quantity * t.UnitPrice)
+            })
+            .SingleOrDefaultAsync();
+        return stats is null
+            ? new WarehouseStats(0, 0, 0, 0m)
+            : new WarehouseStats(stats.Skus, stats.Units, stats.Low, stats.Value);
     }
 
     public async Task<int> RegisterMovementAsync(int tireId, MovementType movementType, int quantity, string? note, string? userName = null)
@@ -275,7 +283,7 @@ public class InventoryService : IInventoryService
 
     public async Task<PagedResult<StockMovement>> GetMovementsAsync(MovementType? type, int? tireId = null, DateOnly? from = null, DateOnly? to = null, int page = 1, int pageSize = DefaultPageSize)
     {
-        var q = _db.StockMovements.Include(m => m.Tire).AsQueryable();
+        var q = _db.StockMovements.AsNoTracking().Include(m => m.Tire).AsQueryable();
         if (type.HasValue)
             q = q.Where(m => m.MovementType == type);
         if (tireId.HasValue)
