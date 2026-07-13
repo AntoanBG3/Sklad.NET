@@ -128,6 +128,9 @@ builder.Services.AddScoped<IPurchasingService, PurchasingService>();
 builder.Services.AddScoped<IInventoryCsvExportService, InventoryCsvExportService>();
 builder.Services.AddScoped<IExcelExportService, ExcelExportService>();
 builder.Services.AddScoped<IShopSettingsService, ShopSettingsService>();
+builder.Services.AddScoped<IStocktakeService, StocktakeService>();
+builder.Services.AddSingleton<IBarcodeService, Code128BarcodeService>();
+builder.Services.AddSingleton<IBarcodeLabelService, BarcodeLabelService>();
 builder.Services.AddSingleton<DefaultCultureCache>();
 
 var app = builder.Build();

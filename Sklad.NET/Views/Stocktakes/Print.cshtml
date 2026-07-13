@@ -1,0 +1,116 @@
+@model StocktakePrintViewModel
+
+@{
+    var count = Model.Count;
+    var shop = Model.Shop;
+    ViewData["Title"] = $"{count.Number} — {L[count.IsOpen ? "Blind count sheet" : "Stocktake audit report"].Value}";
+}
+
+<div class="page stocktake-print-page">
+    <div class="container">
+        <div class="page-head">
+            <div>
+                <div class="eyebrow">@L["Printable document"]</div>
+                <h1 class="page-title mono">@count.Number</h1>
+            </div>
+            <div class="head-actions">
+                <button type="button" class="btn btn-primary btn-sm" data-print>@L["Print"]</button>
+                <a asp-action="Details" asp-route-id="@count.Id" class="btn btn-secondary btn-sm">@L["Back to counts"]</a>
+            </div>
+        </div>
+
+        <article class="count-sheet">
+            <header class="count-sheet-head">
+                <div>
+                    @if (!string.IsNullOrWhiteSpace(shop.Name))
+                    {
+                        <div class="doc-issuer-name">@shop.Name</div>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(shop.Address))
+                    {
+                        <div class="doc-line">@shop.Address</div>
+                    }
+                    <div class="doc-kind">@(count.IsOpen ? L["Blind count sheet"] : L["Stocktake audit report"])</div>
+                    <h1 class="count-sheet-number mono">@count.Number</h1>
+                </div>
+                <dl class="count-sheet-meta">
+                    <dt>@L["Scope"]</dt><dd>@(count.Location is null ? L["All locations"] : count.Location)</dd>
+                    <dt>@L["Created"]</dt><dd class="mono">@Dates.Stamp(count.CreatedAt)</dd>
+                    <dt>@L["Status"]</dt><dd>@L[Enums.Key(count.Status)]</dd>
+                    @if (count.CompletedAt is DateTime completedAt)
+                    {
+                        <dt>@L["Completed"]</dt><dd class="mono">@Dates.Stamp(completedAt)</dd>
+                    }
+                </dl>
+            </header>
+
+            @if (count.IsOpen)
+            {
+                <p class="count-sheet-instruction">
+                    @L["Expected quantities are intentionally hidden. Count the physical units without inventory bias, then enter the results in Sklad."]
+                </p>
+            }
+
+            <table class="data-table count-sheet-lines">
+                <thead>
+                    <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">@L["Location"]</th>
+                        <th scope="col">@L["SKU"] / @L["Tire"]</th>
+                        @if (count.IsOpen)
+                        {
+                            <th scope="col" class="count-sheet-write">@L["Physical count"]</th>
+                            <th scope="col" class="count-sheet-write">@L["Note"]</th>
+                        }
+                        else
+                        {
+                            <th scope="col" class="col-num">@L["Expected"]</th>
+                            <th scope="col" class="col-num">@L["Counted"]</th>
+                            <th scope="col" class="col-num">@L["Variance"]</th>
+                            <th scope="col">@L["Note"]</th>
+                        }
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (var index = 0; index < count.Items.Count; index++)
+                    {
+                        var item = count.Items[index];
+                        <tr>
+                            <td class="col-num">@(index + 1)</td>
+                            <td class="mono">@(item.Location ?? "—")</td>
+                            <td>
+                                <span class="cell-stack cell-strong">@item.Description</span>
+                                <span class="cell-sub mono">@item.Size &bull; @item.Sku</span>
+                            </td>
+                            @if (count.IsOpen)
+                            {
+                                <td></td>
+                                <td></td>
+                            }
+                            else
+                            {
+                                <td class="col-num">@item.ExpectedQuantity</td>
+                                <td class="col-num">@item.CountedQuantity</td>
+                                <td class="col-num">@(item.Variance > 0 ? $"+{item.Variance}" : item.Variance)</td>
+                                <td>@(item.Note ?? "—")</td>
+                            }
+                        </tr>
+                    }
+                </tbody>
+            </table>
+
+            <footer class="count-sheet-foot">
+                @if (count.IsOpen)
+                {
+                    <div class="signature"><div class="signature-rule"></div><div class="signature-label">@L["Counted by"]</div></div>
+                    <div class="signature"><div class="signature-rule"></div><div class="signature-label">@L["Date and time"]</div></div>
+                }
+                else
+                {
+                    <strong>@L["{0} variances, net {1} units", count.VarianceItems, count.NetVariance > 0 ? $"+{count.NetVariance}" : count.NetVariance]</strong>
+                    <span>@L["Completed by {0}", count.CompletedBy ?? "—"]</span>
+                }
+            </footer>
+        </article>
+    </div>
+</div>

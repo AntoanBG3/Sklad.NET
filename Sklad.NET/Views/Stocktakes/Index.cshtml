@@ -1,0 +1,102 @@
+@model Sklad.Services.PagedResult<Sklad.Models.Stocktake>
+
+@{
+    ViewData["Title"] = L["Stocktakes"].Value;
+    var status = ViewBag.Status as StocktakeStatus?;
+}
+
+<div class="page">
+    <div class="container">
+        <div class="page-head">
+            <div>
+                <div class="eyebrow">@L["Inventory control"]</div>
+                <h1 class="page-title">@L["Stocktakes"]</h1>
+                <p class="page-lede">@L["Count physical stock and reconcile differences through the movement ledger."]</p>
+            </div>
+            <div class="head-actions">
+                <a asp-action="Create" class="btn btn-primary btn-sm">@L["Start stocktake"]</a>
+            </div>
+        </div>
+
+        <div class="block">
+            <div class="block-head">
+                <h2 class="block-title">@L["Count history"]</h2>
+                <span class="block-meta stocktake-filters">
+                    <a class="@(status is null ? "is-active" : "")" aria-current="@(status is null ? "true" : null)"
+                       asp-action="Index">@L["All"]</a>
+                    @foreach (StocktakeStatus value in Enum.GetValues<StocktakeStatus>())
+                    {
+                        <a class="@(status == value ? "is-active" : "")" aria-current="@(status == value ? "true" : null)"
+                           asp-action="Index" asp-route-status="@value">@L[Enums.Key(value)]</a>
+                    }
+                </span>
+            </div>
+
+            <div class="table-scroll" tabindex="0" role="region" aria-label="@L["Stocktakes"]">
+                @if (!Model.Items.Any())
+                {
+                    <div class="empty">
+                        <strong>@L["No stocktakes yet"]</strong>
+                        @L["Start a full count or count one rack location."]
+                        <div class="empty-action">
+                            <a asp-action="Create" class="btn btn-primary">@L["Start stocktake"]</a>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <table class="data-table data-table-wide">
+                        <thead>
+                            <tr>
+                                <th scope="col">@L["Stocktake"]</th>
+                                <th scope="col">@L["Scope"]</th>
+                                <th scope="col">@L["Created"]</th>
+                                <th scope="col">@L["Progress"]</th>
+                                <th scope="col" class="col-num">@L["Variances"]</th>
+                                <th scope="col">@L["Status"]</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var stocktake in Model.Items)
+                            {
+                                var percent = stocktake.Items.Count == 0 ? 0 : stocktake.CountedItems * 100 / stocktake.Items.Count;
+                                <tr data-href="@Url.Action("Details", new { id = stocktake.Id })">
+                                    <td class="mono"><a class="row-link" asp-action="Details" asp-route-id="@stocktake.Id">@stocktake.Number</a></td>
+                                    <td>@(stocktake.Location is null ? L["All locations"] : stocktake.Location)</td>
+                                    <td>
+                                        <span class="cell-stack mono">@Dates.Stamp(stocktake.CreatedAt)</span>
+                                        @if (!string.IsNullOrWhiteSpace(stocktake.CreatedBy))
+                                        {
+                                            <span class="cell-sub">@stocktake.CreatedBy</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <span class="cell-stack">@L["{0} of {1}", stocktake.CountedItems, stocktake.Items.Count]</span>
+                                        <span class="stocktake-progress" aria-hidden="true"><span style="width:@percent%"></span></span>
+                                    </td>
+                                    <td class="col-num @(stocktake.VarianceItems > 0 ? "variance-alert" : "")">@stocktake.VarianceItems</td>
+                                    <td><span class="tag">@L[Enums.Key(stocktake.Status)]</span></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+            </div>
+
+            @if (Model.TotalPages > 1)
+            {
+                <div class="pager">
+                    @if (Model.HasPrevious)
+                    {
+                        <a class="btn btn-secondary btn-sm" asp-action="Index" asp-route-status="@status" asp-route-page="@(Model.Page - 1)">@L["Previous"]</a>
+                    }
+                    <span class="pager-info">@L["Page {0} of {1}", Model.Page, Model.TotalPages]</span>
+                    @if (Model.HasNext)
+                    {
+                        <a class="btn btn-secondary btn-sm" asp-action="Index" asp-route-status="@status" asp-route-page="@(Model.Page + 1)">@L["Next"]</a>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>

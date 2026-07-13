@@ -51,6 +51,11 @@ public sealed class StaleTireException : InventoryException
     public StaleTireException() : base("The tire was modified by someone else.") { }
 }
 
+public sealed class TireOnStocktakeException : InventoryException
+{
+    public TireOnStocktakeException() : base("The tire appears on stocktake records and cannot be deleted.") { }
+}
+
 public sealed class StockQuantityOverflowException : InventoryException
 {
     public int CurrentQuantity { get; }

@@ -14,6 +14,8 @@ public class SkladDbContext : DbContext
     public DbSet<PurchaseOrder> PurchaseOrders => Set<PurchaseOrder>();
     public DbSet<PurchaseOrderItem> PurchaseOrderItems => Set<PurchaseOrderItem>();
     public DbSet<ShopSettings> ShopSettings => Set<ShopSettings>();
+    public DbSet<Stocktake> Stocktakes => Set<Stocktake>();
+    public DbSet<StocktakeItem> StocktakeItems => Set<StocktakeItem>();
 
     // Maps to the connection-level unilower() (see SqliteFunctionsInterceptor);
     // the body is only a client-evaluation fallback.
@@ -84,6 +86,26 @@ public class SkladDbContext : DbContext
             entity.HasOne(i => i.Tire)
                   .WithMany()
                   .HasForeignKey(i => i.TireId)
+                  .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<Stocktake>(entity =>
+        {
+            entity.Property(stocktake => stocktake.Version).IsConcurrencyToken();
+
+            entity.HasMany(stocktake => stocktake.Items)
+                  .WithOne(item => item.Stocktake)
+                  .HasForeignKey(item => item.StocktakeId)
+                  .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<StocktakeItem>(entity =>
+        {
+            entity.HasIndex(item => new { item.StocktakeId, item.TireId }).IsUnique();
+
+            entity.HasOne(item => item.Tire)
+                  .WithMany()
+                  .HasForeignKey(item => item.TireId)
                   .OnDelete(DeleteBehavior.Restrict);
         });
     }

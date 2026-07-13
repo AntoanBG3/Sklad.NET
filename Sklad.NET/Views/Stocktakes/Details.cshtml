@@ -1,0 +1,185 @@
+@model StocktakeCountViewModel
+
+@{
+    ViewData["Title"] = Model.Number;
+    var progress = Model.Items.Count == 0 ? 0 : Model.CountedItems * 100 / Model.Items.Count;
+    var isAdmin = User.IsInRole(nameof(UserRole.Admin));
+}
+
+<div class="page">
+    <div class="container">
+        <div class="page-head">
+            <div>
+                <div class="eyebrow">@L["Cycle count"]</div>
+                <h1 class="page-title mono">@Model.Number</h1>
+                <p class="page-lede">@(Model.Location is null ? L["All locations"] : Model.Location) &bull; @L[Enums.Key(Model.Status)]</p>
+            </div>
+            <div class="head-actions">
+                @if (Model.IsOpen)
+                {
+                    <button type="submit" form="stocktake-counts" class="btn btn-primary btn-sm">@L["Save counts"]</button>
+                    @if (isAdmin)
+                    {
+                        <form asp-action="Refresh" asp-route-id="@Model.Id" method="post">
+                            <input type="hidden" name="expectedVersion" value="@Model.Version" />
+                            <button type="submit" class="btn btn-secondary btn-sm">@L["Refresh snapshot"]</button>
+                        </form>
+                        <a asp-action="Complete" asp-route-id="@Model.Id" class="btn btn-secondary btn-sm">@L["Review and complete"]</a>
+                    }
+                }
+                <a asp-action="Print" asp-route-id="@Model.Id" class="btn btn-secondary btn-sm">@L["Print count sheet"]</a>
+                <a asp-action="Index" class="btn btn-secondary btn-sm">@L["All stocktakes"]</a>
+            </div>
+        </div>
+
+        <div asp-validation-summary="ModelOnly" class="validation-summary"></div>
+
+        <div class="statband stocktake-stats">
+            <div class="stat">
+                <div class="stat-num num">@Model.Items.Count</div>
+                <div class="stat-label">@L["Lines"]</div>
+            </div>
+            <div class="stat">
+                <div class="stat-num num">@Model.CountedItems</div>
+                <div class="stat-label">@L["Counted"]</div>
+                <div class="stocktake-progress" aria-label="@L["{0}% counted", progress]"><span style="width:@progress%"></span></div>
+            </div>
+            <div class="stat @(Model.RemainingItems > 0 ? "is-alert" : "")">
+                <div class="stat-num num">@Model.RemainingItems</div>
+                <div class="stat-label">@L["Remaining"]</div>
+            </div>
+            <div class="stat @(Model.VarianceItems > 0 ? "is-alert" : "")">
+                <div class="stat-num num">@Model.VarianceItems</div>
+                <div class="stat-label">@L["Variances"]</div>
+                <div class="stat-sub">@L["Net {0}", Model.NetVariance > 0 ? $"+{Model.NetVariance}" : Model.NetVariance]</div>
+            </div>
+        </div>
+
+        <div class="grid stocktake-meta">
+            <div class="col-5">
+                <div class="block">
+                    <div class="block-head"><h2 class="block-title">@L["Snapshot"]</h2></div>
+                    <dl class="specs">
+                        <dt>@L["Created"]</dt><dd class="mono">@Dates.Stamp(Model.CreatedAt)</dd>
+                        <dt>@L["Created by"]</dt><dd>@(Model.CreatedBy ?? "—")</dd>
+                        <dt>@L["Scope"]</dt><dd>@(Model.Location is null ? L["All locations"] : Model.Location)</dd>
+                        @if (Model.CompletedAt is DateTime completedAt)
+                        {
+                            <dt>@L["Completed"]</dt><dd class="mono">@Dates.Stamp(completedAt)</dd>
+                            <dt>@L["Completed by"]</dt><dd>@(Model.CompletedBy ?? "—")</dd>
+                        }
+                        <dt>@L["Note"]</dt><dd>@(Model.Note ?? "—")</dd>
+                    </dl>
+                </div>
+            </div>
+            <div class="col-7">
+                <div class="notice stocktake-guidance">
+                    @if (Model.IsOpen)
+                    {
+                        <strong>@L["Count what is physically present"]</strong>
+                        @L["Save as often as needed. If stock moves during the count, refresh the snapshot and recount only the cleared lines."]
+                    }
+                    else if (Model.Status == StocktakeStatus.Completed)
+                    {
+                        <strong>@L["Reconciliation complete"]</strong>
+                        @L["Every difference was posted as an adjustment in the movement ledger."]
+                    }
+                    else
+                    {
+                        <strong>@L["Stocktake cancelled"]</strong>
+                        @L["No inventory quantities were changed."]
+                    }
+                </div>
+            </div>
+        </div>
+
+        <form id="stocktake-counts" asp-action="Save" asp-route-id="@Model.Id" method="post" data-guard>
+            <input asp-for="Id" type="hidden" />
+            <input asp-for="Version" type="hidden" />
+            <div class="block">
+                <div class="block-head">
+                    <h2 class="block-title">@L["Count lines"]</h2>
+                    <span class="block-meta">@L["{0} of {1} counted", Model.CountedItems, Model.Items.Count]</span>
+                </div>
+                <div class="table-scroll" tabindex="0" role="region" aria-label="@L["Count lines"]">
+                    <table class="data-table data-table-wide stocktake-table">
+                        <thead>
+                            <tr>
+                                <th scope="col">@L["Tire"]</th>
+                                <th scope="col">@L["Location"]</th>
+                                <th scope="col" class="col-num">@L["Expected"]</th>
+                                <th scope="col" class="col-num">@L["Counted"]</th>
+                                <th scope="col" class="col-num">@L["Variance"]</th>
+                                <th scope="col">@L["Note"]</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @for (var index = 0; index < Model.Items.Count; index++)
+                            {
+                                var item = Model.Items[index];
+                                var varianceClass = item.Variance switch { > 0 => "variance-positive", < 0 => "variance-negative", _ => "" };
+                                <tr class="@varianceClass">
+                                    <td>
+                                        <input asp-for="Items[index].Id" type="hidden" />
+                                        <a class="cell-stack cell-strong" asp-controller="Tires" asp-action="Details" asp-route-id="@item.TireId">@item.Description</a>
+                                        <span class="cell-sub mono">@item.Size &bull; @item.Sku</span>
+                                    </td>
+                                    <td class="mono">@(item.Location ?? "—")</td>
+                                    <td class="col-num dd-strong">@item.ExpectedQuantity</td>
+                                    <td class="col-num">
+                                        @if (Model.IsOpen)
+                                        {
+                                            <label class="visually-hidden" asp-for="Items[index].CountedQuantity">@L["Counted quantity for {0}", item.Sku]</label>
+                                            <input asp-for="Items[index].CountedQuantity" class="field-input stocktake-count" min="0" inputmode="numeric" autocomplete="off" />
+                                            <span asp-validation-for="Items[index].CountedQuantity" class="field-error"></span>
+                                        }
+                                        else
+                                        {
+                                            <span class="dd-strong">@(item.CountedQuantity?.ToString() ?? "—")</span>
+                                        }
+                                    </td>
+                                    <td class="col-num stocktake-variance">
+                                        @(item.Variance is null ? "—" : item.Variance > 0 ? $"+{item.Variance}" : item.Variance.ToString())
+                                    </td>
+                                    <td>
+                                        @if (Model.IsOpen)
+                                        {
+                                            <label class="visually-hidden" asp-for="Items[index].Note">@L["Note for {0}", item.Sku]</label>
+                                            <input asp-for="Items[index].Note" class="field-input stocktake-note" autocomplete="off" />
+                                            <span asp-validation-for="Items[index].Note" class="field-error"></span>
+                                        }
+                                        else
+                                        {
+                                            @(item.Note ?? "—")
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                @if (Model.IsOpen)
+                {
+                    <div class="form-actions stocktake-save-bar">
+                        <button type="submit" class="btn btn-primary">@L["Save counts"]</button>
+                        <span class="field-hint">@L["Saving does not change inventory. Only completion posts adjustments."]</span>
+                    </div>
+                }
+            </div>
+        </form>
+
+        @if (Model.IsOpen && isAdmin)
+        {
+            <div class="page-tail">
+                <form asp-action="Cancel" asp-route-id="@Model.Id" method="post">
+                    <input type="hidden" name="expectedVersion" value="@Model.Version" />
+                    <button type="submit" class="quiet-danger">@L["Cancel stocktake"]</button>
+                </form>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

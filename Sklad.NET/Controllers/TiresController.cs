@@ -175,6 +175,12 @@ public class TiresController : Controller
             ModelState.AddModelError(string.Empty, _l["This tire appears on purchase orders and cannot be deleted."]);
             return View("Delete", tire);
         }
+        catch (TireOnStocktakeException)
+        {
+            if (tire is null) return RedirectToAction(nameof(Index));
+            ModelState.AddModelError(string.Empty, _l["This tire appears on stocktake records and cannot be deleted."]);
+            return View("Delete", tire);
+        }
         if (tire is not null)
             TempData["Flash"] = _l["Tire {0} deleted.", tire.Sku].Value;
         return RedirectToAction(nameof(Index));

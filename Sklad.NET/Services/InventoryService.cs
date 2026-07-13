@@ -151,6 +151,9 @@ public class InventoryService : IInventoryService
         if (await _db.PurchaseOrderItems.AnyAsync(i => i.TireId == id))
             throw new TireOnOrderException();
 
+        if (await _db.StocktakeItems.AnyAsync(item => item.TireId == id))
+            throw new TireOnStocktakeException();
+
         _db.Tires.Remove(tire);
         await _db.SaveChangesAsync();
         _logger.LogInformation("Tire {Sku} (id {Id}) deleted", tire.Sku, id);

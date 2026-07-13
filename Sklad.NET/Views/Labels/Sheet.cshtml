@@ -1,0 +1,129 @@
+@model LabelSheetViewModel
+
+@{
+    ViewData["Title"] = L["Barcode labels"].Value;
+    var f = Model.Filter;
+    var uniqueTires = Model.Copies == 0 ? 0 : Model.Labels.Count / Model.Copies;
+    var inventoryRoute = new Dictionary<string, string?>
+    {
+        ["Sku"] = f.Sku, ["Barcode"] = f.Barcode, ["Brand"] = f.Brand, ["Model"] = f.Model,
+        ["Width"] = f.Width?.ToString(), ["Profile"] = f.Profile?.ToString(), ["Diameter"] = f.Diameter?.ToString(),
+        ["Season"] = f.Season?.ToString(), ["Type"] = f.Type?.ToString(), ["Location"] = f.Location,
+        ["LowOnly"] = f.LowOnly == true ? "true" : null, ["Sort"] = f.Sort
+    };
+}
+
+<div class="page label-page">
+    <div class="container">
+        <div class="page-head">
+            <div>
+                <div class="eyebrow">@L["Print preview"]</div>
+                <h1 class="page-title">@L["Barcode labels"]</h1>
+                <p class="page-lede">@L["{0} labels for {1} tires.", Model.Labels.Count, uniqueTires]</p>
+            </div>
+            <div class="head-actions">
+                <button type="button" class="btn btn-primary btn-sm" data-print disabled="@(Model.Labels.Count == 0)">@L["Print labels"]</button>
+                @if (Model.IsSingleTire)
+                {
+                    <a asp-controller="Tires" asp-action="Details" asp-route-id="@Model.SourceTireId" class="btn btn-secondary btn-sm">@L["Back to tire"]</a>
+                }
+                else
+                {
+                    <a asp-controller="Tires" asp-action="Index" asp-all-route-data="@inventoryRoute" class="btn btn-secondary btn-sm">@L["Back to Inventory"]</a>
+                }
+            </div>
+        </div>
+
+        <div class="block label-controls">
+            @if (Model.IsSingleTire)
+            {
+                <form method="get" asp-action="Tire" asp-route-id="@Model.SourceTireId" class="label-options">
+                    <label class="field-label" for="label-copies">@L["Copies per tire"]</label>
+                    <input id="label-copies" name="copies" type="number" min="1" max="@LabelsController.MaxCopies"
+                           value="@Model.Copies" class="field-input label-copies" />
+                    <button type="submit" class="btn btn-secondary btn-sm">@L["Update preview"]</button>
+                </form>
+            }
+            else
+            {
+                <form method="get" asp-action="Index" class="label-options">
+                    <input type="hidden" name="Sku" value="@f.Sku" />
+                    <input type="hidden" name="Barcode" value="@f.Barcode" />
+                    <input type="hidden" name="Brand" value="@f.Brand" />
+                    <input type="hidden" name="Model" value="@f.Model" />
+                    <input type="hidden" name="Width" value="@f.Width" />
+                    <input type="hidden" name="Profile" value="@f.Profile" />
+                    <input type="hidden" name="Diameter" value="@f.Diameter" />
+                    <input type="hidden" name="Season" value="@f.Season" />
+                    <input type="hidden" name="Type" value="@f.Type" />
+                    <input type="hidden" name="Location" value="@f.Location" />
+                    <input type="hidden" name="LowOnly" value="@(f.LowOnly == true ? "true" : null)" />
+                    <input type="hidden" name="Sort" value="@f.Sort" />
+                    <label class="field-label" for="label-copies">@L["Copies per tire"]</label>
+                    <input id="label-copies" name="copies" type="number" min="1" max="@LabelsController.MaxCopies"
+                           value="@Model.Copies" class="field-input label-copies" />
+                    <button type="submit" class="btn btn-secondary btn-sm">@L["Update preview"]</button>
+                </form>
+            }
+        </div>
+
+        @if (Model.IsTruncated)
+        {
+            <div class="notice label-notice" role="status">
+                @L["The print run is capped at {0} labels. Reduce copies or narrow the inventory filter to include all {1} matching tires.", LabelsController.MaxLabels, Model.MatchedTires]
+            </div>
+        }
+
+        @if (Model.Labels.Any(label => label.Barcode is null))
+        {
+            <div class="notice label-notice" role="status">
+                @L["Some labels have no printable Code 128 value. Their SKU remains visible for manual entry."]
+            </div>
+        }
+
+        @if (Model.Labels.Count == 0)
+        {
+            <div class="empty label-empty">
+                <strong>@L["No labels to print"]</strong>
+                @L["Adjust the inventory filter and try again."]
+            </div>
+        }
+        else
+        {
+            <div class="label-sheet" aria-label="@L["Barcode labels"]">
+                @foreach (var label in Model.Labels)
+                {
+                    var tire = label.Tire;
+                    <article class="tire-label">
+                        <header class="tire-label-head">
+                            <strong>@(string.IsNullOrWhiteSpace(Model.Shop.Name) ? "Sklad" : Model.Shop.Name)</strong>
+                            <span>@(tire.Location ?? "—")</span>
+                        </header>
+                        <div class="tire-label-name">@tire.Brand @tire.Model</div>
+                        <div class="tire-label-spec">@tire.Size · @L[Enums.Key(tire.Season)] · @L[Enums.Key(tire.Type)]</div>
+                        @if (label.Barcode is { } symbol)
+                        {
+                            <svg class="tire-label-barcode" viewBox="0 0 @symbol.ModuleCount 36"
+                                 preserveAspectRatio="none" role="img" aria-label="@L["Barcode {0}", label.Code]"
+                                 shape-rendering="crispEdges">
+                                @foreach (var bar in symbol.Bars)
+                                {
+                                    <rect x="@bar.X" y="0" width="@bar.Width" height="36"></rect>
+                                }
+                            </svg>
+                            <div class="tire-label-code mono">@label.Code</div>
+                        }
+                        else
+                        {
+                            <div class="tire-label-no-code">@L["No machine-readable code"]</div>
+                        }
+                        <footer class="tire-label-foot mono">
+                            <span>SKU @tire.Sku</span>
+                            <span>@L["Scan to open"]</span>
+                        </footer>
+                    </article>
+                }
+            </div>
+        }
+    </div>
+</div>
