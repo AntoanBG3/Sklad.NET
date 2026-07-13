@@ -1,0 +1,57 @@
+@model CreateStocktakeViewModel
+
+@{
+    ViewData["Title"] = L["Start stocktake"].Value;
+    var locations = (IReadOnlyList<string>)(ViewBag.Locations ?? Array.Empty<string>());
+}
+
+<div class="page">
+    <div class="container container-narrow">
+        <div class="page-head">
+            <div>
+                <div class="eyebrow">@L["Inventory control"]</div>
+                <h1 class="page-title">@L["Start stocktake"]</h1>
+                <p class="page-lede">@L["Choose one rack for a cycle count, or snapshot the whole warehouse."]</p>
+            </div>
+        </div>
+
+        <div class="block form-card">
+            <form asp-action="Create" method="post" data-guard>
+                <div asp-validation-summary="ModelOnly" class="validation-summary"></div>
+
+                <div class="field">
+                    <label asp-for="Location" class="field-label">@L["Scope"]</label>
+                    <select asp-for="Location" class="field-select">
+                        <option value="">@L["All locations"]</option>
+                        @foreach (var location in locations)
+                        {
+                            <option value="@location">@location</option>
+                        }
+                    </select>
+                    <span class="field-hint">@L["A snapshot locks each tire's expected quantity and version for safe reconciliation."]</span>
+                    <span asp-validation-for="Location" class="field-error"></span>
+                </div>
+
+                <div class="field">
+                    <label asp-for="Note" class="field-label">@L["Note"] <span class="optional">@L["(optional)"]</span></label>
+                    <textarea asp-for="Note" class="field-textarea" rows="3" placeholder="@L["Quarterly count, damaged rack, handover…"]"></textarea>
+                    <span asp-validation-for="Note" class="field-error"></span>
+                </div>
+
+                <div class="notice">
+                    <strong>@L["One open count per tire"]</strong>
+                    @L["A tire cannot belong to two open stocktakes, preventing competing adjustments."]
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">@L["Create snapshot"]</button>
+                    <a asp-action="Index" class="btn btn-secondary">@L["Cancel"]</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -154,14 +154,16 @@
             var row = stub.querySelector("tr");
             body.appendChild(row);
             row.querySelector("select").focus();
-            recalc();
+            // Adding/removing rows does not emit a native input event, but the
+            // shared unsaved-changes guard relies on one to mark the form dirty.
+            body.dispatchEvent(new Event("input", { bubbles: true }));
         });
 
         body.addEventListener("click", function (e) {
             var remove = e.target.closest(".po-remove");
             if (!remove) return;
             remove.closest("tr").remove();
-            recalc();
+            body.dispatchEvent(new Event("input", { bubbles: true }));
         });
 
         body.addEventListener("input", recalc);

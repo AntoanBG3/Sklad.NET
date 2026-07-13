@@ -11,9 +11,30 @@
     <p class="floor-error" role="alert">@L["No tire matches code {0}.", Model.Code ?? ""]</p>
 }
 
-<form method="get" asp-action="Tire" class="floor-scan">
+<form method="get" asp-action="Tire" class="floor-scan" data-camera-scanner
+      data-camera-starting="@L["Starting camera…"]"
+      data-camera-ready="@L["Point the camera at a barcode."]"
+      data-camera-found="@L["Barcode found. Looking up tire…"]"
+      data-camera-error="@L["Camera access is unavailable. Enter the code instead."]"
+      data-camera-stopped="@L["Camera stopped."]">
     <label class="field-label" for="code">@L["Scan SKU or barcode"]</label>
     <input id="code" name="code" class="field-input floor-input" value="@Model.Code"
            autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search" autofocus />
     <button type="submit" class="btn btn-primary floor-btn">@L["Find"]</button>
+
+    <button type="button" class="btn btn-secondary floor-btn" data-camera-start
+            aria-controls="floor-camera" aria-expanded="false" hidden>@L["Scan with camera"]</button>
+
+    <div id="floor-camera" class="floor-camera" data-camera-panel hidden>
+        <div class="floor-camera-viewport">
+            <video class="floor-camera-video" data-camera-video playsinline muted
+                   aria-label="@L["Live camera preview"]"></video>
+            <span class="floor-camera-guide" aria-hidden="true"></span>
+        </div>
+        <button type="button" class="btn btn-secondary floor-btn" data-camera-stop>
+            @L["Stop camera"]
+        </button>
+    </div>
+
+    <p class="floor-camera-status" data-camera-status role="status" aria-live="polite"></p>
 </form>

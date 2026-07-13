@@ -6,6 +6,7 @@ namespace Sklad.ViewModels;
 public class RegisterMovementViewModel
 {
     [Required]
+    [Display(Name = "Tire")]
     public int TireId { get; set; }
 
     [Required]
@@ -16,8 +17,10 @@ public class RegisterMovementViewModel
     // invalid value for In/Out anyway.
     [Required]
     [Range(0, int.MaxValue, ErrorMessage = "Quantity must be 0 or greater.")]
+    [Display(Name = "Quantity")]
     public int? Quantity { get; set; }
 
     [StringLength(500)]
+    [Display(Name = "Note")]
     public string? Note { get; set; }
 }

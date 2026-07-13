@@ -14,6 +14,7 @@ public class PurchaseOrderItemViewModel
 
     [Required]
     [Range(1, int.MaxValue)]
+    [Display(Name = "Quantity")]
     public int? Quantity { get; set; }
 
     [Required]
@@ -30,11 +31,14 @@ public class PurchaseOrderFormViewModel
 {
     public int Id { get; set; }
 
+    public int? Version { get; set; }
+
     [Required]
     [Display(Name = "Supplier")]
     public int? SupplierId { get; set; }
 
     [StringLength(500)]
+    [Display(Name = "Note")]
     public string? Note { get; set; }
 
     public List<PurchaseOrderItemViewModel> Items { get; set; } = [];
@@ -42,6 +46,7 @@ public class PurchaseOrderFormViewModel
     public static PurchaseOrderFormViewModel FromOrder(PurchaseOrder order) => new()
     {
         Id = order.Id,
+        Version = order.Version,
         SupplierId = order.SupplierId,
         Note = order.Note,
         Items = order.Items

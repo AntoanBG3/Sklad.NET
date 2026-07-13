@@ -3,29 +3,6 @@
 
     document.addEventListener("DOMContentLoaded", function () {
 
-        // Double-submit guard: a second click on a ledger form records a second
-        // movement, so every POST form disables its submit buttons once a valid
-        // submission is on its way. Forms whose response is a download never
-        // navigate away, so they opt out with data-no-disable.
-        document.querySelectorAll("form[method=post]:not([data-no-disable])").forEach(function (form) {
-            form.addEventListener("submit", function () {
-                if (window.jQuery && jQuery.fn.validate && !jQuery(form).valid()) {
-                    form.querySelectorAll(".input-validation-error").forEach(function (el) {
-                        el.classList.remove("shake");
-                        void el.offsetWidth;
-                        el.classList.add("shake");
-                    });
-                    return;
-                }
-                setTimeout(function () {
-                    form.querySelectorAll("button[type=submit], input[type=submit]").forEach(function (btn) {
-                        btn.disabled = true;
-                        btn.setAttribute("aria-busy", "true");
-                    });
-                }, 0);
-            });
-        });
-
         // Unsaved-changes guard on long forms (Create / Edit / RegisterMovement).
         var dirtyForms = [];
         document.querySelectorAll("form[data-guard]").forEach(function (form) {
@@ -33,7 +10,7 @@
             dirtyForms.push(state);
             form.addEventListener("input", function () { state.dirty = true; });
             form.addEventListener("change", function () { state.dirty = true; });
-            form.addEventListener("submit", function () { state.dirty = false; });
+            form.addEventListener("sklad:valid-submit", function () { state.dirty = false; });
         });
         if (dirtyForms.length) {
             window.addEventListener("beforeunload", function (e) {
@@ -127,12 +104,4 @@
         }
     });
 
-    // Back/forward cache restores the page with buttons still disabled.
-    window.addEventListener("pageshow", function (e) {
-        if (!e.persisted) return;
-        document.querySelectorAll("button[disabled][aria-busy], input[disabled][aria-busy]").forEach(function (btn) {
-            btn.disabled = false;
-            btn.removeAttribute("aria-busy");
-        });
-    });
 })();

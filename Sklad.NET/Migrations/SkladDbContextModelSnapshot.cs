@@ -42,7 +42,7 @@ namespace Sklad.Migrations
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("TEXT")
-                        .UseCollation("NOCASE");
+                        .UseCollation("UNICODE_NOCASE");
 
                     b.HasKey("Id");
 
@@ -83,6 +83,10 @@ namespace Sklad.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("SupplierId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Version")
+                        .IsConcurrencyToken()
                         .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
@@ -199,6 +203,81 @@ namespace Sklad.Migrations
                     b.ToTable("StockMovements");
                 });
 
+            modelBuilder.Entity("Sklad.Models.Stocktake", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("CompletedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("CreatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Location")
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(500)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Stocktakes");
+                });
+
+            modelBuilder.Entity("Sklad.Models.StocktakeItem", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("CountedQuantity")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("ExpectedQuantity")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("ExpectedTireVersion")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(500)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("StocktakeId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("TireId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TireId");
+
+                    b.HasIndex("StocktakeId", "TireId")
+                        .IsUnique();
+
+                    b.ToTable("StocktakeItems");
+                });
+
             modelBuilder.Entity("Sklad.Models.Supplier", b =>
                 {
                     b.Property<int>("Id")
@@ -217,7 +296,7 @@ namespace Sklad.Migrations
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("TEXT")
-                        .UseCollation("NOCASE");
+                        .UseCollation("UNICODE_NOCASE");
 
                     b.Property<string>("Notes")
                         .HasMaxLength(500)
@@ -244,7 +323,7 @@ namespace Sklad.Migrations
                     b.Property<string>("Barcode")
                         .HasMaxLength(100)
                         .HasColumnType("TEXT")
-                        .UseCollation("NOCASE");
+                        .UseCollation("UNICODE_NOCASE");
 
                     b.Property<string>("Brand")
                         .IsRequired()
@@ -279,7 +358,7 @@ namespace Sklad.Migrations
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("TEXT")
-                        .UseCollation("NOCASE");
+                        .UseCollation("UNICODE_NOCASE");
 
                     b.Property<int>("Type")
                         .HasColumnType("INTEGER");
@@ -344,7 +423,31 @@ namespace Sklad.Migrations
                     b.Navigation("Tire");
                 });
 
+            modelBuilder.Entity("Sklad.Models.StocktakeItem", b =>
+                {
+                    b.HasOne("Sklad.Models.Stocktake", "Stocktake")
+                        .WithMany("Items")
+                        .HasForeignKey("StocktakeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Sklad.Models.Tire", "Tire")
+                        .WithMany()
+                        .HasForeignKey("TireId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Stocktake");
+
+                    b.Navigation("Tire");
+                });
+
             modelBuilder.Entity("Sklad.Models.PurchaseOrder", b =>
+                {
+                    b.Navigation("Items");
+                });
+
+            modelBuilder.Entity("Sklad.Models.Stocktake", b =>
                 {
                     b.Navigation("Items");
                 });

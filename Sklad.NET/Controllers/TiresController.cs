@@ -11,17 +11,23 @@ namespace Sklad.Controllers;
 public class TiresController : Controller
 {
     private readonly IInventoryService _inventory;
+    private readonly IInventoryReportService _reports;
+    private readonly IInventoryCsvExportService _csv;
     private readonly IExcelExportService _excel;
     private readonly IShopSettingsService _settings;
     private readonly IStringLocalizer<SharedResource> _l;
 
     public TiresController(
         IInventoryService inventory,
+        IInventoryReportService reports,
+        IInventoryCsvExportService csv,
         IExcelExportService excel,
         IShopSettingsService settings,
         IStringLocalizer<SharedResource> l)
     {
         _inventory = inventory;
+        _reports = reports;
+        _csv = csv;
         _excel = excel;
         _settings = settings;
         _l = l;
@@ -37,7 +43,7 @@ public class TiresController : Controller
         {
             Results = await _inventory.SearchAsync(filter, shop.PageSize ?? InventoryService.DefaultPageSize),
             Filter = filter,
-            Stats = await _inventory.GetStatsAsync(),
+            Stats = await _reports.GetStatsAsync(),
             Options = await _inventory.GetFilterOptionsAsync()
         };
         return View(vm);
@@ -169,6 +175,12 @@ public class TiresController : Controller
             ModelState.AddModelError(string.Empty, _l["This tire appears on purchase orders and cannot be deleted."]);
             return View("Delete", tire);
         }
+        catch (TireOnStocktakeException)
+        {
+            if (tire is null) return RedirectToAction(nameof(Index));
+            ModelState.AddModelError(string.Empty, _l["This tire appears on stocktake records and cannot be deleted."]);
+            return View("Delete", tire);
+        }
         if (tire is not null)
             TempData["Flash"] = _l["Tire {0} deleted.", tire.Sku].Value;
         return RedirectToAction(nameof(Index));
@@ -207,8 +219,8 @@ public class TiresController : Controller
 
         return View(new ValueReportViewModel
         {
-            Value = await _inventory.GetValueReportAsync(),
-            Trend = await _inventory.GetMovementTrendAsync(start, end),
+            Value = await _reports.GetValueReportAsync(),
+            Trend = await _reports.GetMovementTrendAsync(start, end),
             From = start,
             To = end
         });
@@ -262,6 +274,10 @@ public class TiresController : Controller
         {
             ModelState.AddModelError(string.Empty, _l["The tire was modified by someone else. Reload the page and try again."]);
         }
+        catch (StockQuantityOverflowException)
+        {
+            ModelState.AddModelError(nameof(RegisterMovementViewModel.Quantity), _l["The resulting stock quantity is too large."]);
+        }
         ViewBag.Tire = tire;
         return View(vm);
     }
@@ -271,7 +287,7 @@ public class TiresController : Controller
     {
         filter.Page = 1;
         var result = await _inventory.SearchAsync(filter, pageSize: int.MaxValue);
-        var bytes = await _inventory.ExportCsvAsync(result.Items);
+        var bytes = _csv.Export(result.Items);
         return File(bytes, "text/csv", $"tires_{DateTime.UtcNow:yyyyMMdd}.csv");
     }
 

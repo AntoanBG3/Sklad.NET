@@ -21,7 +21,7 @@ public class PurchaseOrdersControllerTests : IDisposable
     private static PurchaseOrdersController CreateController(SkladDbContext context, string? userName = null)
     {
         var purchasing = new PurchasingService(context, NullLogger<PurchasingService>.Instance);
-        var inventory = new InventoryService(context, NullLogger<InventoryService>.Instance, new FakeLocalizer<SharedResource>());
+        var inventory = new InventoryService(context, NullLogger<InventoryService>.Instance);
         var httpContext = new DefaultHttpContext();
         if (userName is not null)
             httpContext.User = new ClaimsPrincipal(new ClaimsIdentity([new Claim(ClaimTypes.Name, userName)], "test"));
@@ -218,11 +218,66 @@ public class PurchaseOrdersControllerTests : IDisposable
         await using var context = _db.CreateContext();
         var controller = CreateController(context, "maria");
 
-        var result = await controller.Receive(orderId);
+        var result = await controller.Receive(orderId, expectedVersion: 0);
 
         var redirect = Assert.IsType<RedirectToActionResult>(result);
         Assert.Equal(nameof(PurchaseOrdersController.Details), redirect.ActionName);
         Assert.Equal(9, (await context.Tires.FindAsync(tireId))!.Quantity);
+    }
+
+    [Fact]
+    public async Task Receive_post_overflow_flashes_and_preserves_order_and_stock()
+    {
+        var (supplierId, tireId) = await SeedAsync();
+        int orderId;
+        await using (var setup = _db.CreateContext())
+        {
+            var service = new PurchasingService(setup, NullLogger<PurchasingService>.Instance);
+            var order = await service.CreateOrderAsync(
+                supplierId, null, [new PurchaseOrderLine(tireId, int.MaxValue, 1m)]);
+            orderId = order.Id;
+        }
+
+        await using var context = _db.CreateContext();
+        var controller = CreateController(context, "maria");
+
+        var result = await controller.Receive(orderId, expectedVersion: 0);
+
+        Assert.IsType<RedirectToActionResult>(result);
+        Assert.NotNull(controller.TempData["Flash"]);
+        await using var check = _db.CreateContext();
+        Assert.Equal(5, (await check.Tires.FindAsync(tireId))!.Quantity);
+        Assert.Equal(PurchaseOrderStatus.Draft, (await check.PurchaseOrders.FindAsync(orderId))!.Status);
+        Assert.Empty(check.StockMovements);
+    }
+
+    [Fact]
+    public async Task Receive_post_with_stale_version_flashes_and_does_not_touch_stock()
+    {
+        var (supplierId, tireId) = await SeedAsync();
+        int orderId;
+        await using (var setup = _db.CreateContext())
+        {
+            var service = new PurchasingService(setup, NullLogger<PurchasingService>.Instance);
+            var order = await service.CreateOrderAsync(
+                supplierId, null, [new PurchaseOrderLine(tireId, 4, 90m)]);
+            await service.UpdateDraftAsync(
+                order.Id, order.Version, supplierId, "changed",
+                [new PurchaseOrderLine(tireId, 2, 80m)]);
+            orderId = order.Id;
+        }
+
+        await using var context = _db.CreateContext();
+        var controller = CreateController(context, "maria");
+
+        var result = await controller.Receive(orderId, expectedVersion: 0);
+
+        Assert.IsType<RedirectToActionResult>(result);
+        Assert.NotNull(controller.TempData["Flash"]);
+        await using var check = _db.CreateContext();
+        Assert.Equal(5, (await check.Tires.FindAsync(tireId))!.Quantity);
+        Assert.Equal(PurchaseOrderStatus.Draft, (await check.PurchaseOrders.FindAsync(orderId))!.Status);
+        Assert.Empty(check.StockMovements);
     }
 
     [Fact]
@@ -234,14 +289,14 @@ public class PurchaseOrdersControllerTests : IDisposable
         {
             var service = new PurchasingService(setup, NullLogger<PurchasingService>.Instance);
             var order = await service.CreateOrderAsync(supplierId, null, [new PurchaseOrderLine(tireId, 4, 90m)]);
-            await service.ReceiveAsync(order.Id);
+            await service.ReceiveAsync(order.Id, order.Version);
             orderId = order.Id;
         }
 
         await using var context = _db.CreateContext();
         var controller = CreateController(context);
 
-        var result = await controller.Receive(orderId);
+        var result = await controller.Receive(orderId, expectedVersion: 1);
 
         Assert.IsType<RedirectToActionResult>(result);
         Assert.NotNull(controller.TempData["Flash"]);
@@ -254,7 +309,58 @@ public class PurchaseOrdersControllerTests : IDisposable
         await using var context = _db.CreateContext();
         var controller = CreateController(context);
 
-        Assert.IsType<NotFoundResult>(await controller.Receive(4242));
+        Assert.IsType<NotFoundResult>(await controller.Receive(4242, expectedVersion: 0));
+    }
+
+    [Fact]
+    public async Task Lifecycle_posts_without_an_expected_version_are_bad_requests()
+    {
+        var (supplierId, tireId) = await SeedAsync();
+        int orderId;
+        await using (var setup = _db.CreateContext())
+        {
+            var service = new PurchasingService(setup, NullLogger<PurchasingService>.Instance);
+            orderId = (await service.CreateOrderAsync(
+                supplierId, null, [new PurchaseOrderLine(tireId, 2, 90m)])).Id;
+        }
+
+        await using var context = _db.CreateContext();
+        var controller = CreateController(context);
+
+        Assert.IsType<BadRequestResult>(await controller.MarkOrdered(orderId, expectedVersion: null));
+        Assert.IsType<BadRequestResult>(await controller.Receive(orderId, expectedVersion: null));
+        Assert.IsType<BadRequestResult>(await controller.Cancel(orderId, expectedVersion: null));
+
+        var order = await context.PurchaseOrders.FindAsync(orderId);
+        Assert.Equal(PurchaseOrderStatus.Draft, order!.Status);
+        Assert.Equal(5, (await context.Tires.FindAsync(tireId))!.Quantity);
+    }
+
+    [Fact]
+    public async Task Edit_post_without_an_expected_version_is_a_bad_request()
+    {
+        var (supplierId, tireId) = await SeedAsync();
+        int orderId;
+        await using (var setup = _db.CreateContext())
+        {
+            var service = new PurchasingService(setup, NullLogger<PurchasingService>.Instance);
+            orderId = (await service.CreateOrderAsync(
+                supplierId, "original", [new PurchaseOrderLine(tireId, 2, 90m)])).Id;
+        }
+
+        await using var context = _db.CreateContext();
+        var controller = CreateController(context);
+        var posted = new PurchaseOrderFormViewModel
+        {
+            Id = orderId,
+            Version = null,
+            SupplierId = supplierId,
+            Note = "stale",
+            Items = [new PurchaseOrderItemViewModel { TireId = tireId, Quantity = 3, UnitCost = 80m }]
+        };
+
+        Assert.IsType<BadRequestResult>(await controller.Edit(orderId, posted));
+        Assert.Equal("original", (await context.PurchaseOrders.FindAsync(orderId))!.Note);
     }
 }
 

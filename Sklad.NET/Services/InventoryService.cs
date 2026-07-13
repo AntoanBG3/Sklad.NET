@@ -1,7 +1,4 @@
-using System.Globalization;
-using System.Text;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 using Sklad.Data;
 using Sklad.Helpers;
@@ -17,49 +14,21 @@ public class InventoryService : IInventoryService
 
     private readonly SkladDbContext _db;
     private readonly ILogger<InventoryService> _logger;
-    private readonly IStringLocalizer<SharedResource> _l;
 
-    public InventoryService(SkladDbContext db, ILogger<InventoryService> logger, IStringLocalizer<SharedResource> l)
+    public InventoryService(SkladDbContext db, ILogger<InventoryService> logger)
     {
         _db = db;
         _logger = logger;
-        _l = l;
     }
 
     public async Task<PagedResult<Tire>> SearchAsync(TireFilterViewModel filter, int pageSize = DefaultPageSize)
     {
-        var q = _db.Tires.AsNoTracking();
-        // unilower on both sides: SQLite's own case folding is ASCII-only, which
-        // would leave Cyrillic text search case-sensitive.
-        if (!string.IsNullOrWhiteSpace(filter.Sku))
-        {
-            var sku = filter.Sku.Trim().ToLowerInvariant();
-            q = q.Where(t => SkladDbContext.UniLower(t.Sku).Contains(sku));
-        }
-        if (!string.IsNullOrWhiteSpace(filter.Barcode)) q = q.Where(t => t.Barcode == filter.Barcode);
-        if (!string.IsNullOrWhiteSpace(filter.Brand))
-        {
-            var brand = filter.Brand.Trim().ToLowerInvariant();
-            q = q.Where(t => SkladDbContext.UniLower(t.Brand).Contains(brand));
-        }
-        if (!string.IsNullOrWhiteSpace(filter.Model))
-        {
-            var model = filter.Model.Trim().ToLowerInvariant();
-            q = q.Where(t => SkladDbContext.UniLower(t.Model).Contains(model));
-        }
-        if (filter.Width.HasValue)    q = q.Where(t => t.Width    == filter.Width);
-        if (filter.Profile.HasValue)  q = q.Where(t => t.Profile  == filter.Profile);
-        if (filter.Diameter.HasValue) q = q.Where(t => t.Diameter == filter.Diameter);
-        if (filter.Season.HasValue)   q = q.Where(t => t.Season   == filter.Season);
-        if (filter.Type.HasValue)     q = q.Where(t => t.Type     == filter.Type);
-        // exact match: the value comes from a dropdown of existing locations
-        if (!string.IsNullOrWhiteSpace(filter.Location)) q = q.Where(t => t.Location == filter.Location);
-        if (filter.LowOnly == true)   q = q.Where(t => t.Quantity <= t.MinStock);
-
-        q = ApplySort(q, filter.Sort);
+        var q = _db.Tires.AsNoTracking()
+            .ApplyFilters(filter)
+            .ApplySort(filter.Sort);
 
         var total = await q.CountAsync();
-        var page = ClampPage(filter.Page, total, pageSize);
+        var page = Pagination.ClampPage(filter.Page, total, pageSize);
         var items = await q.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
 
         return new PagedResult<Tire>
@@ -70,26 +39,6 @@ public class InventoryService : IInventoryService
             PageSize = pageSize
         };
     }
-
-    private static int ClampPage(int page, int totalCount, int pageSize)
-    {
-        var totalPages = Math.Max(1, (int)Math.Ceiling(totalCount / (double)pageSize));
-        return Math.Clamp(page, 1, totalPages);
-    }
-
-    private static IQueryable<Tire> ApplySort(IQueryable<Tire> q, string? sort) => sort switch
-    {
-        "sku"    => q.OrderBy(t => t.Sku),
-        "-sku"   => q.OrderByDescending(t => t.Sku),
-        // Cast to double: SQLite decimal ORDER BY parses text with the current culture and breaks under bg-BG.
-        "price"  => q.OrderBy(t => (double)t.UnitPrice),
-        "-price" => q.OrderByDescending(t => (double)t.UnitPrice),
-        "qty"    => q.OrderBy(t => t.Quantity),
-        "-qty"   => q.OrderByDescending(t => t.Quantity),
-        "size"   => q.OrderBy(t => t.Width).ThenBy(t => t.Profile).ThenBy(t => t.Diameter),
-        "-brand" => q.OrderByDescending(t => t.Brand).ThenByDescending(t => t.Model),
-        _        => q.OrderBy(t => t.Brand).ThenBy(t => t.Model)
-    };
 
     public async Task<IEnumerable<Tire>> GetLowStockAsync()
         => await _db.Tires.AsNoTracking()
@@ -202,27 +151,12 @@ public class InventoryService : IInventoryService
         if (await _db.PurchaseOrderItems.AnyAsync(i => i.TireId == id))
             throw new TireOnOrderException();
 
+        if (await _db.StocktakeItems.AnyAsync(item => item.TireId == id))
+            throw new TireOnStocktakeException();
+
         _db.Tires.Remove(tire);
         await _db.SaveChangesAsync();
         _logger.LogInformation("Tire {Sku} (id {Id}) deleted", tire.Sku, id);
-    }
-
-    public async Task<WarehouseStats> GetStatsAsync()
-    {
-        // One aggregate scan instead of four; runs on every inventory page view.
-        var stats = await _db.Tires
-            .GroupBy(_ => 1)
-            .Select(g => new
-            {
-                Skus = g.Count(),
-                Units = g.Sum(t => t.Quantity),
-                Low = g.Sum(t => t.Quantity <= t.MinStock ? 1 : 0),
-                Value = g.Sum(t => (decimal)t.Quantity * t.UnitPrice)
-            })
-            .SingleOrDefaultAsync();
-        return stats is null
-            ? new WarehouseStats(0, 0, 0, 0m)
-            : new WarehouseStats(stats.Skus, stats.Units, stats.Low, stats.Value);
     }
 
     public async Task<int> RegisterMovementAsync(int tireId, MovementType movementType, int quantity, string? note, string? userName = null)
@@ -239,7 +173,7 @@ public class InventoryService : IInventoryService
 
             tire.Quantity = movementType switch
             {
-                MovementType.In => tire.Quantity + quantity,
+                MovementType.In => StockQuantity.Add(tire.Quantity, quantity),
                 MovementType.Out when tire.Quantity >= quantity => tire.Quantity - quantity,
                 MovementType.Out => throw new InsufficientStockException(tire.Quantity, quantity),
                 MovementType.Adjustment => quantity,
@@ -301,7 +235,7 @@ public class InventoryService : IInventoryService
         q = q.OrderByDescending(m => m.Date).ThenByDescending(m => m.Id);
 
         var total = await q.CountAsync();
-        page = ClampPage(page, total, pageSize);
+        page = Pagination.ClampPage(page, total, pageSize);
         var items = await q.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
 
         return new PagedResult<StockMovement>
@@ -324,116 +258,4 @@ public class InventoryService : IInventoryService
         return new FilterOptions(brands, widths, profiles, diameters, locations);
     }
 
-    public async Task<ValueReport> GetValueReportAsync()
-    {
-        var byBrand = await _db.Tires
-            .GroupBy(t => t.Brand)
-            .Select(g => new
-            {
-                Key = g.Key,
-                Skus = g.Count(),
-                Units = g.Sum(t => t.Quantity),
-                Value = g.Sum(t => (decimal)t.Quantity * t.UnitPrice)
-            })
-            .ToListAsync();
-
-        var bySeason = await _db.Tires
-            .GroupBy(t => t.Season)
-            .Select(g => new
-            {
-                Key = g.Key,
-                Skus = g.Count(),
-                Units = g.Sum(t => t.Quantity),
-                Value = g.Sum(t => (decimal)t.Quantity * t.UnitPrice)
-            })
-            .ToListAsync();
-
-        return new ValueReport(
-            byBrand.OrderByDescending(g => g.Value)
-                .Select(g => new ValueReportGroup(g.Key, g.Skus, g.Units, g.Value)).ToList(),
-            bySeason.OrderByDescending(g => g.Value)
-                .Select(g => new ValueReportGroup(Helpers.Enums.Key(g.Key), g.Skus, g.Units, g.Value)).ToList(),
-            byBrand.Sum(g => g.Value));
-    }
-
-    public async Task<MovementTrend> GetMovementTrendAsync(DateOnly from, DateOnly to)
-    {
-        var fromUtc = Dates.StartOfDayUtc(from);
-        var toUtc = Dates.StartOfDayUtc(to.AddDays(1));
-
-        var rows = await _db.StockMovements
-            .Where(m => m.Date >= fromUtc && m.Date < toUtc)
-            .Select(m => new { m.Date, m.MovementType, m.Quantity })
-            .ToListAsync();
-
-        var granularity = Trend.Granularity(from, to);
-
-        var buckets = new List<TrendBucket>();
-        var index = new Dictionary<DateOnly, int>();
-        foreach (var start in Trend.Sequence(from, to, granularity))
-        {
-            index[start] = buckets.Count;
-            buckets.Add(new TrendBucket(Trend.Label(start, granularity), 0, 0));
-        }
-
-        var adjustments = 0;
-        foreach (var row in rows)
-        {
-            if (row.MovementType == MovementType.Adjustment)
-            {
-                adjustments++;
-                continue;
-            }
-
-            var shopDay = DateOnly.FromDateTime(Dates.Shop(row.Date));
-            if (!index.TryGetValue(Trend.BucketStart(shopDay, granularity), out var i))
-                continue;
-
-            buckets[i] = row.MovementType == MovementType.In
-                ? buckets[i] with { In = buckets[i].In + row.Quantity }
-                : buckets[i] with { Out = buckets[i].Out + row.Quantity };
-        }
-
-        return new MovementTrend(buckets, granularity, adjustments);
-    }
-
-    public Task<byte[]> ExportCsvAsync(IEnumerable<Tire> tires)
-    {
-        var sb = new StringBuilder();
-        // European locales use ';' as the list separator, so Excel there dumps a
-        // comma CSV into one column; the sep= directive overrides that (Excel
-        // consumes the line, other spreadsheet apps at worst show it as a row).
-        sb.AppendLine("sep=,");
-        // Headers and Season/Type go through the localizer so the CSV matches the
-        // Excel export instead of dumping raw enum names under a Bulgarian UI.
-        sb.AppendLine(string.Join(',', new[]
-        {
-            "SKU", "Barcode", "Brand", "Model", "Size", "Season", "Type",
-            "Unit Price (EUR)", "Quantity", "Min Stock", "Location"
-        }.Select(h => Csv(_l[h].Value))));
-        foreach (var t in tires)
-        {
-            sb.AppendLine(
-                $"{Csv(t.Sku)},{Csv(t.Barcode ?? "")},{Csv(t.Brand)},{Csv(t.Model)},{Csv(t.Size)}," +
-                $"{Csv(_l[Enums.Key(t.Season)].Value)},{Csv(_l[Enums.Key(t.Type)].Value)}," +
-                $"{t.UnitPrice.ToString("F2", CultureInfo.InvariantCulture)},{t.Quantity},{t.MinStock},{Csv(t.Location ?? "")}");
-        }
-        // BOM: Excel otherwise opens UTF-8 CSV as ANSI and garbles Cyrillic.
-        var payload = Encoding.UTF8.GetBytes(sb.ToString());
-        var preamble = Encoding.UTF8.GetPreamble();
-        var bytes = new byte[preamble.Length + payload.Length];
-        preamble.CopyTo(bytes, 0);
-        payload.CopyTo(bytes, preamble.Length);
-        return Task.FromResult(bytes);
-    }
-
-    private static string Csv(string s)
-    {
-        // Leading '=', '+', '-', '@' would execute as a formula when opened in Excel.
-        if (s.Length > 0 && s[0] is '=' or '+' or '-' or '@')
-            s = "'" + s;
-        return s.Contains(',') || s.Contains('"') || s.Contains('\n') || s.Contains('\r')
-            ? $"\"{s.Replace("\"", "\"\"")}\""
-            : s;
-    }
 }

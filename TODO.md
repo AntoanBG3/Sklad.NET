@@ -159,10 +159,83 @@ No migration; tests 171 → 184.
 
 ---
 
+## [x] 13. Integrity, service boundaries, and camera scanning (2026-07-12)
+
+Purchase orders now carry their own optimistic-concurrency token. Editing lines,
+marking an order, receiving it, and cancelling it all require the version shown
+to the operator, so a stale screen cannot receive obsolete lines or overwrite a
+concurrent state change. Direct movements and receipts share checked stock
+arithmetic and reject an `Int32` overflow atomically.
+
+SQLite's ASCII-only `NOCASE` collation was replaced on identifiers with a
+.NET-backed `UNICODE_NOCASE`, covering Cyrillic SKU/barcode lookups, usernames,
+and supplier uniqueness. The migration has an upgrade test that starts from the
+previous schema with related data, applies the migration, and checks both data
+preservation and the new uniqueness behavior.
+
+`InventoryService` no longer owns report generation or CSV formatting. Reports
+and CSV are separate services; filter/sort translation, pagination, and stock
+arithmetic each have one shared implementation. The duplicate POST submit guard
+in the desktop and floor scripts was similarly consolidated.
+
+The `/Floor` scan screen progressively exposes camera barcode scanning through
+the browser's native `BarcodeDetector`. Unsupported or denied-camera browsers
+retain the existing manual/physical-scanner flow. The same round fixed the floor
+concurrency 500, fully localized default validation messages and display names,
+and the missing floor heading/skip link. Tests 193 → 223.
+
+Migration `InventoryIntegrity`; 223 tests.
+
+---
+
+## [x] 14. Printable barcode labels (2026-07-13)
+
+Inventory filters now flow into a print preview that produces fixed 70 × 40 mm
+labels in a two-column A4 layout, with up to twenty copies per tire. A tire's
+Details page opens the same workflow for a single SKU. Labels contain the shop,
+rack location, tire identity and a server-rendered Code 128 SVG, so printing is
+offline-capable and does not depend on browser JavaScript or a CDN.
+
+The encoder is its own service and emits integer module geometry for crisp output
+at any printer DPI. It prefers the configured barcode and falls back to an ASCII
+SKU that resolves through the existing scan endpoint. Unicode-only identifiers
+remain visible for manual entry instead of producing a fake or invalid symbol.
+Batch output is capped at 400 SVGs before querying rows, preventing a large
+inventory or hostile copies value from exhausting the server. Labels deliberately
+exclude live quantity and price because a physical label would make those values
+stale as soon as inventory changes.
+
+No migration; tests 223 → 236.
+
+---
+
+## [x] 15. Audit-grade stocktakes and cycle counts (2026-07-13)
+
+`/Stocktakes` adds a persisted warehouse-counting workflow rather than treating
+an adjustment as an unaudited one-off edit. A count snapshots either the whole
+warehouse or one rack location, including every tire's expected quantity and
+optimistic-concurrency version. Operators can save partial counts repeatedly;
+only an administrator can complete the count and change inventory.
+
+Completion preflights the entire aggregate, requires every line, rejects a stale
+stock snapshot, and posts only actual variances as Adjustment movements in the
+same database transaction as tire quantities and the completed status. A failed
+line therefore cannot leave half a warehouse reconciled. When normal movements
+occur during a count, Refresh snapshot rebases only those tires and clears only
+their stale counts for a targeted recount. Open counts cannot overlap on the same
+tire, stocktake history prevents referenced tires from being deleted, and every
+aggregate mutation carries a version token to reject stale browser tabs.
+
+The workflow includes localized list, create, count, final-review and audit views;
+progress/variance signals; admin-only completion, refresh and cancellation; a
+blind printable floor sheet that hides expected stock to avoid counting bias; and
+a completed printable audit report. Migration `Stocktakes`; tests 236 → 257.
+
+---
+
 ## [ ] Future ideas
 
 - Email notifications on low stock
-- Barcode-scanner integration and label printing
 - A move to a more powerful server database if data volume grows
 
 The existing architecture allows these extensions without substantially

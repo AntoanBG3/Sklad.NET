@@ -9,6 +9,7 @@ public class SupplierViewModel
 
     [Required]
     [StringLength(200)]
+    [Display(Name = "Name")]
     public string Name { get; set; } = string.Empty;
 
     [StringLength(100)]
@@ -16,13 +17,16 @@ public class SupplierViewModel
     public string? ContactName { get; set; }
 
     [StringLength(50)]
+    [Display(Name = "Phone")]
     public string? Phone { get; set; }
 
     [EmailAddress]
     [StringLength(200)]
+    [Display(Name = "Email")]
     public string? Email { get; set; }
 
     [StringLength(500)]
+    [Display(Name = "Notes")]
     public string? Notes { get; set; }
 
     public static SupplierViewModel FromSupplier(Supplier s) => new()

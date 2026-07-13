@@ -14,7 +14,13 @@ public class InventoryServiceTests : IDisposable
     private readonly TestDb _db = new();
 
     private InventoryService CreateService(Data.SkladDbContext context) =>
-        new(context, NullLogger<InventoryService>.Instance, new FakeLocalizer<SharedResource>());
+        new(context, NullLogger<InventoryService>.Instance);
+
+    private static InventoryReportService CreateReportService(Data.SkladDbContext context) =>
+        new(context);
+
+    private static InventoryCsvExportService CreateCsvExporter() =>
+        new(new FakeLocalizer<SharedResource>());
 
     private static Tire NewTire(string sku, string brand = "Michelin", string model = "Primacy 4",
         int width = 205, int profile = 55, int diameter = 16,
@@ -227,6 +233,23 @@ public class InventoryServiceTests : IDisposable
         Assert.Empty(verify.StockMovements);
     }
 
+    [Fact]
+    public async Task In_that_would_overflow_stock_is_rejected_atomically()
+    {
+        var seeded = await SeedTireAsync(NewTire("MOV-OVERFLOW", qty: 1));
+        await using var context = _db.CreateContext();
+
+        var ex = await Assert.ThrowsAsync<StockQuantityOverflowException>(
+            () => CreateService(context).RegisterMovementAsync(
+                seeded.Id, MovementType.In, int.MaxValue, null));
+        Assert.Equal(1, ex.CurrentQuantity);
+        Assert.Equal((long)int.MaxValue, ex.AddedQuantity);
+
+        await using var verify = _db.CreateContext();
+        Assert.Equal(1, (await verify.Tires.FindAsync(seeded.Id))!.Quantity);
+        Assert.Empty(verify.StockMovements);
+    }
+
     [Theory]
     [InlineData(MovementType.In, 0)]
     [InlineData(MovementType.Out, 0)]
@@ -379,7 +402,7 @@ public class InventoryServiceTests : IDisposable
         Assert.DoesNotContain("OK-1", result);
     }
 
-    // --- GetStatsAsync ---
+    // --- InventoryReportService.GetStatsAsync ---
 
     [Fact]
     public async Task Stats_aggregate_counts_units_lowstock_and_value()
@@ -388,7 +411,7 @@ public class InventoryServiceTests : IDisposable
         await SeedTireAsync(NewTire("S-2", price: 100m, qty: 2, minStock: 1));
         await using var context = _db.CreateContext();
 
-        var stats = await CreateService(context).GetStatsAsync();
+        var stats = await CreateReportService(context).GetStatsAsync();
 
         Assert.Equal(2, stats.TotalSkus);
         Assert.Equal(5, stats.TotalUnits);
@@ -400,9 +423,21 @@ public class InventoryServiceTests : IDisposable
     public async Task Stats_on_empty_database_are_zero()
     {
         await using var context = _db.CreateContext();
-        var stats = await CreateService(context).GetStatsAsync();
+        var stats = await CreateReportService(context).GetStatsAsync();
         Assert.Equal(0, stats.TotalSkus);
         Assert.Equal(0m, stats.TotalValue);
+    }
+
+    [Fact]
+    public async Task Stats_units_do_not_overflow_when_valid_tires_exceed_int32_in_total()
+    {
+        await SeedTireAsync(NewTire("S-BIG-1", qty: int.MaxValue, price: 1m));
+        await SeedTireAsync(NewTire("S-BIG-2", qty: int.MaxValue, price: 1m));
+        await using var context = _db.CreateContext();
+
+        var stats = await CreateReportService(context).GetStatsAsync();
+
+        Assert.Equal(2L * int.MaxValue, stats.TotalUnits);
     }
 
     // --- GetMovementsAsync (journal) ---
@@ -501,7 +536,7 @@ public class InventoryServiceTests : IDisposable
         Assert.Equal(new[] { "Rack A", "Rack B" }, options.Locations);
     }
 
-    // --- GetValueReportAsync ---
+    // --- InventoryReportService.GetValueReportAsync ---
 
     [Fact]
     public async Task Value_report_groups_by_brand_and_season()
@@ -511,7 +546,7 @@ public class InventoryServiceTests : IDisposable
         await SeedTireAsync(NewTire("V-3", brand: "Pirelli", price: 100m, qty: 1, season: Season.Summer));
         await using var context = _db.CreateContext();
 
-        var report = await CreateService(context).GetValueReportAsync();
+        var report = await CreateReportService(context).GetValueReportAsync();
 
         Assert.Equal(140m, report.TotalValue);
         var pirelli = report.ByBrand.Single(g => g.Key == "Pirelli");
@@ -525,15 +560,27 @@ public class InventoryServiceTests : IDisposable
         Assert.Equal(120m, summer.Value);
     }
 
-    // --- ExportCsvAsync ---
-
     [Fact]
-    public async Task Export_uses_invariant_decimals_and_escapes_quotes_and_commas()
+    public async Task Value_report_units_do_not_overflow_across_large_rows()
     {
-        var tire = NewTire("CSV-1", brand: "Brand, Inc", model: "Say \"hi\"", price: 1234.5m, qty: 7);
+        await SeedTireAsync(NewTire("V-BIG-1", brand: "Big", qty: int.MaxValue, price: 1m));
+        await SeedTireAsync(NewTire("V-BIG-2", brand: "Big", qty: int.MaxValue, price: 1m));
         await using var context = _db.CreateContext();
 
-        var bytes = await CreateService(context).ExportCsvAsync(new[] { tire });
+        var report = await CreateReportService(context).GetValueReportAsync();
+
+        Assert.Equal(2L * int.MaxValue, Assert.Single(report.ByBrand).Units);
+        Assert.Equal(2L * int.MaxValue, Assert.Single(report.BySeason).Units);
+    }
+
+    // --- InventoryCsvExportService ---
+
+    [Fact]
+    public void Export_uses_invariant_decimals_and_escapes_quotes_and_commas()
+    {
+        var tire = NewTire("CSV-1", brand: "Brand, Inc", model: "Say \"hi\"", price: 1234.5m, qty: 7);
+
+        var bytes = CreateCsvExporter().Export(new[] { tire });
         var text = System.Text.Encoding.UTF8.GetString(bytes);
 
         Assert.Contains("1234.50", text);
@@ -542,12 +589,11 @@ public class InventoryServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task Export_neutralizes_spreadsheet_formula_injection()
+    public void Export_neutralizes_spreadsheet_formula_injection()
     {
         var tire = NewTire("=CSV-2", brand: "+SUM(A1)", model: "-2+3", location: "@cmd");
-        await using var context = _db.CreateContext();
 
-        var bytes = await CreateService(context).ExportCsvAsync(new[] { tire });
+        var bytes = CreateCsvExporter().Export(new[] { tire });
         var text = System.Text.Encoding.UTF8.GetString(bytes);
 
         Assert.Contains("'=CSV-2", text);
@@ -557,36 +603,30 @@ public class InventoryServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task Export_starts_with_utf8_bom_so_excel_reads_cyrillic()
+    public void Export_starts_with_utf8_bom_so_excel_reads_cyrillic()
     {
-        await using var context = _db.CreateContext();
-
-        var bytes = await CreateService(context).ExportCsvAsync(new[] { NewTire("BOM-1", location: "Рафт А-3") });
+        var bytes = CreateCsvExporter().Export(new[] { NewTire("BOM-1", location: "Рафт А-3") });
 
         Assert.Equal(new byte[] { 0xEF, 0xBB, 0xBF }, bytes.Take(3).ToArray());
         Assert.Contains("Рафт А-3", System.Text.Encoding.UTF8.GetString(bytes));
     }
 
     [Fact]
-    public async Task Export_declares_comma_separator_so_excel_splits_columns_in_any_locale()
+    public void Export_declares_comma_separator_so_excel_splits_columns_in_any_locale()
     {
-        await using var context = _db.CreateContext();
-
-        var bytes = await CreateService(context).ExportCsvAsync(new[] { NewTire("SEP-1") });
+        var bytes = CreateCsvExporter().Export(new[] { NewTire("SEP-1") });
         var text = System.Text.Encoding.UTF8.GetString(bytes);
 
         Assert.StartsWith("﻿sep=,", text);
     }
 
     [Fact]
-    public async Task Export_localizes_season_and_type_instead_of_raw_enum_names()
+    public void Export_localizes_season_and_type_instead_of_raw_enum_names()
     {
         // Enums.Key maps AllSeason to "All-Season"; a raw ToString would emit
         // "AllSeason". The hyphen proves the value went through the localizer.
         var tire = NewTire("LOC-1", season: Season.AllSeason, type: TireType.Retreaded);
-        await using var context = _db.CreateContext();
-
-        var bytes = await CreateService(context).ExportCsvAsync(new[] { tire });
+        var bytes = CreateCsvExporter().Export(new[] { tire });
         var text = System.Text.Encoding.UTF8.GetString(bytes);
 
         Assert.Contains("All-Season", text);
@@ -595,11 +635,9 @@ public class InventoryServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task Export_localizes_header_row_to_match_excel()
+    public void Export_localizes_header_row_to_match_excel()
     {
-        await using var context = _db.CreateContext();
-
-        var bytes = await CreateService(context).ExportCsvAsync(new[] { NewTire("HDR-1") });
+        var bytes = CreateCsvExporter().Export(new[] { NewTire("HDR-1") });
         var text = System.Text.Encoding.UTF8.GetString(bytes);
         var headerLine = text.Split('\n')[1];
 
@@ -608,11 +646,9 @@ public class InventoryServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task Export_quotes_fields_containing_carriage_returns()
+    public void Export_quotes_fields_containing_carriage_returns()
     {
-        await using var context = _db.CreateContext();
-
-        var bytes = await CreateService(context).ExportCsvAsync(new[] { NewTire("CR-1", location: "A\rB") });
+        var bytes = CreateCsvExporter().Export(new[] { NewTire("CR-1", location: "A\rB") });
         var text = System.Text.Encoding.UTF8.GetString(bytes);
 
         Assert.Contains("\"A\rB\"", text);
@@ -632,6 +668,17 @@ public class InventoryServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task FindByCode_ignores_cyrillic_case_for_sku_and_barcode()
+    {
+        await SeedTireAsync(NewTire("ГУМА-1", barcode: "КОД-99"));
+        await using var context = _db.CreateContext();
+        var service = CreateService(context);
+
+        Assert.NotNull(await service.FindByCodeAsync("гума-1"));
+        Assert.NotNull(await service.FindByCodeAsync("код-99"));
+    }
+
+    [Fact]
     public async Task Duplicate_sku_detection_ignores_case()
     {
         await SeedTireAsync(NewTire("CASE-1"));
@@ -639,6 +686,16 @@ public class InventoryServiceTests : IDisposable
 
         await Assert.ThrowsAsync<DuplicateSkuException>(
             () => CreateService(context).CreateTireAsync(NewTire("case-1")));
+    }
+
+    [Fact]
+    public async Task Duplicate_sku_detection_ignores_cyrillic_case()
+    {
+        await SeedTireAsync(NewTire("ГУМА-2"));
+        await using var context = _db.CreateContext();
+
+        await Assert.ThrowsAsync<DuplicateSkuException>(
+            () => CreateService(context).CreateTireAsync(NewTire("гума-2")));
     }
 
     [Fact]
@@ -750,7 +807,7 @@ public class InventoryServiceTests : IDisposable
             () => CreateService(context).CreateTireAsync(NewTire("RACE-DUP")));
     }
 
-    // --- GetMovementTrendAsync ---
+    // --- InventoryReportService.GetMovementTrendAsync ---
 
     private async Task SeedMovementAsync(SkladDbContext context, int tireId, MovementType type, int qty, DateTime utc)
     {
@@ -770,7 +827,7 @@ public class InventoryServiceTests : IDisposable
         await SeedMovementAsync(context, tire.Id, MovementType.In, 3, new DateTime(2026, 3, 10, 11, 0, 0, DateTimeKind.Utc));
         await SeedMovementAsync(context, tire.Id, MovementType.Out, 4, new DateTime(2026, 3, 10, 12, 0, 0, DateTimeKind.Utc));
 
-        var trend = await CreateService(context)
+        var trend = await CreateReportService(context)
             .GetMovementTrendAsync(new DateOnly(2026, 3, 10), new DateOnly(2026, 3, 10));
 
         var bucket = Assert.Single(trend.Buckets);
@@ -786,7 +843,7 @@ public class InventoryServiceTests : IDisposable
         await SeedMovementAsync(context, tire.Id, MovementType.Adjustment, 500, new DateTime(2026, 3, 10, 9, 0, 0, DateTimeKind.Utc));
         await SeedMovementAsync(context, tire.Id, MovementType.In, 2, new DateTime(2026, 3, 10, 9, 0, 0, DateTimeKind.Utc));
 
-        var trend = await CreateService(context)
+        var trend = await CreateReportService(context)
             .GetMovementTrendAsync(new DateOnly(2026, 3, 10), new DateOnly(2026, 3, 10));
 
         var bucket = Assert.Single(trend.Buckets);
@@ -796,13 +853,28 @@ public class InventoryServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task GetMovementTrendAsync_does_not_overflow_large_bucket_totals()
+    {
+        await using var context = _db.CreateContext();
+        var tire = await SeedTireAsync(NewTire("TREND-BIG"));
+        var timestamp = new DateTime(2026, 3, 10, 9, 0, 0, DateTimeKind.Utc);
+        await SeedMovementAsync(context, tire.Id, MovementType.In, int.MaxValue, timestamp);
+        await SeedMovementAsync(context, tire.Id, MovementType.In, int.MaxValue, timestamp.AddMinutes(1));
+
+        var trend = await CreateReportService(context)
+            .GetMovementTrendAsync(new DateOnly(2026, 3, 10), new DateOnly(2026, 3, 10));
+
+        Assert.Equal(2L * int.MaxValue, Assert.Single(trend.Buckets).In);
+    }
+
+    [Fact]
     public async Task GetMovementTrendAsync_emits_empty_buckets_as_zeros()
     {
         await using var context = _db.CreateContext();
         var tire = await SeedTireAsync(NewTire("TREND-3"));
         await SeedMovementAsync(context, tire.Id, MovementType.In, 5, new DateTime(2026, 3, 12, 9, 0, 0, DateTimeKind.Utc));
 
-        var trend = await CreateService(context)
+        var trend = await CreateReportService(context)
             .GetMovementTrendAsync(new DateOnly(2026, 3, 10), new DateOnly(2026, 3, 13));
 
         Assert.Equal(4, trend.Buckets.Count);
@@ -819,7 +891,7 @@ public class InventoryServiceTests : IDisposable
         var tire = await SeedTireAsync(NewTire("TREND-4"));
         await SeedMovementAsync(context, tire.Id, MovementType.In, 6, new DateTime(2026, 7, 8, 22, 30, 0, DateTimeKind.Utc));
 
-        var trend = await CreateService(context)
+        var trend = await CreateReportService(context)
             .GetMovementTrendAsync(new DateOnly(2026, 7, 8), new DateOnly(2026, 7, 9));
 
         Assert.Equal(0, trend.Buckets[0].In);
@@ -836,7 +908,7 @@ public class InventoryServiceTests : IDisposable
         var tire = await SeedTireAsync(NewTire("TREND-DST"));
         await SeedMovementAsync(context, tire.Id, MovementType.In, 6, new DateTime(2026, 1, 8, 21, 30, 0, DateTimeKind.Utc));
 
-        var trend = await CreateService(context)
+        var trend = await CreateReportService(context)
             .GetMovementTrendAsync(new DateOnly(2026, 1, 8), new DateOnly(2026, 1, 9));
 
         Assert.Equal(6, trend.Buckets[0].In);
@@ -851,7 +923,7 @@ public class InventoryServiceTests : IDisposable
         await SeedMovementAsync(context, tire.Id, MovementType.In, 1, new DateTime(2026, 1, 5, 9, 0, 0, DateTimeKind.Utc));
         await SeedMovementAsync(context, tire.Id, MovementType.In, 2, new DateTime(2026, 1, 25, 9, 0, 0, DateTimeKind.Utc));
 
-        var trend = await CreateService(context)
+        var trend = await CreateReportService(context)
             .GetMovementTrendAsync(new DateOnly(2026, 1, 1), new DateOnly(2026, 6, 30));
 
         Assert.Equal(TrendGranularity.Month, trend.Granularity);
@@ -866,7 +938,7 @@ public class InventoryServiceTests : IDisposable
         var tire = await SeedTireAsync(NewTire("TREND-6"));
         await SeedMovementAsync(context, tire.Id, MovementType.In, 9, new DateTime(2026, 3, 1, 9, 0, 0, DateTimeKind.Utc));
 
-        var trend = await CreateService(context)
+        var trend = await CreateReportService(context)
             .GetMovementTrendAsync(new DateOnly(2026, 3, 10), new DateOnly(2026, 3, 11));
 
         Assert.All(trend.Buckets, b => Assert.Equal(0, b.In));

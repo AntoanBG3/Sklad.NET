@@ -71,6 +71,15 @@ public class FloorController : Controller
             // Model-level: the screen shows a ModelOnly summary and no per-field slot.
             ModelState.AddModelError(string.Empty, _l["Enter a quantity of at least 1."]);
         }
+        catch (StockQuantityOverflowException)
+        {
+            ModelState.AddModelError(string.Empty, _l["The resulting stock quantity is too large."]);
+        }
+        catch (StaleTireException)
+        {
+            ModelState.AddModelError(string.Empty,
+                _l["The tire was modified by someone else. Reload the page and try again."]);
+        }
         catch (TireNotFoundException)
         {
             TempData["Flash"] = _l["That tire no longer exists."].Value;

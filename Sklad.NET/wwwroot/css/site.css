@@ -68,6 +68,7 @@
    Reset
    ============================================================ */
 *, *::before, *::after { box-sizing: border-box; }
+[hidden] { display: none !important; }
 
 html { -webkit-text-size-adjust: 100%; }
 
@@ -1363,6 +1364,115 @@ main { animation: page-enter 180ms ease-out; }
 .filter-inline .field { margin-bottom: 0; }
 
 /* ============================================================
+   Barcode labels — fixed physical dimensions on screen and paper
+   ============================================================ */
+.label-controls { padding: var(--sp-3) var(--sp-4); margin-bottom: var(--sp-4); }
+.label-options { display: flex; align-items: center; gap: var(--sp-2); flex-wrap: wrap; }
+.label-options .field-label { margin: 0; }
+.label-copies { width: 5rem; }
+.label-notice { margin-bottom: var(--sp-3); }
+.label-empty { border: 1px solid var(--rule-soft); }
+.label-sheet {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, 70mm);
+    grid-auto-rows: 40mm;
+    justify-content: center;
+    gap: 4mm;
+}
+.tire-label {
+    box-sizing: border-box;
+    width: 70mm;
+    height: 40mm;
+    overflow: hidden;
+    border: 1px dashed var(--ink-30);
+    padding: 2.5mm 3mm;
+    color: var(--ink);
+    background: var(--paper);
+    break-inside: avoid;
+}
+.tire-label-head, .tire-label-foot {
+    display: flex;
+    justify-content: space-between;
+    gap: 2mm;
+    font-size: 7.5pt;
+    line-height: 1.1;
+}
+.tire-label-head strong {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+.tire-label-head span, .tire-label-foot span:last-child { white-space: nowrap; }
+.tire-label-name {
+    margin-top: 1.2mm;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-size: 10pt;
+    font-weight: 700;
+    line-height: 1.1;
+}
+.tire-label-spec {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-size: 7.5pt;
+    line-height: 1.25;
+}
+.tire-label-barcode { display: block; width: 100%; height: 11.5mm; margin-top: 1mm; fill: #000; }
+.tire-label-code { margin-top: .3mm; text-align: center; font-size: 7.5pt; line-height: 1; }
+.tire-label-no-code {
+    display: grid;
+    place-items: center;
+    height: 12.8mm;
+    margin-top: 1mm;
+    border: 1px solid var(--rule-soft);
+    color: var(--ink-50);
+    font-size: 7.5pt;
+}
+.tire-label-foot { margin-top: 1mm; border-top: .2mm solid var(--rule-soft); padding-top: .8mm; }
+
+/* ============================================================
+   Stocktakes — dense counting with explicit progress and variances
+   ============================================================ */
+.stocktake-filters { display: flex; gap: var(--sp-2); flex-wrap: wrap; }
+.stocktake-filters .is-active { color: var(--ink); font-weight: 650; }
+.stocktake-progress {
+    display: block;
+    width: 100%;
+    height: .25rem;
+    margin-top: var(--sp-1);
+    overflow: hidden;
+    background: var(--rule-soft);
+}
+.stocktake-progress > span { display: block; height: 100%; background: var(--red); }
+.stocktake-meta { align-items: stretch; margin-bottom: var(--sp-4); }
+.stocktake-meta .block, .stocktake-guidance { height: 100%; box-sizing: border-box; }
+.stocktake-guidance { display: flex; flex-direction: column; justify-content: center; }
+.stocktake-table { min-width: 68rem; }
+.stocktake-count { width: 6rem; min-width: 6rem; text-align: right; }
+.stocktake-note { min-width: 12rem; }
+.stocktake-variance { font-weight: 700; }
+.variance-positive .stocktake-variance { color: var(--green, #19733a); }
+.variance-negative .stocktake-variance, .variance-alert { color: var(--red); font-weight: 700; }
+.variance-positive td { background: color-mix(in srgb, #19733a 4%, var(--paper)); }
+.variance-negative td { background: color-mix(in srgb, var(--red) 5%, var(--paper)); }
+.stocktake-save-bar { padding: var(--sp-4); margin: 0; align-items: center; }
+.stocktake-review { margin-block: var(--sp-4); }
+.count-sheet { border: 1px solid var(--rule-soft); padding: var(--sp-5); }
+.count-sheet-head { display: flex; justify-content: space-between; gap: var(--sp-5); border-bottom: 2px solid var(--rule); padding-bottom: var(--sp-4); }
+.count-sheet-number { margin: var(--sp-1) 0 0; font-size: var(--f-2); }
+.count-sheet-meta { display: grid; grid-template-columns: auto auto; gap: var(--sp-1) var(--sp-3); margin: 0; font-size: var(--f--1); }
+.count-sheet-meta dt { color: var(--ink-50); }
+.count-sheet-meta dd { margin: 0; text-align: right; }
+.count-sheet-instruction { margin-block: var(--sp-4); padding: var(--sp-3); border-left: 3px solid var(--red); background: var(--wash); }
+.count-sheet-lines { margin-top: var(--sp-4); }
+.count-sheet-lines .count-sheet-write { min-width: 7rem; }
+.count-sheet-lines tbody tr { height: 2.75rem; }
+.count-sheet-foot { display: flex; justify-content: space-between; gap: var(--sp-6); margin-top: var(--sp-7); }
+.count-sheet-foot .signature { flex: 1; }
+
+/* ============================================================
    Floor — one job per screen, thumb-sized targets
    ============================================================ */
 .floor-shell { max-width: 34rem; margin-inline: auto; padding-inline: var(--sp-3); }
@@ -1397,6 +1507,23 @@ main { animation: page-enter 180ms ease-out; }
 .floor-stepper .floor-input { text-align: center; }
 .floor-step { flex: none; min-height: var(--floor-tap); min-width: var(--floor-tap); }
 .floor-back { display: block; text-align: center; padding-block: var(--sp-3); }
+.floor-camera { display: grid; gap: var(--sp-3); }
+.floor-camera-viewport {
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: 4 / 3;
+    background: var(--black);
+    border: 1px solid var(--black);
+}
+.floor-camera-video { display: block; width: 100%; height: 100%; object-fit: cover; }
+.floor-camera-guide {
+    position: absolute;
+    inset: 28% 10%;
+    border: 3px solid var(--white);
+    box-shadow: 0 0 0 999px rgba(0, 0, 0, .32);
+}
+.floor-camera-status { min-height: 1.5em; margin: 0; color: var(--ink-50); }
+.floor-camera-status.is-error { color: var(--red); font-weight: 600; }
 
 /* ============================================================
    Print — stock lists, the low-stock reorder sheet, purchase orders
@@ -1411,6 +1538,17 @@ main { animation: page-enter 180ms ease-out; }
     .data-table-wide { min-width: 0; }
     .data-table tbody tr:hover td { background: transparent; }
     .grid { display: block; }
+}
+
+@media print {
+    .label-page .page-head, .label-controls, .label-notice, .label-empty { display: none !important; }
+    .label-page .container { max-width: none; padding: 0; }
+    .label-sheet { grid-template-columns: repeat(2, 70mm); gap: 4mm; }
+    .tire-label { border-color: #777; }
+    .stocktake-print-page .page-head { display: none; }
+    .stocktake-print-page .container { max-width: none; padding: 0; }
+    .count-sheet { border: 0; padding: 0; }
+    .count-sheet-lines tr { break-inside: avoid; }
 }
 
 @page { margin: 16mm; }

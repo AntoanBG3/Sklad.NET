@@ -191,6 +191,9 @@
   <data name="The {0} field is required." xml:space="preserve"><value>Полето {0} е задължително.</value></data>
   <data name="The field {0} must be between {1} and {2}." xml:space="preserve"><value>Полето {0} трябва да е между {1} и {2}.</value></data>
   <data name="The field {0} must be a string with a maximum length of {1}." xml:space="preserve"><value>Полето {0} трябва да е текст с максимална дължина {1}.</value></data>
+  <data name="The field {0} must be a string with a minimum length of {2} and a maximum length of {1}." xml:space="preserve"><value>Полето {0} трябва да е текст с дължина между {2} и {1} знака.</value></data>
+  <data name="The field {0} must be a string or array type with a minimum length of '{1}'." xml:space="preserve"><value>Полето {0} трябва да е с минимална дължина {1} знака.</value></data>
+  <data name="The {0} field is not a valid e-mail address." xml:space="preserve"><value>Полето {0} трябва да съдържа валиден имейл адрес.</value></data>
   <data name="Quantity must be 0 or greater." xml:space="preserve"><value>Количеството трябва да е 0 или повече.</value></data>
 
   <!-- Errors surfaced from the inventory service -->
@@ -304,6 +307,7 @@
   <data name="Phone" xml:space="preserve"><value>Телефон</value></data>
   <data name="Email" xml:space="preserve"><value>Имейл</value></data>
   <data name="Notes" xml:space="preserve"><value>Бележки</value></data>
+  <data name="Name" xml:space="preserve"><value>Име</value></data>
   <data name="Open orders" xml:space="preserve"><value>Отворени поръчки</value></data>
   <data name="Total orders" xml:space="preserve"><value>Общо поръчки</value></data>
   <data name="Orders" xml:space="preserve"><value>Поръчки</value></data>
@@ -364,6 +368,8 @@
   <data name="A purchase order needs at least one line." xml:space="preserve"><value>Поръчката за доставка се нуждае от поне един ред.</value></data>
   <data name="Order lines need a quantity of at least 1 and a non-negative cost." xml:space="preserve"><value>Редовете изискват количество поне 1 и неотрицателна цена.</value></data>
   <data name="The stock changed while receiving. Try again." xml:space="preserve"><value>Наличността се промени по време на получаването. Опитайте отново.</value></data>
+  <data name="The purchase order was modified by someone else. Reload the page and try again." xml:space="preserve"><value>Поръчката беше променена от друг потребител. Презаредете страницата и опитайте отново.</value></data>
+  <data name="The resulting stock quantity is too large." xml:space="preserve"><value>Полученото количество в наличност е твърде голямо.</value></data>
   <data name="This tire appears on purchase orders and cannot be deleted." xml:space="preserve"><value>Тази гума фигурира в поръчки за доставка и не може да бъде изтрита.</value></data>
   <data name="Draft" xml:space="preserve"><value>Чернова</value></data>
   <data name="Ordered" xml:space="preserve"><value>Поръчана</value></data>
@@ -491,4 +497,157 @@
   <data name="Enter a quantity of at least 1." xml:space="preserve">
     <value>Въведете количество поне 1.</value>
   </data>
+  <data name="Scan with camera" xml:space="preserve">
+    <value>Сканирай с камера</value>
+  </data>
+  <data name="Stop camera" xml:space="preserve">
+    <value>Спри камерата</value>
+  </data>
+  <data name="Live camera preview" xml:space="preserve">
+    <value>Картина на живо от камерата</value>
+  </data>
+  <data name="Starting camera…" xml:space="preserve">
+    <value>Камерата се стартира…</value>
+  </data>
+  <data name="Point the camera at a barcode." xml:space="preserve">
+    <value>Насочете камерата към баркод.</value>
+  </data>
+  <data name="Barcode found. Looking up tire…" xml:space="preserve">
+    <value>Баркодът е намерен. Търсене на гумата…</value>
+  </data>
+  <data name="Camera access is unavailable. Enter the code instead." xml:space="preserve">
+    <value>Камерата не е достъпна. Въведете кода ръчно.</value>
+  </data>
+  <data name="Camera stopped." xml:space="preserve">
+    <value>Камерата е спряна.</value>
+  </data>
+  <!-- Printable barcode labels -->
+  <data name="Barcode labels" xml:space="preserve">
+    <value>Етикети с баркод</value>
+  </data>
+  <data name="Print preview" xml:space="preserve">
+    <value>Преглед за печат</value>
+  </data>
+  <data name="{0} labels for {1} tires." xml:space="preserve">
+    <value>{0} етикета за {1} гуми.</value>
+  </data>
+  <data name="Print labels" xml:space="preserve">
+    <value>Печат на етикети</value>
+  </data>
+  <data name="Print label" xml:space="preserve">
+    <value>Печат на етикет</value>
+  </data>
+  <data name="Back to tire" xml:space="preserve">
+    <value>Обратно към гумата</value>
+  </data>
+  <data name="Copies per tire" xml:space="preserve">
+    <value>Копия за гума</value>
+  </data>
+  <data name="Update preview" xml:space="preserve">
+    <value>Обнови прегледа</value>
+  </data>
+  <data name="The print run is capped at {0} labels. Reduce copies or narrow the inventory filter to include all {1} matching tires." xml:space="preserve">
+    <value>Печатът е ограничен до {0} етикета. Намалете копията или стеснете филтъра, за да включите всички {1} съвпадащи гуми.</value>
+  </data>
+  <data name="Some labels have no printable Code 128 value. Their SKU remains visible for manual entry." xml:space="preserve">
+    <value>Някои етикети нямат стойност, подходяща за Code 128. Техният SKU остава видим за ръчно въвеждане.</value>
+  </data>
+  <data name="No labels to print" xml:space="preserve">
+    <value>Няма етикети за печат</value>
+  </data>
+  <data name="Adjust the inventory filter and try again." xml:space="preserve">
+    <value>Променете филтъра на наличността и опитайте отново.</value>
+  </data>
+  <data name="Barcode {0}" xml:space="preserve">
+    <value>Баркод {0}</value>
+  </data>
+  <data name="No machine-readable code" xml:space="preserve">
+    <value>Няма машинночетим код</value>
+  </data>
+  <data name="Scan to open" xml:space="preserve">
+    <value>Сканирай за отваряне</value>
+  </data>
+  <!-- Stocktakes and cycle counts -->
+  <data name="Stocktakes" xml:space="preserve"><value>Инвентаризации</value></data>
+  <data name="Stocktake" xml:space="preserve"><value>Инвентаризация</value></data>
+  <data name="Start stocktake" xml:space="preserve"><value>Започни инвентаризация</value></data>
+  <data name="Complete stocktake" xml:space="preserve"><value>Приключване на инвентаризация</value></data>
+  <data name="Complete {0}" xml:space="preserve"><value>Приключи {0}</value></data>
+  <data name="Cancel stocktake" xml:space="preserve"><value>Откажи инвентаризацията</value></data>
+  <data name="All stocktakes" xml:space="preserve"><value>Всички инвентаризации</value></data>
+  <data name="Inventory control" xml:space="preserve"><value>Контрол на наличността</value></data>
+  <data name="Cycle count" xml:space="preserve"><value>Циклично преброяване</value></data>
+  <data name="All locations" xml:space="preserve"><value>Всички локации</value></data>
+  <data name="Scope" xml:space="preserve"><value>Обхват</value></data>
+  <data name="Progress" xml:space="preserve"><value>Напредък</value></data>
+  <data name="Count history" xml:space="preserve"><value>История на преброяванията</value></data>
+  <data name="Snapshot" xml:space="preserve"><value>Моментна снимка</value></data>
+  <data name="Lines" xml:space="preserve"><value>Редове</value></data>
+  <data name="Counted" xml:space="preserve"><value>Преброени</value></data>
+  <data name="Remaining" xml:space="preserve"><value>Оставащи</value></data>
+  <data name="Expected" xml:space="preserve"><value>Очаквано</value></data>
+  <data name="Variance" xml:space="preserve"><value>Разлика</value></data>
+  <data name="Variances" xml:space="preserve"><value>Разлики</value></data>
+  <data name="Net variance" xml:space="preserve"><value>Нетна разлика</value></data>
+  <data name="Completed" xml:space="preserve"><value>Приключена</value></data>
+  <data name="Completed by" xml:space="preserve"><value>Приключена от</value></data>
+  <data name="Save counts" xml:space="preserve"><value>Запази преброяването</value></data>
+  <data name="Refresh snapshot" xml:space="preserve"><value>Обнови снимката</value></data>
+  <data name="Review and complete" xml:space="preserve"><value>Преглед и приключване</value></data>
+  <data name="Count lines" xml:space="preserve"><value>Редове за преброяване</value></data>
+  <data name="Create snapshot" xml:space="preserve"><value>Създай снимка</value></data>
+  <data name="Final review" xml:space="preserve"><value>Финален преглед</value></data>
+  <data name="Back to counts" xml:space="preserve"><value>Обратно към преброяването</value></data>
+  <data name="Post adjustments and complete" xml:space="preserve"><value>Запиши корекциите и приключи</value></data>
+  <data name="One open count per tire" xml:space="preserve"><value>Едно отворено преброяване за гума</value></data>
+  <data name="No stocktakes yet" xml:space="preserve"><value>Все още няма инвентаризации</value></data>
+  <data name="The count is incomplete" xml:space="preserve"><value>Преброяването не е завършено</value></data>
+  <data name="Count what is physically present" xml:space="preserve"><value>Пребройте физическата наличност</value></data>
+  <data name="Reconciliation complete" xml:space="preserve"><value>Сверяването е приключено</value></data>
+  <data name="Stocktake cancelled" xml:space="preserve"><value>Инвентаризацията е отказана</value></data>
+  <data name="Counted Quantity" xml:space="preserve"><value>Преброено количество</value></data>
+  <data name="Version token" xml:space="preserve"><value>Версия</value></data>
+  <data name="Counted quantity for {0}" xml:space="preserve"><value>Преброено количество за {0}</value></data>
+  <data name="Note for {0}" xml:space="preserve"><value>Бележка за {0}</value></data>
+  <data name="{0} of {1}" xml:space="preserve"><value>{0} от {1}</value></data>
+  <data name="{0} of {1} counted" xml:space="preserve"><value>Преброени {0} от {1}</value></data>
+  <data name="{0}% counted" xml:space="preserve"><value>Преброени {0}%</value></data>
+  <data name="Net {0}" xml:space="preserve"><value>Нетно {0}</value></data>
+  <data name="{0} adjustments will be posted" xml:space="preserve"><value>Ще бъдат записани {0} корекции</value></data>
+  <data name="Count physical stock and reconcile differences through the movement ledger." xml:space="preserve"><value>Пребройте физическата наличност и сверете разликите чрез журнала на движенията.</value></data>
+  <data name="Start a full count or count one rack location." xml:space="preserve"><value>Започнете пълно преброяване или пребройте една складова локация.</value></data>
+  <data name="Choose one rack for a cycle count, or snapshot the whole warehouse." xml:space="preserve"><value>Изберете една локация за циклично преброяване или снимайте целия склад.</value></data>
+  <data name="A snapshot locks each tire's expected quantity and version for safe reconciliation." xml:space="preserve"><value>Снимката фиксира очакваното количество и версията на всяка гума за безопасно сверяване.</value></data>
+  <data name="Quarterly count, damaged rack, handover…" xml:space="preserve"><value>Тримесечно преброяване, повреден стелаж, предаване…</value></data>
+  <data name="A tire cannot belong to two open stocktakes, preventing competing adjustments." xml:space="preserve"><value>Една гума не може да участва в две отворени инвентаризации, което предотвратява конкуриращи се корекции.</value></data>
+  <data name="Save as often as needed. If stock moves during the count, refresh the snapshot and recount only the cleared lines." xml:space="preserve"><value>Записвайте колкото е необходимо. Ако наличността се промени по време на преброяването, обновете снимката и пребройте отново само изчистените редове.</value></data>
+  <data name="Every difference was posted as an adjustment in the movement ledger." xml:space="preserve"><value>Всяка разлика е записана като корекция в журнала на движенията.</value></data>
+  <data name="No inventory quantities were changed." xml:space="preserve"><value>Не са променени количества от наличността.</value></data>
+  <data name="Saving does not change inventory. Only completion posts adjustments." xml:space="preserve"><value>Запазването не променя наличността. Корекции се записват само при приключване.</value></data>
+  <data name="This is the only step that changes inventory." xml:space="preserve"><value>Това е единствената стъпка, която променя наличността.</value></data>
+  <data name="Count all lines before completion. {0} remain." xml:space="preserve"><value>Пребройте всички редове преди приключване. Остават {0}.</value></data>
+  <data name="Each variance becomes an auditable adjustment movement. This operation is atomic and cannot be partially applied." xml:space="preserve"><value>Всяка разлика става проследимо коригиращо движение. Операцията е атомарна и не може да се приложи частично.</value></data>
+  <data name="Stocktake {0} created with {1} lines." xml:space="preserve"><value>Инвентаризация {0} е създадена с {1} реда.</value></data>
+  <data name="The selected location contains no tires." xml:space="preserve"><value>Избраната локация не съдържа гуми.</value></data>
+  <data name="Some tires are already being counted in {0}. Complete or cancel it first." xml:space="preserve"><value>Някои гуми вече се преброяват в {0}. Първо я приключете или откажете.</value></data>
+  <data name="Counts saved." xml:space="preserve"><value>Преброяването е запазено.</value></data>
+  <data name="This stocktake is no longer open." xml:space="preserve"><value>Тази инвентаризация вече не е отворена.</value></data>
+  <data name="The stocktake was modified by someone else. Reload and enter your counts again." xml:space="preserve"><value>Инвентаризацията е променена от друг потребител. Презаредете и въведете преброеното отново.</value></data>
+  <data name="The stocktake was modified by someone else. Reload and try again." xml:space="preserve"><value>Инвентаризацията е променена от друг потребител. Презаредете и опитайте отново.</value></data>
+  <data name="Stocktake completed. {0} inventory adjustments were posted." xml:space="preserve"><value>Инвентаризацията е приключена. Записани са {0} корекции на наличността.</value></data>
+  <data name="Stock changed for {0} counted tires. Refresh the snapshot and recount those lines." xml:space="preserve"><value>Наличността се е променила за {0} преброени гуми. Обновете снимката и пребройте тези редове отново.</value></data>
+  <data name="The snapshot is current; no counts were cleared." xml:space="preserve"><value>Снимката е актуална; няма изчистени преброявания.</value></data>
+  <data name="Snapshot refreshed. Recount the {0} cleared lines." xml:space="preserve"><value>Снимката е обновена. Пребройте отново изчистените {0} реда.</value></data>
+  <data name="Stocktake cancelled. Inventory was not changed." xml:space="preserve"><value>Инвентаризацията е отказана. Наличността не е променена.</value></data>
+  <data name="This tire appears on stocktake records and cannot be deleted." xml:space="preserve"><value>Тази гума участва в записи за инвентаризация и не може да бъде изтрита.</value></data>
+  <data name="Print count sheet" xml:space="preserve"><value>Печат на лист за преброяване</value></data>
+  <data name="Blind count sheet" xml:space="preserve"><value>Сляп лист за преброяване</value></data>
+  <data name="Stocktake audit report" xml:space="preserve"><value>Одитен отчет за инвентаризация</value></data>
+  <data name="Printable document" xml:space="preserve"><value>Документ за печат</value></data>
+  <data name="Physical count" xml:space="preserve"><value>Физическа наличност</value></data>
+  <data name="Counted by" xml:space="preserve"><value>Преброил</value></data>
+  <data name="Date and time" xml:space="preserve"><value>Дата и час</value></data>
+  <data name="Completed by {0}" xml:space="preserve"><value>Приключена от {0}</value></data>
+  <data name="{0} variances, net {1} units" xml:space="preserve"><value>{0} разлики, нетно {1} броя</value></data>
+  <data name="Expected quantities are intentionally hidden. Count the physical units without inventory bias, then enter the results in Sklad." xml:space="preserve"><value>Очакваните количества са умишлено скрити. Пребройте физическите бройки без влияние от системната наличност, след което въведете резултатите в Sklad.</value></data>
 </root>

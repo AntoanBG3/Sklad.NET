@@ -10,6 +10,7 @@ public class ShopSettingsViewModel
     public string? Name { get; set; }
 
     [StringLength(500)]
+    [Display(Name = "Address")]
     public string? Address { get; set; }
 
     [StringLength(50)]
@@ -17,10 +18,12 @@ public class ShopSettingsViewModel
     public string? VatNumber { get; set; }
 
     [StringLength(50)]
+    [Display(Name = "Phone")]
     public string? Phone { get; set; }
 
     [EmailAddress]
     [StringLength(200)]
+    [Display(Name = "Email")]
     public string? Email { get; set; }
 
     [Range(0, int.MaxValue)]

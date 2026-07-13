@@ -54,6 +54,17 @@ public class UserServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task Duplicate_cyrillic_username_is_rejected_case_insensitively()
+    {
+        await using var context = _db.CreateContext();
+        var service = CreateService(context);
+        await service.CreateUserAsync("Админ", "password-1", UserRole.Admin);
+
+        await Assert.ThrowsAsync<DuplicateUsernameException>(
+            () => service.CreateUserAsync("аДМИН", "password-2", UserRole.User));
+    }
+
+    [Fact]
     public async Task Username_lookup_at_sign_in_is_case_insensitive()
     {
         await using var context = _db.CreateContext();
@@ -61,6 +72,16 @@ public class UserServiceTests : IDisposable
         await service.CreateUserAsync("Admin", "password-1", UserRole.Admin);
 
         Assert.NotNull(await service.ValidateCredentialsAsync("admin", "password-1"));
+    }
+
+    [Fact]
+    public async Task Cyrillic_username_lookup_at_sign_in_is_case_insensitive()
+    {
+        await using var context = _db.CreateContext();
+        var service = CreateService(context);
+        await service.CreateUserAsync("Админ", "password-1", UserRole.Admin);
+
+        Assert.NotNull(await service.ValidateCredentialsAsync("аДМИН", "password-1"));
     }
 
     [Fact]

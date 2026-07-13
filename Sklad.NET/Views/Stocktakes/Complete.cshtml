@@ -1,0 +1,53 @@
+@model StocktakeCountViewModel
+
+@{
+    ViewData["Title"] = $"{Model.Number} — {L["Complete stocktake"].Value}";
+}
+
+<div class="page">
+    <div class="container container-narrow">
+        <div class="page-head">
+            <div>
+                <div class="eyebrow is-alert">@L["Final review"]</div>
+                <h1 class="page-title">@L["Complete {0}", Model.Number]</h1>
+                <p class="page-lede">@L["This is the only step that changes inventory."]</p>
+            </div>
+        </div>
+
+        <div class="confirm">
+            @if (Model.RemainingItems > 0)
+            {
+                <div class="confirm-warning">
+                    <strong>@L["The count is incomplete"]</strong>
+                    @L["Count all lines before completion. {0} remain.", Model.RemainingItems]
+                </div>
+            }
+            else
+            {
+                <div class="confirm-warning">
+                    <strong>@L["{0} adjustments will be posted", Model.VarianceItems]</strong>
+                    @L["Each variance becomes an auditable adjustment movement. This operation is atomic and cannot be partially applied."]
+                </div>
+            }
+
+            <dl class="specs stocktake-review">
+                <dt>@L["Scope"]</dt><dd>@(Model.Location is null ? L["All locations"] : Model.Location)</dd>
+                <dt>@L["Lines"]</dt><dd>@Model.Items.Count</dd>
+                <dt>@L["Counted"]</dt><dd>@Model.CountedItems</dd>
+                <dt>@L["Variances"]</dt><dd class="@(Model.VarianceItems > 0 ? "variance-alert" : "")">@Model.VarianceItems</dd>
+                <dt>@L["Net variance"]</dt><dd>@(Model.NetVariance > 0 ? $"+{Model.NetVariance}" : Model.NetVariance)</dd>
+            </dl>
+
+            <div class="form-actions">
+                @if (Model.RemainingItems == 0)
+                {
+                    <form asp-action="Complete" asp-route-id="@Model.Id" method="post">
+                        <input type="hidden" name="expectedVersion" value="@Model.Version" />
+                        <button type="submit" class="btn btn-danger">@L["Post adjustments and complete"]</button>
+                    </form>
+                }
+                <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-secondary">@L["Back to counts"]</a>
+            </div>
+        </div>
+    </div>
+</div>

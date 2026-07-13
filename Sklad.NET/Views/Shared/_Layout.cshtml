@@ -5,6 +5,7 @@
     var isLowStock = ctrl == "Tires" && act == "LowStock";
     var isReport = ctrl == "Tires" && act == "Report";
     var isMovements = ctrl == "Movements";
+    var isStocktakes = ctrl == "Stocktakes";
     var isInventory = ctrl == "Tires" && !isLowStock && !isReport;
     var isPurchasing = ctrl is "Suppliers" or "PurchaseOrders";
     var isUsers = ctrl == "Users";
@@ -39,6 +40,7 @@
                             <a class="@(isInventory ? "is-active" : "")" aria-current="@(isInventory ? "page" : null)" asp-controller="Tires" asp-action="Index">@L["Inventory"]</a>
                             <a class="@(isLowStock ? "is-active" : "")" aria-current="@(isLowStock ? "page" : null)" asp-controller="Tires" asp-action="LowStock">@L["Low Stock"]</a>
                             <a class="@(isMovements ? "is-active" : "")" aria-current="@(isMovements ? "page" : null)" asp-controller="Movements" asp-action="Index">@L["Movements"]</a>
+                            <a class="@(isStocktakes ? "is-active" : "")" aria-current="@(isStocktakes ? "page" : null)" asp-controller="Stocktakes" asp-action="Index">@L["Stocktakes"]</a>
                             <a class="@(isReport ? "is-active" : "")" aria-current="@(isReport ? "page" : null)" asp-controller="Tires" asp-action="Report">@L["Stock Value"]</a>
                         </div>
                         <div class="nav-group">
@@ -87,6 +89,7 @@
         </div>
     </footer>
 
+    <script src="~/js/form-guards.js" asp-append-version="true"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>

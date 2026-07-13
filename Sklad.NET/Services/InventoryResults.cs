@@ -12,7 +12,7 @@ public class PagedResult<T>
     public bool HasNext => Page < TotalPages;
 }
 
-public record WarehouseStats(int TotalSkus, int TotalUnits, int LowStockCount, decimal TotalValue);
+public record WarehouseStats(int TotalSkus, long TotalUnits, int LowStockCount, decimal TotalValue);
 
 public record FilterOptions(
     IReadOnlyList<string> Brands,
@@ -21,14 +21,14 @@ public record FilterOptions(
     IReadOnlyList<int> Diameters,
     IReadOnlyList<string> Locations);
 
-public record ValueReportGroup(string Key, int Skus, int Units, decimal Value);
+public record ValueReportGroup(string Key, int Skus, long Units, decimal Value);
 
 public record ValueReport(
     IReadOnlyList<ValueReportGroup> ByBrand,
     IReadOnlyList<ValueReportGroup> BySeason,
     decimal TotalValue);
 
-public record TrendBucket(string Label, int In, int Out);
+public record TrendBucket(string Label, long In, long Out);
 
 public record MovementTrend(
     IReadOnlyList<TrendBucket> Buckets,

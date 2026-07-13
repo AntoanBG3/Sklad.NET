@@ -20,7 +20,7 @@ public class FloorControllerTests : IDisposable
 
     private FloorController CreateController(SkladDbContext context, string userName = "picker")
     {
-        var service = new InventoryService(context, NullLogger<InventoryService>.Instance, new FakeLocalizer<SharedResource>());
+        var service = new InventoryService(context, NullLogger<InventoryService>.Instance);
         var httpContext = new DefaultHttpContext
         {
             User = new ClaimsPrincipal(new ClaimsIdentity(
@@ -92,7 +92,7 @@ public class FloorControllerTests : IDisposable
         Assert.Equal("A-12", vm.Location);
     }
 
-    // Sku and Barcode carry a NOCASE collation; this proves the lookup relies on it.
+    // Sku and Barcode carry the Unicode-aware collation; this proves the lookup relies on it.
     [Fact]
     public async Task Tire_finds_a_tire_by_barcode_in_a_different_case()
     {
@@ -175,6 +175,42 @@ public class FloorControllerTests : IDisposable
 
         await using var check = _db.CreateContext();
         Assert.Equal(4, (await check.Tires.FindAsync(tire.Id))!.Quantity);
+    }
+
+    [Fact]
+    public async Task Book_an_overflowing_quantity_is_rejected_without_touching_stock()
+    {
+        var tire = await SeedAsync(NewTire("MI-OVERFLOW", qty: 1));
+        using var context = _db.CreateContext();
+        var controller = CreateController(context);
+
+        var result = Assert.IsType<ViewResult>(
+            await controller.Book(tire.Id, MovementType.In, int.MaxValue));
+
+        Assert.Equal(nameof(FloorController.Tire), result.ViewName);
+        Assert.False(controller.ModelState.IsValid);
+
+        await using var check = _db.CreateContext();
+        Assert.Equal(1, (await check.Tires.FindAsync(tire.Id))!.Quantity);
+        Assert.Empty(check.StockMovements.Where(m => m.TireId == tire.Id));
+    }
+
+    [Fact]
+    public async Task Book_a_stale_tire_re_renders_instead_of_returning_500()
+    {
+        var tire = await SeedAsync(NewTire("MI-304", qty: 4));
+        using var context = _db.CreateContext(new BumpVersionsOnSave(_db.Connection));
+        var controller = CreateController(context);
+
+        var result = Assert.IsType<ViewResult>(
+            await controller.Book(tire.Id, MovementType.In, 1));
+
+        Assert.Equal(nameof(FloorController.Tire), result.ViewName);
+        Assert.False(controller.ModelState.IsValid);
+
+        await using var check = _db.CreateContext();
+        Assert.Equal(4, (await check.Tires.FindAsync(tire.Id))!.Quantity);
+        Assert.Empty(check.StockMovements.Where(m => m.TireId == tire.Id));
     }
 
     [Fact]

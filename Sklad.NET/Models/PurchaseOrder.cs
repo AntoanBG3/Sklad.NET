@@ -29,6 +29,12 @@ public class PurchaseOrder
     [StringLength(100)]
     public string? ReceivedBy { get; set; }
 
+    // Every mutation of the order aggregate (lines or lifecycle state) advances
+    // this token. That makes the status check and the subsequent write one
+    // optimistic-concurrency operation instead of allowing a stale request to
+    // overwrite a concurrent edit, cancellation, or receipt.
+    public int Version { get; set; }
+
     public Supplier Supplier { get; set; } = null!;
 
     public ICollection<PurchaseOrderItem> Items { get; set; } = new List<PurchaseOrderItem>();
@@ -40,7 +46,7 @@ public class PurchaseOrder
     public decimal Total => Items.Sum(i => i.Quantity * i.UnitCost);
 
     [NotMapped]
-    public int TotalUnits => Items.Sum(i => i.Quantity);
+    public long TotalUnits => Items.Sum(i => (long)i.Quantity);
 
     [NotMapped]
     public bool IsEditable => Status == PurchaseOrderStatus.Draft;
